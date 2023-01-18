@@ -9,6 +9,23 @@ Running docker (duh) and compose, either standalone or plugin.
 ___
 ## `dockcheck.sh`
 A script to check all currently running containers if they've got updates without pulling images, list them and give the option to update.
+Example:
+```bash
+$ ./dockcheck.sh
+. . .
+Containers with updates available:
+whoogle-search
+
+Containers on latest version:
+glances
+homer
+
+Do you want to update? y/[n]
+y
+
+#then it proceedes to run pull on every container with updates.   
+
+```   
 
 [![asciicast](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.svg)](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2)
 
