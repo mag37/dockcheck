@@ -28,16 +28,15 @@ else
 fi
 
 ### Check the image-hash of every running container VS the registry
-for i in $(docker ps --format '{{.Image}},{{.Names}}') 
+for i in $(docker ps --format '{{.Names}}') 
 do
-  RepoUrl=$( echo "$i" | cut -d, -f1)
-  ContName=$( echo "$i" | cut -d, -f2)
+  RepoUrl=$(docker inspect $i --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect $RepoUrl --format '{{.RepoDigests}}' | sed -e 's/.*sha256/sha256/' -e 's/\]$//')
   RegHash=$(./regctl image digest --list $RepoUrl)
   if [[ "$LocalHash" != "$RegHash" ]] ; then
-    GotUpdates+=("$ContName")
+    GotUpdates+=("$i")
   else
-    NoUpdates+=("$ContName")
+    NoUpdates+=("$i")
   fi
 done
 
