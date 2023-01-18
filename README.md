@@ -16,3 +16,5 @@ Brief function to check a single contianer (by name) if there's any available up
 A script to check all currently running containers if they've got updates without pulling images, list them and give the option to update.
 
 [![asciicast](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.svg)](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2)
+
+<script id="asciicast-Bt3UXSoDHIRSn0GbvfZmB0tV2" src="https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.js" async></script>
