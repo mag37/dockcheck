@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ### Requires the regctl binary, either in PATH or as an alias
 ### Get it here: https://github.com/regclient/regclient/releases
 
