@@ -42,27 +42,32 @@ printf ". "
 done
 
 ### List what containers got updates or not
-if [ -n "$GotUpdates" ] ; then
-  printf "\n\033[31;1mContainers with updates available:\033[0m\n"
-  printf "%s\n" "${GotUpdates[@]}"
-fi
 if [ -n "$NoUpdates" ] ; then
   printf "\n\033[32;1mContainers on latest version:\033[0m\n"
   printf "%s\n" "${NoUpdates[@]}"
 fi
-
-### Optionally get updates 
-printf "\n\033[36;1mDo you want to update? y/[n]\033[0m\n"
-read UpdYes
-if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
-  for i in "${GotUpdates[@]}"
-  do 
-    # Check what compose-type is installed:
-    if docker compose &> /dev/null ; then DockerBin="docker compose" ; else DockerBin="docker-compose" ; fi
-    ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
-    $DockerBin -f "$ContPath/docker-compose.yml" pull 
-    $DockerBin -f "$ContPath/docker-compose.yml" up -d
-  done
-else
-  printf "\nNo updates installed, exiting.\n"
+if [ -n "$GotUpdates" ] ; then
+  printf "\n\033[31;1mContainers with updates available:\033[0m\n"
+  printf "%s\n" "${GotUpdates[@]}"
 fi
+
+### Optionally get updates if there's any 
+if [ -n "$GotUpdates" ] ; then
+  printf "\n\033[36;1mDo you want to update? y/[n]\033[0m\n"
+  read UpdYes
+  if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
+    for i in "${GotUpdates[@]}"
+    do 
+      # Check what compose-type is installed:
+      if docker compose &> /dev/null ; then DockerBin="docker compose" ; else DockerBin="docker-compose" ; fi
+      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
+      $DockerBin -f "$ContPath/docker-compose.yml" pull 
+      $DockerBin -f "$ContPath/docker-compose.yml" up -d
+    done
+  else
+    printf "\nNo updates installed, exiting.\n"
+  fi
+else
+  printf "\nNo updates available, exiting.\n"
+fi
+
