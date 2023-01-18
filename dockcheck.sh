@@ -1,15 +1,6 @@
 #!/bin/bash
 
-### Check arch:
-case "$(uname --machine)" in
-  x86_64|amd64)
-    architecture="amd64";;
-  arm64|aarch64)
-    architecture="arm64";;
-  *) echo "Architecture not supported, exiting." ; exit ;;
-esac
-
-### Check if required application exists in PATH or directory:
+### Check if required binary exists in PATH or directory:
 if [[ $(builtin type -P "regctl") ]]; then 
   regbin="regctl"
 elif [[ -f "./regctl" ]]; then
@@ -18,6 +9,14 @@ else
   printf "Required dependency 'regctl' missing, do you want it downloaded? y/[n]\n"
   read GetDep
   if [ "$GetDep" != "${GetDep#[Yy]}" ]; then
+    ### Check arch:
+    case "$(uname --machine)" in
+      x86_64|amd64)
+        architecture="amd64";;
+      arm64|aarch64)
+        architecture="arm64";;
+      *) echo "Architecture not supported, exiting." ; exit ;;
+    esac
     curl -L https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture >./regctl
     chmod 755 ./regctl
     regbin="./regctl"
@@ -26,6 +25,7 @@ else
     exit
   fi
 fi
+
 
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps --format '{{.Names}}') 
