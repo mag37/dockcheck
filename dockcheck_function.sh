@@ -3,7 +3,7 @@
 ### Requires the regctl binary, either in PATH or as an alias
 ### Get it here: https://github.com/regclient/regclient/releases
 
-alias="/path/to/regctl"
+alias regctl="/path/to/regctl"
 dockcheck () {
   if [[ -z "$1" ]]; then 
     echo "No container name given, here's the list of currently running containers:" 
