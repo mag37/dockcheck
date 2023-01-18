@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### Check arch:
-case "`uname --machine`" in
+case "$(uname --machine)" in
   x86_64|amd64)
     architecture="amd64";;
   arm64|aarch64)
@@ -31,9 +31,9 @@ fi
 for i in $(docker ps --format '{{.Names}}') 
 do
 printf ". "
-  RepoUrl=$(docker inspect $i --format='{{.Config.Image}}')
-  LocalHash=$(docker image inspect $RepoUrl --format '{{.RepoDigests}}' | sed -e 's/.*sha256/sha256/' -e 's/\]$//')
-  RegHash=$(./regctl image digest --list $RepoUrl)
+  RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
+  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}' | sed -e 's/.*sha256/sha256/' -e 's/\]$//')
+  RegHash=$($regbin image digest --list "$RepoUrl")
   if [[ "$LocalHash" != "$RegHash" ]] ; then
     GotUpdates+=("$i")
   else
@@ -42,11 +42,11 @@ printf ". "
 done
 
 ### List what containers got updates or not
-if [ ! -z $GotUpdates ] ; then
+if [ -n "$GotUpdates" ] ; then
   printf "\n\033[31;1mContainers with updates available:\033[0m\n"
   printf "%s\n" "${GotUpdates[@]}"
 fi
-if [ ! -z $NoUpdates ] ; then
+if [ -n "$NoUpdates" ] ; then
   printf "\n\033[32;1mContainers on latest version:\033[0m\n"
   printf "%s\n" "${NoUpdates[@]}"
 fi
@@ -59,7 +59,7 @@ if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
   do 
     # Check what compose-type is installed:
     if docker compose &> /dev/null ; then DockerBin="docker compose" ; else DockerBin="docker-compose" ; fi
-    ContPath=$(docker inspect $i --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
+    ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
     $DockerBin -f "$ContPath/docker-compose.yml" pull 
     $DockerBin -f "$ContPath/docker-compose.yml" up -d
   done
