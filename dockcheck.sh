@@ -30,6 +30,7 @@ fi
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps --format '{{.Names}}') 
 do
+printf ". "
   RepoUrl=$(docker inspect $i --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect $RepoUrl --format '{{.RepoDigests}}' | sed -e 's/.*sha256/sha256/' -e 's/\]$//')
   RegHash=$(./regctl image digest --list $RepoUrl)
