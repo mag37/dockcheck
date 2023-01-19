@@ -25,7 +25,7 @@ y
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 
-Example-video:
+Example-video:   
 [![asciicast](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.svg)](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2)
 
 
