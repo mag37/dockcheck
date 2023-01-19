@@ -33,7 +33,7 @@ Example-video:
 Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.
 Preferably placed in `.bashrc` or similar.
 Example:
-```bash
+```
 $ dockcheck ng
 Updates available for local_nginx.
 nginx_reverse is already latest.
