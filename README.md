@@ -18,7 +18,8 @@ Options:
 -a     Automatic updates, without interaction.
 -n     No updates, only checking availability.
 ```
-A script to check all currently running containers if they've got updates without pulling images, list them and give the option to update.   
+A script to check for updates on all currently running containers without pulling images, list them and give the option to update.   
+
 Basic example:
 ```bash
 $ dockcheck.sh
@@ -33,6 +34,9 @@ homer
 Do you want to update? y/[n]
 y
 ```
+Then it proceedes to run `pull` and `up -d` on every container with updates.   
+
+
 
 And with `-n No updates` and `gl` for *gl* filtering:
 ```bash
@@ -46,7 +50,6 @@ glances
 
 No updates installed, exiting
 ```
-Then it proceedes to run `pull` and `up -d` on every container with updates.   
 
 Example-video:   
 [![asciicast](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.svg)](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2)
