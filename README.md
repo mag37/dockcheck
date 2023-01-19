@@ -30,10 +30,12 @@ Example-video:
 
 
 ## `dc_function.sh`
-Brief function to check a single contianer (by name) if there's any available updates or not **without the need of pulling**.
+Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.
 Preferably placed in `.bashrc` or similar.
 Example:
 ```bash
-$ dockcheck nginx
-Updates available.
+$ dockcheck ng
+Updates available for local_nginx.
+nginx_reverse is already latest.
+Updates available for paperless-ng.
 ```
