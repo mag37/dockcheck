@@ -5,13 +5,23 @@ ___
 
 ## Dependencies:
 Running docker (duh) and compose, either standalone or plugin.   
-`regctl` by [regclient](https://github.com/regclient/regclient)
+`regctl` by [regclient](https://github.com/regclient/regclient)  
+The script will ask to download `regctl` if it's not in PATH or current directory.
 ___
 ## `dockcheck.sh`
-A script to check all currently running containers if they've got updates without pulling images, list them and give the option to update.
-Example:
 ```bash
-$ ./dockcheck.sh
+$ dockcheck.sh -h
+Syntax:     dockcheck.sh [OPTION] [optional string to filter names]
+
+Options:
+-h     Print this Help.
+-a     Automatic updates, without interaction.
+-n     No updates, only checking availability.
+```
+A script to check all currently running containers if they've got updates without pulling images, list them and give the option to update.   
+Basic example:
+```bash
+$ dockcheck.sh
 . . .
 Containers with updates available:
 whoogle-search
@@ -22,6 +32,19 @@ homer
 
 Do you want to update? y/[n]
 y
+```
+
+And with `-n No updates` and `gl` for *gl* filtering:
+```bash
+$ dockcheck.sh -n gl
+. . .
+Containers with updates available:
+whoogle-search
+
+Containers on latest version:
+glances
+
+No updates installed, exiting
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 
