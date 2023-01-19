@@ -38,7 +38,7 @@ Then it proceedes to run `pull` and `up -d` on every container with updates.
 
 
 
-And with `-n No updates` and `gl` for *gl* filtering:
+And with `-n` *No updates* and `gl` for `*gl*` filtering:
 ```bash
 $ dockcheck.sh -n gl
 . . .
