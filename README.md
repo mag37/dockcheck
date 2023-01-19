@@ -1,5 +1,5 @@
 # dockcheck
-Scripts and functions to check for docker updates for images, **without the need of pulling**. With the help of [`regctl`](https://github.com/regclient/regclient).
+### Scripts and functions to check for updates for docker images, **without the need of pulling**. With the help of [`regctl`](https://github.com/regclient/regclient).
 This is just a concept for fun and inspiration, use with care.
 ___
 
@@ -56,7 +56,7 @@ Example-video:
 
 
 ## `dupc_function.sh`
-Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.
+Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.  
 Preferably placed in `.bashrc` or similar.
 Example:
 ```
