@@ -55,12 +55,12 @@ Example-video:
 [![asciicast](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.svg)](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2)
 
 
-## `dc_function.sh`
+## `dupc_function.sh`
 Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.
 Preferably placed in `.bashrc` or similar.
 Example:
 ```
-$ dockcheck ng
+$ dupc ng
 Updates available for local_nginx.
 nginx_reverse is already latest.
 Updates available for paperless-ng.
