@@ -9,7 +9,7 @@
 alias regctl="/path/to/regctl"
 
 
-dockcheck () {
+dupc () {
   if [[ -z "$1" ]]; then 
     echo "No container name given, here's the list of currently running containers:" 
     docker ps --format '{{.Names}}'
