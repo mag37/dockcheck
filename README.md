@@ -1,5 +1,5 @@
 # dockcheck
-### Scripts and functions to check for updates for docker images, **without the need of pulling**.   
+### Scripts and functions to check updates for docker images, **without the need of pulling**.   
 With the help of [`regctl`](https://github.com/regclient/regclient).   
 This is just a concept for fun and inspiration, use with care.
 ___
