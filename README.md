@@ -53,8 +53,7 @@ No updates installed, exiting
 ```
 
 Example-video:   
-[![asciicast](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2.svg)](https://asciinema.org/a/Bt3UXSoDHIRSn0GbvfZmB0tV2)
-
+![](https://github.com/mag37/dockcheck/blob/main/example_run.gif)
 
 ## `dupc_function.sh`
 Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.  
