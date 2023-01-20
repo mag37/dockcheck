@@ -63,11 +63,16 @@ do
 printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}' | sed -e 's/.*sha256/sha256/' -e 's/\]$//')
-  RegHash=$($regbin image digest --list "$RepoUrl")
-  if [[ "$LocalHash" != "$RegHash" ]] ; then
-    GotUpdates+=("$i")
+  RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null)
+  # Check if regtcl produces errors - add to GotErrors if so.
+  if [ $? -eq 0 ] ; then
+    if [[ "$LocalHash" != "$RegHash" ]] ; then
+      GotUpdates+=("$i")
+    else
+      NoUpdates+=("$i")
+    fi
   else
-    NoUpdates+=("$i")
+    GotErrors+=("$i")
   fi
 done
 
@@ -79,6 +84,10 @@ fi
 if [ -n "$GotUpdates" ] ; then
   printf "\n\033[31;1mContainers with updates available:\033[0m\n"
   printf "%s\n" "${GotUpdates[@]}"
+fi
+if [ -n "$GotErrors" ] ; then
+  printf "\n\033[33;1mContainers with errors, wont get updated:\033[0m\n"
+  printf "%s\n" "${GotErrors[@]}"
 fi
 
 ### Optionally get updates if there's any 
