@@ -86,7 +86,7 @@ if [ -n "$GotUpdates" ] ; then
   if [ -z "$UpdYes" ] ; then
   printf "\n\033[36;1mDo you want to update? y/[n]\033[0m\n"
   read UpdYes
-    else
+  fi
     if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
       for i in "${GotUpdates[@]}"
       do 
@@ -99,7 +99,6 @@ if [ -n "$GotUpdates" ] ; then
     else
       printf "\nNo updates installed, exiting.\n"
     fi
-  fi
 else
   printf "\nNo updates available, exiting.\n"
 fi
