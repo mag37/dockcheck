@@ -62,14 +62,14 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}')
 do
 printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
-  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}' | sed -e 's/.*sha256/sha256/' -e 's/\]$//')
-  RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null)
+  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
+  RegHash=$(./regctl image digest --list "$RepoUrl" 2>/dev/null)
   # Check if regtcl produces errors - add to GotErrors if so.
   if [ $? -eq 0 ] ; then
-    if [[ "$LocalHash" != "$RegHash" ]] ; then
-      GotUpdates+=("$i")
-    else
+    if [[ "$LocalHash" = *"$RegHash"* ]] ; then
       NoUpdates+=("$i")
+    else
+      GotUpdates+=("$i")
     fi
   else
     GotErrors+=("$i")
