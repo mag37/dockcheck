@@ -20,7 +20,10 @@ Options:
 -a     Automatic updates, without interaction.
 -n     No updates, only checking availability.
 ```
-A script to check for updates on all currently running containers without pulling images, list them and give the option to update.   
+
+
+
+![](https://github.com/mag37/dockcheck/blob/main/example_run.gif)
 
 Basic example:
 ```bash
@@ -52,10 +55,6 @@ glances
 
 No updates installed, exiting
 ```
-
-Example-video:   
-![](https://github.com/mag37/dockcheck/blob/main/example_run.gif)
-
 
 ### :beetle: Squashed Bugs:
 - ~~No options for running without updates or auto update.~~
