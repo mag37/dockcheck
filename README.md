@@ -67,6 +67,10 @@ No updates installed, exiting
 - No granular choice of what to update (except initial name filter).
 - No detailed error feedback (just skip + list what's skipped) .
 
+## `dockcheck_docker-run_ver.sh`
+Alternative version for people who use `docker run` and no composes. Consider that this will restart updated containers without taking into account any other containers relying or depending on said container - might need to restart relating containers afterwards.
+
+
 ## `dupc_function.sh`
 Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.  
 Preferably placed in `.bashrc` or similar.
