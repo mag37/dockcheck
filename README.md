@@ -64,7 +64,7 @@ No updates installed, exiting
 - ~~Multi-digest images didn't correctly check with registry, giving false positives on updates.~~
 
 ### :hammer: Known issues
-- No granular choice of what to update (except initial name filter).
+- ~~No granular choice of what to update (except initial name filter).~~ Now in [`experimental_dockcheck.sh`](https://github.com/mag37/dockcheck/blob/main/experimental_dockcheck.sh)
 - No detailed error feedback (just skip + list what's skipped) .
 
 ## `dockcheck_docker-run_ver.sh`
