@@ -88,7 +88,7 @@ if [ -n "$GotErrors" ] ; then
 fi
 
 ### SELECTION definitions and functions:
-NumberedUpdates=(all "$GotUpdates")
+NumberedUpdates=(all "${GotUpdates[@]}")
 
 options() {
 num=0
