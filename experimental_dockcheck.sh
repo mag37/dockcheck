@@ -125,13 +125,12 @@ if [ -n "$GotUpdates" ] ; then
   read UpdYes
   [ "$UpdYes" != "${UpdYes#[Yy]}" ] && choosecontainers
   else
-    SelectedUpdates=${GotUpdates[@]}
+    SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
       # Check what compose-type is installed:
-      # if docker compose &> /dev/null ; then DockerBin="docker compose" ; else DockerBin="docker-compose" ; fi
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
       $DockerBin -f "$ContPath/docker-compose.yml" pull 
       $DockerBin -f "$ContPath/docker-compose.yml" up -d
