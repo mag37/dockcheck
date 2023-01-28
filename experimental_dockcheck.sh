@@ -99,19 +99,18 @@ done
 }
 
 choosecontainers() {
-while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean"  ]]; do
+while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
   printf "What containers do you like to update? \n"
   options
-  read -p 'Enter number(s) separated by ,(comma) : ' Choice
+  read -p 'Enter number(s) separated by , : ' Choice
   if [ "$Choice" == "0" ] ; then 
     SelectedUpdates=( ${NumberedUpdates[@]:1} )
     ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
   else
     ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
-    SelectedUpdates=$(\
-      for s in $ChoiceClean; do
-        printf "%s\n" "${NumberedUpdates[${s}]}"
-      done)
+    for s in $ChoiceClean; do
+      SelectedUpdates+=( ${NumberedUpdates[$s]} )
+    done
   fi
 done
 printf "\nYou've SelectedUpdates:\n"
@@ -141,4 +140,5 @@ if [ -n "$GotUpdates" ] ; then
 else
   printf "\nNo updates available, exiting.\n"
 fi
+
 exit 0
