@@ -58,10 +58,38 @@ else
   exit
 fi
 
+### Numbered List -function:
+options() {
+num=0
+for i in "${NumberedUpdates[@]}"; do
+  echo "$num) $i"
+  ((num++))
+done
+}
+
+### Choose from list -function:
+choosecontainers() {
+  while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
+    printf "What containers do you like to update? \n"
+    # options
+    read -p 'Enter number(s) separated by , : ' Choice
+    if [ "$Choice" == "0" ] ; then 
+      SelectedUpdates=( ${NumberedUpdates[@]:1} )
+      ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
+    else
+      ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
+      for s in $ChoiceClean; do
+        SelectedUpdates+=( ${NumberedUpdates[$s]} )
+      done
+    fi
+  done
+  printf "\nYou've SelectedUpdates:\n"
+  printf "%s\n" "${SelectedUpdates[@]}"
+}
+
 ### Check the image-hash of every running container VS the registry
-for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') 
-do
-printf ". "
+for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
+  printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null)
@@ -73,49 +101,22 @@ printf ". "
   fi
 done
 
+### Create new Array to use for the numbered list:
+NumberedUpdates=(ALL "${GotUpdates[@]}")
+
 ### List what containers got updates or not
 if [ -n "$NoUpdates" ] ; then
   printf "\n\033[32;1mContainers on latest version:\033[0m\n"
   printf "%s\n" "${NoUpdates[@]}"
 fi
-if [ -n "$GotUpdates" ] ; then
-  printf "\n\033[31;1mContainers with updates available:\033[0m\n"
-  printf "%s\n" "${GotUpdates[@]}"
-fi
 if [ -n "$GotErrors" ] ; then
   printf "\n\033[33;1mContainers with errors, wont get updated:\033[0m\n"
   printf "%s\n" "${GotErrors[@]}"
 fi
-
-### SELECTION definitions and functions:
-NumberedUpdates=(all "${GotUpdates[@]}")
-
-options() {
-num=0
-for i in "${NumberedUpdates[@]}"; do
-  echo "$num) $i"
-  ((num++))
-done
-}
-
-choosecontainers() {
-while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
-  printf "What containers do you like to update? \n"
-  options
-  read -p 'Enter number(s) separated by , : ' Choice
-  if [ "$Choice" == "0" ] ; then 
-    SelectedUpdates=( ${NumberedUpdates[@]:1} )
-    ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
-  else
-    ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
-    for s in $ChoiceClean; do
-      SelectedUpdates+=( ${NumberedUpdates[$s]} )
-    done
-  fi
-done
-printf "\nYou've SelectedUpdates:\n"
-printf "%s\n" "${SelectedUpdates[@]}"
-}
+if [ -n "$GotUpdates" ] ; then 
+   printf "\n\033[31;1mContainers with updates available:\033[0m\n"
+   options
+fi
 
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
