@@ -7,19 +7,17 @@ Help() {
   echo
   echo "Options:"
   echo "-h     Print this Help."
-  echo "-a     Automatic updates, without interaction."
+  echo "-a|y   Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
 }
 
-while getopts "anh" options; do
+while getopts "aynh" options; do
   case "${options}" in
-    a) UpdYes="yes" ;;
+    a|y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
     h|*) Help ; exit 0 ;;
   esac
 done
-
-### Set $1 back to $1 (ignoring the places held by getops)
 shift "$((OPTIND-1))"
 
 ### Set $1 to a variable for later
@@ -31,7 +29,7 @@ if [[ $(builtin type -P "regctl") ]]; then
 elif [[ -f "./regctl" ]]; then
   regbin="./regctl"
 else
-  printf "Required dependency 'regctl' missing, do you want it downloaded? y/[n]\n"
+  printf "Required dependency 'regctl' missing, do you want it downloaded? y/[n] "
   read GetDep
   if [ "$GetDep" != "${GetDep#[Yy]}" ]; then
     ### Check arch:
@@ -115,13 +113,13 @@ if [ -n "$GotErrors" ] ; then
 fi
 if [ -n "$GotUpdates" ] ; then 
    printf "\n\033[31;1mContainers with updates available:\033[0m\n"
-   options
+   [ -z "$UpdYes" ] && options || printf "%s\n" "${GotUpdates[@]}"
 fi
 
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
   if [ -z "$UpdYes" ] ; then
-  printf "\n\033[36;1mDo you want to update? y/[n]\033[0m\n"
+  printf "\n\033[36;1mDo you want to update? y/[n]\033[0m "
   read UpdYes
   [ "$UpdYes" != "${UpdYes#[Yy]}" ] && choosecontainers
   else
@@ -130,7 +128,6 @@ if [ -n "$GotUpdates" ] ; then
   if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
-      # Check what compose-type is installed:
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
       $DockerBin -f "$ContPath/docker-compose.yml" pull 
       $DockerBin -f "$ContPath/docker-compose.yml" up -d
