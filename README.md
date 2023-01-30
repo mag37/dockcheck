@@ -73,7 +73,8 @@ No updates installed, exiting
 - ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
 
-## `dockcheck_docker-run_ver.sh` - Wont auto-update the containers, only their images. (compose is recommended)
+## `dockcheck_docker-run_ver.sh`
+### Wont auto-update the containers, only their images. (compose is recommended)
 Alternative version for people who use `docker run` and no composes.   
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be stopped, removed and created again to run on the new image.
