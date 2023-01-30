@@ -1,11 +1,12 @@
 #!/bin/bash
+### VERSION v.0.1.0
 
 ### DOCKER RUN - VERSION
 
 ### WARNING WONT REBUILD CONTAINERS - ONLY GRAB NEW IMAGES
 ### If running docker compose, use the main version. (recommended!)
 
-# Help Function:
+### Help Function:
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]" 
   echo "Example:    dockcheck.sh -a ng"
