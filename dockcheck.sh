@@ -70,7 +70,7 @@ choosecontainers() {
   while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
     printf "What containers do you like to update? \n"
     # options
-    read -p 'Enter number(s) separated by , : ' Choice
+    read -p 'Enter number(s) separated by comma (eg. 1,3,4): ' Choice
     if [ "$Choice" == "0" ] ; then 
       SelectedUpdates=( ${NumberedUpdates[@]:1} )
       ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
