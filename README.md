@@ -1,5 +1,5 @@
 # dockcheck
-### A script checking updates for docker images **without the need of pulling** - then having the option to auto-update.
+### A script checking updates for docker images **without the need of pulling** - then having the option to auto-update either all or selecting specific containers.
 
 With the help of [`regctl`](https://github.com/regclient/regclient).   
 This is just a concept for fun and inspiration, use with care.
@@ -13,11 +13,12 @@ ___
 ## `dockcheck.sh`
 ```bash
 $ ./dockcheck.sh -h
-Syntax:     dockcheck.sh [OPTION] [optional string to filter names]
+Syntax:     dockcheck.sh [OPTION] [part of name to filter]
+Example:    dockcheck.sh -a ng
 
 Options:
 -h     Print this Help.
--a     Automatic updates, without interaction.
+-a|y   Automatic updates, without interaction.
 -n     No updates, only checking availability.
 ```
 
@@ -29,15 +30,21 @@ Basic example:
 ```bash
 $ ./dockcheck.sh
 . . .
-Containers with updates available:
-whoogle-search
-
 Containers on latest version:
 glances
 homer
 
-Do you want to update? y/[n]
-y
+Containers with updates available:
+0) ALL
+1) adguardhome
+2) syncthing
+3) whoogle-search
+
+
+Do you want to update? y/[n] y
+What containers do you like to update? 
+Enter number(s) separated by comma: 1,3
+
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 
@@ -64,8 +71,7 @@ No updates installed, exiting
 - ~~Multi-digest images didn't correctly check with registry, giving false positives on updates.~~
 
 ### :hammer: Known issues
-- ~~No granular choice of what to update (except initial name filter).~~    
-    - Now in [`experimental_dockcheck.sh`](https://github.com/mag37/dockcheck/blob/main/experimental_dockcheck.sh)
+- ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
 
 ## `dockcheck_docker-run_ver.sh`
