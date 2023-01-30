@@ -1,6 +1,7 @@
 #!/bin/bash
+### VERSION v.0.1.0
 
-# Help Function:
+### Help Function:
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]" 
   echo "Example:    dockcheck.sh -a ng"
