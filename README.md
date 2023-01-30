@@ -1,8 +1,7 @@
 # dockcheck
 ### A script checking updates for docker images **without the need of pulling** - then having the option to auto-update either all or selecting specific containers.
 
-With the help of [`regctl`](https://github.com/regclient/regclient).   
-This is just a concept for fun and inspiration, use with care.
+With the help of [`regctl`](https://github.com/regclient/regclient). This is just a concept for inspiration, use with care.
 ___
 
 ## Dependencies:
@@ -74,8 +73,10 @@ No updates installed, exiting
 - ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
 
-## `dockcheck_docker-run_ver.sh`
-Alternative version for people who use `docker run` and no composes. Consider that this will restart updated containers without taking into account any other containers relying or depending on said container - might need to restart relating containers afterwards.
+## `dockcheck_docker-run_ver.sh` - Wont auto-update the containers, only their images. (compose is recommended)
+Alternative version for people who use `docker run` and no composes.   
+`docker run` dont support using new images just by restarting a container.  
+Containers need to be stopped, removed and created again to run on the new image.
 
 
 ## `dupc_function.sh`
