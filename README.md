@@ -6,8 +6,7 @@ ___
 
 ## Dependencies:
 Running docker (duh) and compose, either standalone or plugin.   
-`regctl` by [regclient](https://github.com/regclient/regclient)  
-The script will ask to download `regctl` if it's not in PATH or current directory.
+`regctl` by [regclient](https://github.com/regclient/regclient) (will ask to download `regctl` if not in `PATH` or `PWD`)
 ___
 ## `dockcheck.sh`
 ```bash
