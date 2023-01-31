@@ -23,7 +23,7 @@ Options:
 
 
 
-![](https://github.com/mag37/dockcheck/blob/main/example_run.gif)
+![](https://github.com/mag37/dockcheck/blob/main/example.gif)
 
 Basic example:
 ```bash
