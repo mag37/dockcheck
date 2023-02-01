@@ -1,5 +1,5 @@
 #!/bin/bash
-### VERSION v.0.1.0
+### VERSION v.0.1.1
 
 ### DOCKER RUN - VERSION
 
@@ -105,6 +105,12 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   fi
 done
 
+### Sort arrays alphabetically
+IFS=$'\n' 
+NoUpdates=($(sort <<<"${NoUpdates[*]}"))
+GotUpdates=($(sort <<<"${GotUpdates[*]}"))
+GotErrors=($(sort <<<"${GotErrors[*]}"))
+unset IFS
 ### Create new Array to use for the numbered list:
 NumberedUpdates=(ALL "${GotUpdates[@]}")
 
