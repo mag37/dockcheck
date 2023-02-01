@@ -1,5 +1,5 @@
 #!/bin/bash
-### VERSION v.0.1.0
+### VERSION v.0.1.1
 
 ### Help Function:
 Help() {
@@ -100,6 +100,12 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   fi
 done
 
+### Sort arrays alphabetically
+IFS=$'\n' 
+NoUpdates=($(sort <<<"${NoUpdates[*]}"))
+GotUpdates=($(sort <<<"${GotUpdates[*]}"))
+GotErrors=($(sort <<<"${GotErrors[*]}"))
+unset IFS
 ### Create new Array to use for the numbered list:
 NumberedUpdates=(ALL "${GotUpdates[@]}")
 
@@ -129,9 +135,9 @@ if [ -n "$GotUpdates" ] ; then
   if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
-      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir"}}')
-      $DockerBin -f "$ContPath/docker-compose.yml" pull 
-      $DockerBin -f "$ContPath/docker-compose.yml" up -d
+      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files"}}')
+      $DockerBin -f "$ContPath" pull 
+      $DockerBin -f "$ContPath" up -d
     done
   else
     printf "\nNo updates installed, exiting.\n"
