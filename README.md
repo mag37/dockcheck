@@ -67,11 +67,12 @@ No updates installed, exiting
 - ~~Faulty registry checkups stopped the updates completely.~~
 - ~~No clear checks to skip containers producing errors.~~
 - ~~Multi-digest images didn't correctly check with registry, giving false positives on updates.~~
+- ~~Not working with filenames other than `docker-compose.yml`~~
+- ~~Lists are not alphabetically sorted (due to stacks and other parameters)~~
 
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
-- Not working with other filenames than `docker-compose.yml` - fix will be merged soon.
 
 ## `dockcheck_docker-run_ver.sh`
 ### Wont auto-update the containers, only their images. (compose is recommended)
@@ -90,3 +91,7 @@ Updates available for local_nginx.
 nginx_reverse is already latest.
 Updates available for paperless-ng.
 ```
+
+## Special Thanks:
+:bison: [t0rnis](https://github.com/t0rnis)   
+:leopard: [Palleri](https://github.com/Palleri)
