@@ -91,6 +91,8 @@ Updates available for local_nginx.
 nginx_reverse is already latest.
 Updates available for paperless-ng.
 ```
+## Also check out a spinoff brother-project [Palleri/dockcheck-web](https://github.com/Palleri/dockcheck-web) for a WebUI-front!
+---
 
 ## Special Thanks:
 :bison: [t0rnis](https://github.com/t0rnis)   
