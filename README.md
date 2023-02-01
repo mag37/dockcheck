@@ -71,6 +71,7 @@ No updates installed, exiting
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
+- Not working with other filenames than `docker-compose.yml` - fix will be merged soon.
 
 ## `dockcheck_docker-run_ver.sh`
 ### Wont auto-update the containers, only their images. (compose is recommended)
