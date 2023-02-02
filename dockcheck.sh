@@ -1,5 +1,10 @@
 #!/bin/bash
 VERSION="v0.1.3"
+Github="https://github.com/mag37/dockcheck"
+
+### Check if there's a new release of the script:
+LatestRelease="$(curl -s -r 0-30 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+[ $VERSION != $LatestRelease ] && printf "New version available! Latest: $LatestRelease - Local: $VERSION \nGrab it here: $Github \n"
 
 ### Help Function:
 Help() {
