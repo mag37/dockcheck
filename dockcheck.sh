@@ -1,5 +1,5 @@
 #!/bin/bash
-### VERSION v.0.1.3
+VERSION="v0.1.3"
 
 ### Help Function:
 Help() {
