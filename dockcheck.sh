@@ -1,5 +1,5 @@
 #!/bin/bash
-### VERSION v.0.1.1
+### VERSION v.0.1.3
 
 ### Help Function:
 Help() {
@@ -21,7 +21,7 @@ while getopts "aynh" options; do
 done
 shift "$((OPTIND-1))"
 
-### Set $1 to a variable for later
+### Set $1 to a variable for name filtering later.
 SearchName="$1"
 
 ### Check if required binary exists in PATH or directory:
@@ -70,15 +70,14 @@ done
 choosecontainers() {
   while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
     printf "What containers do you like to update? \n"
-    # options
     read -p 'Enter number(s) separated by comma (eg. 1,3,4): ' Choice
     if [ "$Choice" == "0" ] ; then 
-      SelectedUpdates=( ${NumberedUpdates[@]:1} )
-      ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
+      SelectedUpdates=( "${NumberedUpdates[@]:1}" )
+      ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
     else
-      ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
-      for s in $ChoiceClean; do
-        SelectedUpdates+=( ${NumberedUpdates[$s]} )
+      ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
+      for s in "$ChoiceClean"; do
+        SelectedUpdates+=( "${NumberedUpdates[$s]}" )
       done
     fi
   done
@@ -92,7 +91,7 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null)
-  # Check if regtcl produces errors - add to GotErrors if so.
+  # Add container to GotErrors if regctl encounter problems.
   if [ $? -eq 0 ] ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
   else
