@@ -50,7 +50,7 @@ fi
 ### Check docker compose binary:
 if docker compose &> /dev/null ; then 
   DockerBin="docker compose"
-elif docker-compose &> /dev/null; then
+elif docker-compose -v &> /dev/null; then
   DockerBin="docker-compose"
 else
   printf "%s\n" "No docker compose binary available, quitting."
