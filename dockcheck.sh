@@ -135,9 +135,10 @@ if [ -n "$GotUpdates" ] ; then
   if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
-      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files"}}')
-      $DockerBin -f "$ContPath" pull 
-      $DockerBin -f "$ContPath" up -d
+      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
+      ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
+      $DockerBin -f "$ContPath" pull "$ContName"
+      $DockerBin -f "$ContPath" up -d "$ContName"
     done
   else
     printf "\nNo updates installed, exiting.\n"
