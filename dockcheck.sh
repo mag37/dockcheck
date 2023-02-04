@@ -136,8 +136,8 @@ if [ -n "$GotUpdates" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files"}}')
-      $DockerBin -f "$ContPath" pull 
-      $DockerBin -f "$ContPath" up -d
+      $DockerBin -f "$ContPath" pull "$i"
+      $DockerBin -f "$ContPath" up -d "$i"
     done
   else
     printf "\nNo updates installed, exiting.\n"
