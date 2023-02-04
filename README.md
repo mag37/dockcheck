@@ -69,6 +69,8 @@ No updates installed, exiting
 - ~~Multi-digest images didn't correctly check with registry, giving false positives on updates.~~
 - ~~Not working with filenames other than `docker-compose.yml`~~
 - ~~Lists are not alphabetically sorted (due to stacks and other parameters)~~
+- ~~Old `docker-compose` binary-check sometimes returned false error~~
+- ~~Stacks gets updated as whole, even if only one service is chosen.~~
 
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
