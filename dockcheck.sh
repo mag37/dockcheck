@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="v0.1.3"
+VERSION="v0.1.4"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
@@ -74,9 +74,10 @@ done
 ### Choose from list -function:
 choosecontainers() {
   while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
-    printf "What containers do you like to update? \n"
-    read -p 'Enter number(s) separated by comma (eg. 1,3,4): ' Choice
-    if [ "$Choice" == "0" ] ; then 
+    read -p "Enter number(s) separated by comma, [q] to quit: " Choice
+    if [[ "$Choice" =~ [qQnN] ]] ; then 
+      exit 0
+    elif [ "$Choice" == "0" ] ; then 
       SelectedUpdates=( "${NumberedUpdates[@]:1}" )
       ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
     else
@@ -86,8 +87,9 @@ choosecontainers() {
       done
     fi
   done
-  printf "\nYou've SelectedUpdates:\n"
+  printf "\nUpdating containers:\n"
   printf "%s\n" "${SelectedUpdates[@]}"
+  printf "\n"
 }
 
 ### Check the image-hash of every running container VS the registry
@@ -130,13 +132,12 @@ fi
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
   if [ -z "$UpdYes" ] ; then
-  printf "\n\033[36;1mDo you want to update? y/[n]\033[0m "
-  read UpdYes
-  [ "$UpdYes" != "${UpdYes#[Yy]}" ] && choosecontainers
+  printf "\n\033[36;1mChoose what containers to update.\033[0m\n"
+  choosecontainers
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
+  if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
@@ -152,3 +153,4 @@ else
 fi
 
 exit 0
+
