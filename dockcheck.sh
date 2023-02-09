@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="v0.1.4"
+VERSION="v0.1.5"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
@@ -140,10 +140,11 @@ if [ -n "$GotUpdates" ] ; then
   if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
     for i in "${SelectedUpdates[@]}"
     do 
-      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
+      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
+      ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
       ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
-      $DockerBin -f "$ContPath" pull "$ContName"
-      $DockerBin -f "$ContPath" up -d "$ContName"
+      $DockerBin -f "$ContPath/$ContConfigFile" pull "$ContName"
+      $DockerBin -f "$ContPath/$ContConfigFile" up -d "$ContName"
     done
   else
     printf "\nNo updates installed, exiting.\n"
