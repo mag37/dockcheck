@@ -1,5 +1,5 @@
 # dockcheck
-### A script checking updates for docker images **without the need of pulling** - then optionally auto-update chosen containers. 
+### A script checking updates for docker images **without pulling** - then selectively auto-update some/all containers.  
 
 With the help of [`regctl`](https://github.com/regclient/regclient). This is just a concept for inspiration, use with care.
 ___
