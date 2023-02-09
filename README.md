@@ -8,6 +8,10 @@ ___
 Running docker (duh) and compose, either standalone or plugin.   
 `regctl` by [regclient](https://github.com/regclient/regclient) (will ask to download `regctl` if not in `PATH` or `PWD`)
 ___
+
+
+![](https://github.com/mag37/dockcheck/blob/main/example.gif)
+
 ## `dockcheck.sh`
 ```bash
 $ ./dockcheck.sh -h
@@ -19,10 +23,6 @@ Options:
 -a|y   Automatic updates, without interaction.
 -n     No updates, only checking availability.
 ```
-
-
-
-![](https://github.com/mag37/dockcheck/blob/main/example.gif)
 
 Basic example:
 ```bash
@@ -39,27 +39,12 @@ Containers with updates available:
 3) whoogle-search
 
 
-Do you want to update? y/[n] y
-What containers do you like to update? 
-Enter number(s) separated by comma: 1,3
+Choose what containers to update:
+Enter number(s) separated by comma, [q] to quit: 1,3
 
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 
-
-
-And with `-n` *No updates* and `gl` for `*gl*` filtering:
-```bash
-$ ./dockcheck.sh -n gl
-. . .
-Containers with updates available:
-whoogle-search
-
-Containers on latest version:
-glances
-
-No updates installed, exiting
-```
 
 ### :beetle: Squashed Bugs:
 - ~~No options for running without updates or auto update.~~
@@ -71,6 +56,7 @@ No updates installed, exiting
 - ~~Lists are not alphabetically sorted (due to stacks and other parameters)~~
 - ~~Old `docker-compose` binary-check sometimes returned false error~~
 - ~~Stacks gets updated as whole, even if only one service is chosen.~~
+- ~~Path broken occationally (from inspect) - probably due to old docker-compose binary.~~
 
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
