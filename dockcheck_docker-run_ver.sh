@@ -1,10 +1,10 @@
 #!/bin/bash
-### VERSION v.0.1.1
+VERSION="v0.1.5"
+Github="https://github.com/mag37/dockcheck"
 
-### DOCKER RUN - VERSION
-
-### WARNING WONT REBUILD CONTAINERS - ONLY GRAB NEW IMAGES
-### If running docker compose, use the main version. (recommended!)
+### Check if there's a new release of the script:
+LatestRelease="$(curl -s -r 0-30 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+[ "$VERSION" != "$LatestRelease" ] && printf "New version available! Latest: "$LatestRelease" - Local: "$VERSION" \nGrab it here: "$Github" \n\n"
 
 ### Help Function:
 Help() {
@@ -26,7 +26,7 @@ while getopts "aynh" options; do
 done
 shift "$((OPTIND-1))"
 
-### Set $1 to a variable for later
+### Set $1 to a variable for name filtering later.
 SearchName="$1"
 
 ### Check if required binary exists in PATH or directory:
@@ -65,21 +65,22 @@ done
 ### Choose from list -function:
 choosecontainers() {
   while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
-    printf "What containers do you like to update? \n"
-    # options
-    read -p 'Enter number(s) separated by comma (eg. 1,3,4): ' Choice
-    if [ "$Choice" == "0" ] ; then 
-      SelectedUpdates=( ${NumberedUpdates[@]:1} )
-      ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
+    read -p "Enter number(s) separated by comma, [q] to quit: " Choice
+    if [[ "$Choice" =~ [qQnN] ]] ; then 
+      exit 0
+    elif [ "$Choice" == "0" ] ; then 
+      SelectedUpdates=( "${NumberedUpdates[@]:1}" )
+      ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
     else
-      ChoiceClean=$(echo $Choice|sed 's/[,.:;]/ /g')
+      ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
       for s in $ChoiceClean; do
-        SelectedUpdates+=( ${NumberedUpdates[$s]} )
+        SelectedUpdates+=( "${NumberedUpdates[$s]}" )
       done
     fi
   done
-  printf "\nYou've SelectedUpdates:\n"
+  printf "\nUpdating containers:\n"
   printf "%s\n" "${SelectedUpdates[@]}"
+  printf "\n"
 }
 
 ### Check the image-hash of every running container VS the registry
@@ -88,7 +89,7 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null)
-  # Check if regtcl produces errors - add to GotErrors if so.
+  # Add container to GotErrors if regctl encounter problems.
   if [ $? -eq 0 ] ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
   else
@@ -122,13 +123,12 @@ fi
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
   if [ -z "$UpdYes" ] ; then
-  printf "\n\033[36;1mDo you want to update? y/[n]\033[0m "
-  read UpdYes
-  [ "$UpdYes" != "${UpdYes#[Yy]}" ] && choosecontainers
+  printf "\n\033[36;1mChoose what container-images to update.\033[0m\n"
+  choosecontainers
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [ "$UpdYes" != "${UpdYes#[Yy]}" ] ; then
+  if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
     for i in "${SelectedUpdates[@]}"; do 
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       docker pull $ContImage
