@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="v0.1.5"
+VERSION="v0.1.6"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
@@ -15,12 +15,14 @@ Help() {
   echo "-h     Print this Help."
   echo "-a|y   Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
+  echo "-r     Allow updating images for docker run, wont update the container"
 }
 
-while getopts "aynh" options; do
+while getopts "aynrh" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
+    r) DrUp="yes" ;;
     h|*) Help ; exit 0 ;;
   esac
 done
@@ -53,12 +55,15 @@ else
   fi
 fi
 ### Check docker compose binary:
-if docker compose &> /dev/null ; then 
+if docker compose version &> /dev/null ; then 
   DockerBin="docker compose"
 elif docker-compose -v &> /dev/null; then
   DockerBin="docker-compose"
+elif docker -v &> /dev/null; then
+  printf "%s\n" "No docker compose binary available, using plain docker (Not recommended!)"
+  printf "%s\n" "'docker run' will ONLY update images, not the container itself."
 else
-  printf "%s\n" "No docker compose binary available, quitting."
+  printf "%s\n" "No docker binaries available, exiting."
   exit
 fi
 
@@ -143,6 +148,17 @@ if [ -n "$GotUpdates" ] ; then
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
       ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
+      ### Checking if compose-values are empty - hence started with docker run:
+      if [ -z "$ContPath" ] ; then 
+        if [ "$DrUp" == "yes" ] ; then
+          ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+          docker pull $ContImage
+          printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
+        else
+          printf "\n\033[33;1m$i\033[0m has no compose labels, probably started with docker run - \033[33;1mskipping\033[0m\n\n" 
+        fi
+        continue 
+      fi
       ### Checking if "com.docker.compose.project.config_files" returns the full path to the config file or just the file name
       if [[ $ContConfigFile = '/'* ]] ; then
         ComposeFile="$ContConfigFile"

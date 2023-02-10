@@ -13,7 +13,7 @@ ___
 ![](https://github.com/mag37/dockcheck/blob/main/example.gif)
 
 ## `dockcheck.sh`
-```bash
+```
 $ ./dockcheck.sh -h
 Syntax:     dockcheck.sh [OPTION] [part of name to filter]
 Example:    dockcheck.sh -a ng
@@ -22,10 +22,11 @@ Options:
 -h     Print this Help.
 -a|y   Automatic updates, without interaction.
 -n     No updates, only checking availability.
+-r     Allow updating images for docker run, wont update the container.
 ```
 
 Basic example:
-```bash
+```
 $ ./dockcheck.sh
 . . .
 Containers on latest version:
@@ -45,6 +46,11 @@ Enter number(s) separated by comma, [q] to quit: 1,3
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 
+### `-r flag` :warning: disclaimer and warning:
+**Wont auto-update the containers, only their images. (compose is recommended)**   
+`docker run` dont support using new images just by restarting a container.  
+Containers need to be manually stopped, removed and created again to run on the new image.
+
 
 ### :beetle: Squashed Bugs:
 - ~~No options for running without updates or auto update.~~
@@ -57,17 +63,11 @@ Then it proceedes to run `pull` and `up -d` on every container with updates.
 - ~~Old `docker-compose` binary-check sometimes returned false error~~
 - ~~Stacks gets updated as whole, even if only one service is chosen.~~
 - ~~Path broken occationally (from inspect) - probably due to old docker-compose binary.~~
+- ~~Script breaks if one of the chosen containers are a `docker run` container.
 
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
-
-## `dockcheck_docker-run_ver.sh`
-### Wont auto-update the containers, only their images. (compose is recommended)
-Alternative version for people who use `docker run` and no composes.   
-`docker run` dont support using new images just by restarting a container.  
-Containers need to be stopped, removed and created again to run on the new image.
-
 
 ## `dupc_function.sh`
 Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.  
