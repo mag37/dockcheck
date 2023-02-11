@@ -165,6 +165,7 @@ if [ -n "$GotUpdates" ] ; then
       else
         ComposeFile="$ContPath/$ContConfigFile"
       fi
+      cd "$(dirname "${ComposeFile}")"
       $DockerBin -f "$ComposeFile" pull "$ContName"
       $DockerBin -f "$ComposeFile" up -d "$ContName"
     done
