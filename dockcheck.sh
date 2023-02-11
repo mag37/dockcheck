@@ -165,7 +165,7 @@ if [ -n "$GotUpdates" ] ; then
       else
         ComposeFile="$ContPath/$ContConfigFile"
       fi
-      cd "$(dirname "${ComposeFile}")"
+      cd "$(dirname "${ComposeFile}")" || { echo "Compose-file path error - skipping $i" ; continue ; }
       $DockerBin -f "$ComposeFile" pull "$ContName"
       $DockerBin -f "$ComposeFile" up -d "$ContName"
     done
