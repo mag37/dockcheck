@@ -85,10 +85,8 @@ choosecontainers() {
     elif [ "$Choice" == "0" ] ; then 
       SelectedUpdates=( "${NumberedUpdates[@]:1}" )
       ChoiceClean=${Choice//[,.:;]/ }
-      # ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
     else
       ChoiceClean=${Choice//[,.:;]/ }
-      # ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
       for s in $ChoiceClean; do
         SelectedUpdates+=( "${NumberedUpdates[$s]}" )
       done
