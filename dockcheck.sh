@@ -1,10 +1,10 @@
 #!/bin/bash
-VERSION="v0.1.6"
+VERSION="v0.1.7"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
 LatestRelease="$(curl -s -r 0-30 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
-[ "$VERSION" != "$LatestRelease" ] && printf "New version available! Latest: "$LatestRelease" - Local: "$VERSION" \nGrab it here: "$Github" \n\n"
+[ "$VERSION" != "$LatestRelease" ] && printf "New version available! Latest: %s - Local: %s \nGrab it here: %s \n\n" "$LatestRelease" "$VERSION" "$Github"
 
 ### Help Function:
 Help() {
@@ -38,7 +38,7 @@ elif [[ -f "./regctl" ]]; then
   regbin="./regctl"
 else
   printf "Required dependency 'regctl' missing, do you want it downloaded? y/[n] "
-  read GetDep
+  read -r GetDep
   if [ "$GetDep" != "${GetDep#[Yy]}" ]; then
     ### Check arch:
     case "$(uname --machine)" in
@@ -79,14 +79,16 @@ done
 ### Choose from list -function:
 choosecontainers() {
   while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
-    read -p "Enter number(s) separated by comma, [q] to quit: " Choice
+    read -r -p "Enter number(s) separated by comma, [q] to quit: " Choice
     if [[ "$Choice" =~ [qQnN] ]] ; then 
       exit 0
     elif [ "$Choice" == "0" ] ; then 
       SelectedUpdates=( "${NumberedUpdates[@]:1}" )
-      ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
+      ChoiceClean=${Choice//[,.:;]/ }
+      # ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
     else
-      ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
+      ChoiceClean=${Choice//[,.:;]/ }
+      # ChoiceClean=$(echo "$Choice" |sed 's/[,.:;]/ /g')
       for s in $ChoiceClean; do
         SelectedUpdates+=( "${NumberedUpdates[$s]}" )
       done
@@ -102,9 +104,8 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
-  RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null)
-  # Add container to GotErrors if regctl encounter problems.
-  if [ $? -eq 0 ] ; then
+  ### Checking for errors while setting the variable:
+  if RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
   else
     GotErrors+=("$i")
@@ -121,17 +122,17 @@ unset IFS
 NumberedUpdates=(ALL "${GotUpdates[@]}")
 
 ### List what containers got updates or not
-if [ -n "$NoUpdates" ] ; then
+if [[ -n ${NoUpdates[*]} ]] ; then
   printf "\n\033[32;1mContainers on latest version:\033[0m\n"
   printf "%s\n" "${NoUpdates[@]}"
 fi
-if [ -n "$GotErrors" ] ; then
+if [[ -n ${GotErrors[*]} ]] ; then
   printf "\n\033[33;1mContainers with errors, wont get updated:\033[0m\n"
   printf "%s\n" "${GotErrors[@]}"
 fi
-if [ -n "$GotUpdates" ] ; then 
+if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n\033[31;1mContainers with updates available:\033[0m\n"
-   [ -z "$UpdYes" ] && options || printf "%s\n" "${GotUpdates[@]}"
+   [[ -z "$UpdYes" ]] && options || printf "%s\n" "${GotUpdates[@]}"
 fi
 
 ### Optionally get updates if there's any 
@@ -152,10 +153,10 @@ if [ -n "$GotUpdates" ] ; then
       if [ -z "$ContPath" ] ; then 
         if [ "$DrUp" == "yes" ] ; then
           ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-          docker pull $ContImage
+          docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
-          printf "\n\033[33;1m$i\033[0m has no compose labels, probably started with docker run - \033[33;1mskipping\033[0m\n\n" 
+          printf "\n\033[33;1m%s\033[0m has no compose labels, probably started with docker run - \033[33;1mskipping\033[0m\n\n" "$i"
         fi
         continue 
       fi
@@ -165,7 +166,8 @@ if [ -n "$GotUpdates" ] ; then
       else
         ComposeFile="$ContPath/$ContConfigFile"
       fi
-      cd "$(dirname "${ComposeFile}")" || { echo "Compose-file path error - skipping $i" ; continue ; }
+      ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
+      cd "$(dirname "${ComposeFile}")" || { echo "Path error - skipping $i" ; continue ; }
       $DockerBin -f "$ComposeFile" pull "$ContName"
       $DockerBin -f "$ComposeFile" up -d "$ContName"
     done
