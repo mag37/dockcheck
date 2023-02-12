@@ -63,8 +63,8 @@ Containers need to be manually stopped, removed and created again to run on the 
 - ~~Old `docker-compose` binary-check sometimes returned false error~~
 - ~~Stacks gets updated as whole, even if only one service is chosen.~~
 - ~~Path broken occationally (from inspect) - probably due to old docker-compose binary.~~
-- ~~Script breaks if one of the chosen containers are a `docker run` container. ~~
-- ~~Using relative paths for volumes eg. `${PWD}/data:data` will create the volumes where you stand. ~~
+- ~~Script breaks if one of the chosen containers are a `docker run` container.~~
+- ~~Using relative paths for volumes eg. `${PWD}/data:data` will create the volumes where you stand.~~
 
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
