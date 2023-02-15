@@ -1,5 +1,5 @@
-#!/bin/bash
-VERSION="v0.1.7"
+#!/usr/bin/env bash
+VERSION="v0.1.8"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
@@ -15,14 +15,16 @@ Help() {
   echo "-h     Print this Help."
   echo "-a|y   Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
+  echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
 }
 
-while getopts "aynrh" options; do
+while getopts "aynprh" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
     r) DrUp="yes" ;;
+    p) PruneQ="yes" ;;
     h|*) Help ; exit 0 ;;
   esac
 done
@@ -32,28 +34,31 @@ shift "$((OPTIND-1))"
 SearchName="$1"
 
 ### Check if required binary exists in PATH or directory:
-if [[ $(builtin type -P "regctl") ]]; then 
-  regbin="regctl"
-elif [[ -f "./regctl" ]]; then
-  regbin="./regctl"
+if [[ $(builtin type -P "regctl") ]]; then regbin="regctl" ;
+elif [[ -f "./regctl" ]]; then regbin="./regctl" ;
 else
-  printf "Required dependency 'regctl' missing, do you want it downloaded? y/[n] "
-  read -r GetDep
-  if [ "$GetDep" != "${GetDep#[Yy]}" ]; then
+  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
+  if [[ "$GetDep" =~ [yY] ]] ; then
     ### Check arch:
     case "$(uname --machine)" in
       x86_64|amd64) architecture="amd64" ;;
       arm64|aarch64) architecture="arm64";;
-      *) echo "Architecture not supported, exiting." ; exit ;;
+      *) echo "Architecture not supported, exiting." ; exit 1;;
     esac
-    curl -L https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture >./regctl
-    chmod 755 ./regctl
-    regbin="./regctl"
+    RegUrl="https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture"
+    if [[ $(builtin type -P curl) ]]; then curl -L $RegUrl > ./regctl ; chmod +x ./regctl ; regbin="./regctl" ;
+    elif [[ $(builtin type -P wget) ]]; then wget $RegUrl -O ./regctl ; chmod +x ./regctl ; regbin="./regctl" ;
+    else
+      printf "%s\n" "curl/wget not available - get regctl manually from the repo link, quitting."
+    fi
   else
     printf "%s\n" "Dependency missing, quitting."
-    exit
+    exit 1
   fi
 fi
+### final check if binary is correct
+$regbin version &> /dev/null  || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
+
 ### Check docker compose binary:
 if docker compose version &> /dev/null ; then 
   DockerBin="docker compose"
@@ -64,13 +69,13 @@ elif docker -v &> /dev/null; then
   printf "%s\n" "'docker run' will ONLY update images, not the container itself."
 else
   printf "%s\n" "No docker binaries available, exiting."
-  exit
+  exit 1
 fi
 
 ### Numbered List -function:
 options() {
-num=0
-for i in "${NumberedUpdates[@]}"; do
+num=1
+for i in "${GotUpdates[@]}"; do
   echo "$num) $i"
   ((num++))
 done
@@ -78,17 +83,21 @@ done
 
 ### Choose from list -function:
 choosecontainers() {
-  while [[ "$ChoiceClean" =~ [A-Za-z] || -z "$ChoiceClean" ]]; do
-    read -r -p "Enter number(s) separated by comma, [q] to quit: " Choice
+  while [[ -z "$ChoiceClean" ]]; do
+    read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
     if [[ "$Choice" =~ [qQnN] ]] ; then 
       exit 0
-    elif [ "$Choice" == "0" ] ; then 
-      SelectedUpdates=( "${NumberedUpdates[@]:1}" )
+    elif [[ "$Choice" =~ [aAyY] ]] ; then
+      SelectedUpdates=( "${GotUpdates[@]}" )
       ChoiceClean=${Choice//[,.:;]/ }
     else
       ChoiceClean=${Choice//[,.:;]/ }
-      for s in $ChoiceClean; do
-        SelectedUpdates+=( "${NumberedUpdates[$s]}" )
+      for CC in $ChoiceClean ; do
+        if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]] ; then # reset choice if out of bounds
+          echo "Number not in list: $CC" ; unset ChoiceClean ; break 1
+        else
+          SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
+        fi
       done
     fi
   done
@@ -116,8 +125,8 @@ NoUpdates=($(sort <<<"${NoUpdates[*]}"))
 GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 GotErrors=($(sort <<<"${GotErrors[*]}"))
 unset IFS
-### Create new Array to use for the numbered list:
-NumberedUpdates=(ALL "${GotUpdates[@]}")
+### Define how many updates are available
+UpdCount="${#GotUpdates[@]}"
 
 ### List what containers got updates or not
 if [[ -n ${NoUpdates[*]} ]] ; then
@@ -169,6 +178,9 @@ if [ -n "$GotUpdates" ] ; then
       $DockerBin -f "$ComposeFile" pull "$ContName"
       $DockerBin -f "$ComposeFile" up -d "$ContName"
     done
+    printf "\033[0;32mAll done!\033[0m\n"
+    [[ -z "$PruneQ" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " PruneQ
+    [[ "$PruneQ" =~ [yY] ]] && docker image prune -f 
   else
     printf "\nNo updates installed, exiting.\n"
   fi
