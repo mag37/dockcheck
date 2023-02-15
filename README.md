@@ -83,10 +83,11 @@ Updates available for paperless-ng.
 ```
 # License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
+___
 
-## Also check out a spinoff brother-project [Palleri/dockcheck-web](https://github.com/Palleri/dockcheck-web) for a WebUI-front!
----
+## Check out a spinoff brother-project:
+### [Palleri/dockcheck-web](https://github.com/Palleri/dockcheck-web) for a WebUI-front!
 
 ## Special Thanks:
-:bison: [t0rnis](https://github.com/t0rnis)   
-:leopard: [Palleri](https://github.com/Palleri)
+- :bison: [t0rnis](https://github.com/t0rnis)   
+- :leopard: [Palleri](https://github.com/Palleri)
