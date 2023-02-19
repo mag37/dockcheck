@@ -130,22 +130,22 @@ UpdCount="${#GotUpdates[@]}"
 
 ### List what containers got updates or not
 if [[ -n ${NoUpdates[*]} ]] ; then
-  printf "\n\033[32;1mContainers on latest version:\033[0m\n"
+  printf "\n\033[0;32mContainers on latest version:\033[0m\n"
   printf "%s\n" "${NoUpdates[@]}"
 fi
 if [[ -n ${GotErrors[*]} ]] ; then
-  printf "\n\033[33;1mContainers with errors, wont get updated:\033[0m\n"
+  printf "\n\033[0;31mContainers with errors, wont get updated:\033[0m\n"
   printf "%s\n" "${GotErrors[@]}"
 fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
-   printf "\n\033[31;1mContainers with updates available:\033[0m\n"
+   printf "\n\033[0;33mContainers with updates available:\033[0m\n"
    [[ -z "$UpdYes" ]] && options || printf "%s\n" "${GotUpdates[@]}"
 fi
 
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
   if [ -z "$UpdYes" ] ; then
-  printf "\n\033[36;1mChoose what containers to update.\033[0m\n"
+  printf "\n\033[0;36mChoose what containers to update.\033[0m\n"
   choosecontainers
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
@@ -156,6 +156,7 @@ if [ -n "$GotUpdates" ] ; then
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
       ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
+      ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
       ### Checking if compose-values are empty - hence started with docker run:
       if [ -z "$ContPath" ] ; then 
         if [ "$DrUp" == "yes" ] ; then
@@ -175,8 +176,14 @@ if [ -n "$GotUpdates" ] ; then
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$(dirname "${ComposeFile}")" || { echo "Path error - skipping $i" ; continue ; }
-      $DockerBin -f "$ComposeFile" pull "$ContName"
-      $DockerBin -f "$ComposeFile" up -d "$ContName"
+      ### Check if the container got an environment file set, use it if so:
+      if [ -n "$ContEnv" ]; then 
+        $DockerBin -f "$ComposeFile" --env-file "$ContEnv" pull "$ContName"
+        $DockerBin -f "$ComposeFile" --env-file "$ContEnv" up -d "$ContName"
+      else
+        $DockerBin -f "$ComposeFile" pull "$ContName"
+        $DockerBin -f "$ComposeFile" up -d "$ContName"
+      fi
     done
     printf "\033[0;32mAll done!\033[0m\n"
     [[ -z "$PruneQ" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " PruneQ
