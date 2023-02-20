@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-VERSION="v0.1.8"
+VERSION="v0.1.9"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
-LatestRelease="$(curl -s -r 0-40 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+LatestRelease="$(curl -s -r 0-50 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 [ "$VERSION" != "$LatestRelease" ] && printf "New version available! Latest: %s - Local: %s \nGrab it here: %s \n\n" "$LatestRelease" "$VERSION" "$Github"
 
 ### Help Function:
