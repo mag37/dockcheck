@@ -72,16 +72,9 @@ Containers need to be manually stopped, removed and created again to run on the 
 - ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
 
-## `dupc_function.sh`
-Function to quickly check for updates on a single contianer or list of containers by name. **Without the need of pulling**.  
-Preferably placed in `.bashrc` or similar.
-Example:
-```
-$ dupc ng
-Updates available for local_nginx.
-nginx_reverse is already latest.
-Updates available for paperless-ng.
-```
+## `dc_brief.sh`
+Just a brief, slimmed down version of the script to only print what containers got updates, no updates or errors.
+
 # License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 ___
