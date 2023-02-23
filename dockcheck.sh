@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.1.9"
+VERSION="v0.2.0"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
