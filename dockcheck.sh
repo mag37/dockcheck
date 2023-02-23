@@ -157,10 +157,10 @@ if [ -n "$GotUpdates" ] ; then
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
       ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
       ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
+      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       ### Checking if compose-values are empty - hence started with docker run:
       if [ -z "$ContPath" ] ; then 
         if [ "$DrUp" == "yes" ] ; then
-          ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
@@ -176,12 +176,11 @@ if [ -n "$GotUpdates" ] ; then
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$(dirname "${ComposeFile}")" || { echo "Path error - skipping $i" ; continue ; }
+      docker pull "$ContImage"
       ### Check if the container got an environment file set, use it if so:
       if [ -n "$ContEnv" ]; then 
-        $DockerBin -f "$ComposeFile" --env-file "$ContEnv" pull "$ContName"
         $DockerBin -f "$ComposeFile" --env-file "$ContEnv" up -d "$ContName"
       else
-        $DockerBin -f "$ComposeFile" pull "$ContName"
         $DockerBin -f "$ComposeFile" up -d "$ContName"
       fi
     done
