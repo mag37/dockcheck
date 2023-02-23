@@ -67,6 +67,7 @@ Containers need to be manually stopped, removed and created again to run on the 
 - ~~Using relative paths for volumes eg. `${PWD}/data:data` will create the volumes where you stand.~~
 - ~~Having no curl/wget leads to corrupt `regctl` without alerting.~~
 - ~~Using custom `.env` files does not work.~~
+- ~~Pull not respecting image:tags, always defaulting to latest~~
 
 ### :hammer: Known issues
 - ~~No granular choice of what to update (except initial name filter).~~
