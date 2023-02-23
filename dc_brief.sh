@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 ### If not in PATH, set full path. Else just "regctl"
 regbin="regctl"
 SearchName="$1"
