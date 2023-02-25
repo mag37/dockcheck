@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.2.0"
+VERSION="v0.2.1"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
@@ -177,11 +177,15 @@ if [ -n "$GotUpdates" ] ; then
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$(dirname "${ComposeFile}")" || { echo "Path error - skipping $i" ; continue ; }
       docker pull "$ContImage"
+      ### Reformat for multi-compose:
+      IFS=',' read -r -a Confs <<< "$ContConfigFile" ; Unset IFS
+      for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
+      
       ### Check if the container got an environment file set, use it if so:
       if [ -n "$ContEnv" ]; then 
-        $DockerBin -f "$ComposeFile" --env-file "$ContEnv" up -d "$ContName"
+        $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName"
       else
-        $DockerBin -f "$ComposeFile" up -d "$ContName"
+        $DockerBin ${CompleteConfs[@]} up -d "$ContName"
       fi
     done
     printf "\033[0;32mAll done!\033[0m\n"
