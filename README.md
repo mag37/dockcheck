@@ -70,8 +70,9 @@ Containers need to be manually stopped, removed and created again to run on the 
 - ~~Pull not respecting image:tags, always defaulting to latest~~
 
 ### :hammer: Known issues
-- ~~No granular choice of what to update (except initial name filter).~~
 - No detailed error feedback (just skip + list what's skipped) .
+- Not respecting `--profile` options when re-creating the container.
+- Not respecting multi-compose projects using multiple `-f` like `...override.yml` or similar.
 
 ## `dc_brief.sh`
 Just a brief, slimmed down version of the script to only print what containers got updates, no updates or errors.
