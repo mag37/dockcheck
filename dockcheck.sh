@@ -15,16 +15,18 @@ Help() {
   echo "-h     Print this Help."
   echo "-a|y   Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
+  echo "-e     Exclude containers, separated by comma."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
 }
 
-while getopts "aynprh" options; do
+while getopts "aynprhe:" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
     r) DrUp="yes" ;;
     p) PruneQ="yes" ;;
+    e) Exclude=${OPTARG} ;;
     h|*) Help ; exit 0 ;;
   esac
 done
@@ -32,6 +34,8 @@ shift "$((OPTIND-1))"
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
+### Create array of excludes
+IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
 ### Check if required binary exists in PATH or directory:
 if [[ $(builtin type -P "regctl") ]]; then regbin="regctl" ;
@@ -108,6 +112,7 @@ choosecontainers() {
 
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
+  [[ " ${Excludes[*]} " =~ ${i} ]] && continue; # Skip if the container is excluded
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
@@ -178,14 +183,14 @@ if [ -n "$GotUpdates" ] ; then
       cd "$(dirname "${ComposeFile}")" || { echo "Path error - skipping $i" ; continue ; }
       docker pull "$ContImage"
       ### Reformat for multi-compose:
-      IFS=',' read -r -a Confs <<< "$ContConfigFile" ; Unset IFS
+      IFS=',' read -r -a Confs <<< "$ContConfigFile" ; unset IFS
       for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
       
       ### Check if the container got an environment file set, use it if so:
       if [ -n "$ContEnv" ]; then 
-        $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName"
+        $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName" # unquoted array to allow split
       else
-        $DockerBin ${CompleteConfs[@]} up -d "$ContName"
+        $DockerBin ${CompleteConfs[@]} up -d "$ContName" # unquoted array to allow split
       fi
     done
     printf "\033[0;32mAll done!\033[0m\n"
