@@ -15,13 +15,14 @@ ___
 ```
 $ ./dockcheck.sh -h
 Syntax:     dockcheck.sh [OPTION] [part of name to filter]
-Example:    dockcheck.sh -a ng
+Example:    dockcheck.sh -a -e nextcloud,heimdall
 
 Options:
 -h     Print this Help.
 -a|y   Automatic updates, without interaction.
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
+-e     Exclude containers, separated by comma.
 -r     Allow updating images for docker run, wont update the container.
 ```
 
@@ -68,11 +69,12 @@ Containers need to be manually stopped, removed and created again to run on the 
 - ~~Having no curl/wget leads to corrupt `regctl` without alerting.~~
 - ~~Using custom `.env` files does not work.~~
 - ~~Pull not respecting image:tags, always defaulting to latest~~
+- ~~Not respecting multi-compose projects using multiple `-f` like `...override.yml` or similar.~~
+- ~~Not being able to exclude specific containers.~~
 
 ### :hammer: Known issues
 - No detailed error feedback (just skip + list what's skipped) .
 - Not respecting `--profile` options when re-creating the container.
-- Not respecting multi-compose projects using multiple `-f` like `...override.yml` or similar.
 
 ## `dc_brief.sh`
 Just a brief, slimmed down version of the script to only print what containers got updates, no updates or errors.
