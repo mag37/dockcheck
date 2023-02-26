@@ -2,9 +2,21 @@
 
 ### If not in PATH, set full path. Else just "regctl"
 regbin="regctl"
+### options to allow exclude:
+while getopts "e:" options; do
+  case "${options}" in
+    e) Exclude=${OPTARG} ;;
+    *) exit 0 ;;
+  esac
+done
+shift "$((OPTIND-1))"
+### Create array of excludes
+IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
+
 SearchName="$1"
 
 for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
+  [[ " ${Excludes[*]} " =~ ${i} ]] && continue; # Skip if the container is excluded
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
