@@ -1,5 +1,11 @@
 # dockcheck
 ### A script checking updates for docker images **without pulling** - then selectively auto-update some/all containers.  
+### :pushpin: Recent changes:
+- **v0.2.1**: Added option to exclude a list of containers.
+- **v0.2.1**: Added multi-compose support (eg. override). 
+- **v0.2.0**: Fixed error with container:tag definition. 
+- **v0.1.9:** Fixed custom env-support. 
+- **v0.1.8:** Added option to prune dangling images. 
 ___
 
 ## Dependencies:
