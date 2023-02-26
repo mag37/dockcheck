@@ -48,3 +48,4 @@ if [[ -n ${GotUpdates[*]} ]] ; then
    printf "\n\033[0;33mContainers with updates available:\033[0m\n"
    printf "%s\n" "${GotUpdates[@]}"
 fi
+printf "\n\n"
