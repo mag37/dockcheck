@@ -181,7 +181,7 @@ if [ -n "$GotUpdates" ] ; then
         ComposeFile="$ContPath/$ContConfigFile"
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
-      cd "$(dirname "${ContPath}")" || { echo "Path error - skipping $i" ; continue ; }
+      cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ContConfigFile" ; unset IFS
