@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.2.1"
+VERSION="v0.2.2-URGENT"
 Github="https://github.com/mag37/dockcheck"
 
 ### Check if there's a new release of the script:
@@ -157,6 +157,7 @@ if [ -n "$GotUpdates" ] ; then
   fi
   if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
     for i in "${SelectedUpdates[@]}"
+    unset CompleteConfs
     do 
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
