@@ -1,5 +1,11 @@
 # dockcheck
 ### A script checking updates for docker images **without pulling** - then selectively auto-update some/all containers.  
+
+### :warning: URGENT! 
+The 2.0 change had a breaking error - compose-recreation might have included previous containers compose-file.
+If you've had odd errors, you can use the [errorCheck.sh](https://github.com/mag37/dockcheck/blob/main/errorCheck.sh) script to list current running container configs in a readable way. Look especially for **Compose files** listed in wrong places.   
+Recreate the suspicious container(s) manually with `docker compose down && docker compose up -d`.
+
 ### :pushpin: Recent changes:
 - **v0.2.1**: Added option to exclude a list of containers.
 - **v0.2.1**: Added multi-compose support (eg. override). 
