@@ -7,6 +7,7 @@ If you've had odd errors, you can use the [errorCheck.sh](https://github.com/mag
 Recreate the suspicious container(s) manually with `docker compose down && docker compose up -d`.
 
 ### :pushpin: Recent changes:
+- **v0.2.2**: Fixed breaking errors with multi-compose, odd breakage and working dir error.
 - **v0.2.1**: Added option to exclude a list of containers.
 - **v0.2.1**: Added multi-compose support (eg. override). 
 - **v0.2.0**: Fixed error with container:tag definition. 
@@ -63,26 +64,6 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 **Wont auto-update the containers, only their images. (compose is recommended)**   
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.
-
-
-### :beetle: Squashed Bugs:
-- ~~No options for running without updates or auto update.~~
-- ~~No filter to check only specific containers.~~
-- ~~Faulty registry checkups stopped the updates completely.~~
-- ~~No clear checks to skip containers producing errors.~~
-- ~~Multi-digest images didn't correctly check with registry, giving false positives on updates.~~
-- ~~Not working with filenames other than `docker-compose.yml`~~
-- ~~Lists are not alphabetically sorted (due to stacks and other parameters)~~
-- ~~Old `docker-compose` binary-check sometimes returned false error~~
-- ~~Stacks gets updated as whole, even if only one service is chosen.~~
-- ~~Path broken occationally (from inspect) - probably due to old docker-compose binary.~~
-- ~~Script breaks if one of the chosen containers are a `docker run` container.~~
-- ~~Using relative paths for volumes eg. `${PWD}/data:data` will create the volumes where you stand.~~
-- ~~Having no curl/wget leads to corrupt `regctl` without alerting.~~
-- ~~Using custom `.env` files does not work.~~
-- ~~Pull not respecting image:tags, always defaulting to latest~~
-- ~~Not respecting multi-compose projects using multiple `-f` like `...override.yml` or similar.~~
-- ~~Not being able to exclude specific containers.~~
 
 ### :hammer: Known issues
 - No detailed error feedback (just skip + list what's skipped) .
