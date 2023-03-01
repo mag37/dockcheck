@@ -157,8 +157,8 @@ if [ -n "$GotUpdates" ] ; then
   fi
   if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
     for i in "${SelectedUpdates[@]}"
-    unset CompleteConfs
-    do 
+    do
+      unset CompleteConfs
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
       ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
