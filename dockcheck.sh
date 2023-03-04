@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.2.33"
+VERSION="v0.2.34"
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
 
@@ -7,7 +7,7 @@ RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.s
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 
 ### Variables for self updating
-ScriptBranch="selfupdate"
+ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream})
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptName="$(basename "$ScriptPath")"
@@ -43,10 +43,9 @@ self_update_git() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
   [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
   git fetch
-  [ -n "$(git diff --name-only "origin/$ScriptBranch" "$ScriptName")" ] && {
+  [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
-    git pull --force
-    git checkout "$ScriptBranch"
+    git checkout "$ScriptUpstream"
     git pull --force
     echo "Running the new version..."
     cd - || { printf "Path error.\n" ; return ; }
