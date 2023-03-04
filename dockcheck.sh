@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
-VERSION="v0.2.2-URGENT"
+VERSION="v0.2.3"
 Github="https://github.com/mag37/dockcheck"
+RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
 ### Check if there's a new release of the script:
-LatestRelease="$(curl -s -r 0-50 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
-[ "$VERSION" != "$LatestRelease" ] && printf "New version available! Latest: %s - Local: %s \nGrab it here: %s \n\n" "$LatestRelease" "$VERSION" "$Github"
+LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+
+### Variables for self updating
+ScriptBranch="main"
+ScriptArgs=( "$@" )
+ScriptPath="$(readlink -f "$0")"
+ScriptName="$(basename "$ScriptPath")"
+ScriptWorkDir="$(dirname "$ScriptPath")"
 
 ### Help Function:
 Help() {
@@ -31,6 +38,42 @@ while getopts "aynprhe:" options; do
   esac
 done
 shift "$((OPTIND-1))"
+
+self_update_git() {
+  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
+  [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
+  git fetch
+  [ -n "$(git diff --name-only "origin/$ScriptBranch" "$ScriptName")" ] && {
+    printf "%s\n" "Pulling the latest version."
+    git pull --force
+    git checkout "$ScriptBranch"
+    git pull --force
+    echo "Running the new version..."
+    cd - || { printf "Path error.\n" ; return ; }
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  }
+  echo "Local is already latest."
+}
+self_update_curl() {
+  cp "$ScriptPath" "$ScriptPath".bak
+  if [[ $(builtin type -P curl) ]]; then 
+    curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"  
+    printf "%s\n" "--- starting over with the updated version ---"
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  else
+    printf "curl not available - download the update manually: %s \n" "$RawUrl"
+  fi
+}
+if [ "$VERSION" != "$LatestRelease" ] ; then 
+  printf "New version available! Local: %s - Latest: %s \n" "$VERSION" "$LatestRelease"
+  read -r -p "Choose update procedure (or do it manually) - git/curl/[no]: " SelfUpQ
+  if [[ "$SelfUpQ" == "git" ]]; then self_update_git ;
+  elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ; 
+  else printf "Download it manually from the repo: %s \n\n" "$Github"
+  fi
+fi
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
@@ -184,7 +227,7 @@ if [ -n "$GotUpdates" ] ; then
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
       docker pull "$ContImage"
       ### Reformat for multi-compose:
-      IFS=',' read -r -a Confs <<< "$ContConfigFile" ; unset IFS
+      IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
       for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
       
       ### Check if the container got an environment file set, use it if so:
