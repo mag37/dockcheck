@@ -10,7 +10,7 @@
   <a href="https://github.com/sponsors/mag37"><img src="https://img.shields.io/badge/-Sponsor-grey?style=flat-square&logo=github" alt="Github Sponsor"></a>
 </p>
 
-<h3 align="center">A script checking updates for docker images <b>without pulling</b> - selectively auto-update containers.</h3>
+<h3 align="center">A script checking updates for docker images <b>without pulling</b><br>Then selectively auto-update containers.</h3>
 <h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4</h3>
 
 
