@@ -1,5 +1,18 @@
-# dockcheck
-### A script checking updates for docker images **without pulling** - then selectively auto-update some/all containers.  
+<p align="center">
+  <img src="extras/dockcheck_logo_by_booYah187.png" width="160" title="dockcheck">
+</p>
+<p align="center"> 
+  <img src="https://img.shields.io/badge/-bash-grey?style=flat-square&logo=gnubash" alt="bash">
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/license-GPLv3-red?style=flat-square" alt="GPLv3"></a>
+  <img src="https://img.shields.io/github/v/tag/mag37/dockcheck?style=flat-square&label=release" alt="release">
+  <a href="https://ko-fi.com/mag37"><img src="https://img.shields.io/badge/-Ko--fi-grey?style=flat-square&logo=Ko-fi" alt="Buy me a Coffee"></a>
+  <a href="https://liberapay.com/user-bin-rob/donate"><img src="https://img.shields.io/badge/-LiberaPay-grey?style=flat-square&logo=liberapay" alt="LiberaPay"></a>
+  <a href="https://github.com/sponsors/mag37"><img src="https://img.shields.io/badge/-Sponsor-grey?style=flat-square&logo=github" alt="Github Sponsor"></a>
+</p>
+
+<h3 align="center">A script checking updates for docker images <b>without pulling</b> - selectively auto-update containers.</h3>
+<h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4</h3>
+
 
 ### :warning: URGENT! 
 The 2.0 change had a breaking error - compose-recreation might have included previous containers compose-file.
@@ -22,7 +35,7 @@ User will be prompted to download `regctl` if not in `PATH` or `PWD`
 ___
 
 
-![](https://github.com/mag37/dockcheck/blob/main/example.gif)
+![](extras/example.gif)
 
 ## `dockcheck.sh`
 ```
