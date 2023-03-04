@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.2.36"
+VERSION="v0.2.37"
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
 
