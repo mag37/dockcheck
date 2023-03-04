@@ -7,7 +7,6 @@ RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.s
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 
 ### Variables for self updating
-ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream})
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptName="$(basename "$ScriptPath")"
@@ -42,6 +41,7 @@ shift "$((OPTIND-1))"
 self_update_git() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
   [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
+  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream})
   git fetch
   [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
