@@ -41,7 +41,7 @@ shift "$((OPTIND-1))"
 self_update_git() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
   [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
-  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream})
+  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream}) || { printf "Script not in cloned directory, skipping update.\n" ; return ; }
   git fetch
   [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
