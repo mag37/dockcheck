@@ -7,7 +7,7 @@ RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 
 ### Variables for self updating
-ScriptBranch="main"
+ScriptBranch="selfupdate"
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptName="$(basename "$ScriptPath")"
