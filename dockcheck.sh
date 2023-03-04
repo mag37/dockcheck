@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 VERSION="v0.2.32"
 Github="https://github.com/mag37/dockcheck"
-RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
+RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
 
 ### Check if there's a new release of the script:
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
