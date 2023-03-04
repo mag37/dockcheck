@@ -45,7 +45,7 @@ self_update_git() {
   git fetch
   [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
-    git checkout "$ScriptUpstream"
+   # git checkout "$ScriptUpstream"
     git pull --force
     echo "Running the new version..."
     cd - || { printf "Path error.\n" ; return ; }
