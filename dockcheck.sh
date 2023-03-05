@@ -133,10 +133,8 @@ fi
 $regbin version &> /dev/null  || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
 
 ### Check docker compose binary:
-if docker compose version &> /dev/null ; then 
-  DockerBin="docker compose"
-elif docker-compose -v &> /dev/null; then
-  DockerBin="docker-compose"
+if docker compose version &> /dev/null ; then DockerBin="docker compose" ;
+elif docker-compose -v &> /dev/null; then DockerBin="docker-compose" ;
 elif docker -v &> /dev/null; then
   printf "%s\n" "No docker compose binary available, using plain docker (Not recommended!)"
   printf "%s\n" "'docker run' will ONLY update images, not the container itself."
