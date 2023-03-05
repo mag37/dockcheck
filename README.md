@@ -14,18 +14,17 @@
 <h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4</h3>
 
 
-### :warning: URGENT! 
-The 2.0 change had a breaking error - compose-recreation might have included previous containers compose-file.
-If you've had odd errors, you can use the [errorCheck.sh](https://github.com/mag37/dockcheck/blob/main/errorCheck.sh) script to list current running container configs in a readable way. Look especially for **Compose files** listed in wrong places.   
-Recreate the suspicious container(s) manually with `docker compose down && docker compose up -d`.
+### :warning: URGENT! The 2.1 change had a breaking error - make sure you run an updated version.
+If you've had errors, inspect your containers and look for odd compose paths, volumes or ports.
+[errorCheck.sh](https://github.com/mag37/dockcheck/blob/main/errorCheck.sh) lists the important bits of each running container. If anything suspicious, recreate the container manually with `docker compose`. 
 
 ### :pushpin: Recent changes:
+- **v0.2.3**: Added a self updating function (curl/git) and a ugly changenote-message for updates.
 - **v0.2.2**: Fixed breaking errors with multi-compose, odd breakage and working dir error.
 - **v0.2.1**: Added option to exclude a list of containers.
 - **v0.2.1**: Added multi-compose support (eg. override). 
 - **v0.2.0**: Fixed error with container:tag definition. 
 - **v0.1.9:** Fixed custom env-support. 
-- **v0.1.8:** Added option to prune dangling images. 
 ___
 
 ## Dependencies:
