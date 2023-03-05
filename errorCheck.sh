@@ -18,9 +18,10 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   echo -e "Service name:\t\t$ContName"
   echo -e "Project working dir:\t$ContPath"
   echo -e "Compose files:\t\t$ComposeFile"
+  echo -e "Environment files:\t$ContEnv"
   echo -e "Container image:\t$ContImage"
   echo
   echo "Mounts:"
-  docker inspect  -f '{{ range .Mounts }}{{ .Source }}:{{ .Destination }}{{ printf "\n" }}{{ end }}' $i
+  docker inspect  -f '{{ range .Mounts }}{{ .Source }}:{{ .Destination }}{{ printf "\n" }}{{ end }}' "$i"
   echo
 done

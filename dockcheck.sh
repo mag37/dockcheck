@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
-VERSION="v0.2.2-URGENT"
+VERSION="v0.2.3"
+### ChangeNotes: Added self-updating git/curl-function and a dirty changenote.
 Github="https://github.com/mag37/dockcheck"
+RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
+
+### Variables for self updating
+ScriptArgs=( "$@" )
+ScriptPath="$(readlink -f "$0")"
+ScriptName="$(basename "$ScriptPath")"
+ScriptWorkDir="$(dirname "$ScriptPath")"
 
 ### Check if there's a new release of the script:
-LatestRelease="$(curl -s -r 0-50 https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
-[ "$VERSION" != "$LatestRelease" ] && printf "New version available! Latest: %s - Local: %s \nGrab it here: %s \n\n" "$LatestRelease" "$VERSION" "$Github"
+LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNotes: //p")"
 
 ### Help Function:
 Help() {
@@ -31,6 +39,69 @@ while getopts "aynprhe:" options; do
   esac
 done
 shift "$((OPTIND-1))"
+
+self_update_git() {
+  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
+  [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
+  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}") || { printf "Script not in git directory, skipping update.\n" ; return ; }
+  git fetch
+  [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
+    printf "%s\n" "Pulling the latest version."
+   # git checkout "$ScriptUpstream"
+    git pull --force
+    printf "%s\n" "--- starting over with the updated version ---"
+    cd - || { printf "Path error.\n" ; return ; }
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  }
+  echo "Local is already latest."
+}
+self_update_curl() {
+  cp "$ScriptPath" "$ScriptPath".bak
+  if [[ $(builtin type -P curl) ]]; then 
+    curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"  
+    printf "%s\n" "--- starting over with the updated version ---"
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  else
+    printf "curl not available - download the update manually: %s \n" "$RawUrl"
+  fi
+}
+self_update_select() {
+  read -r -p "Choose update procedure (or do it manually) - git/curl/[no]: " SelfUpQ
+  if [[ "$SelfUpQ" == "git" ]]; then self_update_git ;
+  elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ; 
+  else printf "Download it manually from the repo: %s \n\n" "$Github"
+  fi
+}
+
+### Choose from list -function:
+choosecontainers() {
+  while [[ -z "$ChoiceClean" ]]; do
+    read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
+    if [[ "$Choice" =~ [qQnN] ]] ; then 
+      exit 0
+    elif [[ "$Choice" =~ [aAyY] ]] ; then
+      SelectedUpdates=( "${GotUpdates[@]}" )
+      ChoiceClean=${Choice//[,.:;]/ }
+    else
+      ChoiceClean=${Choice//[,.:;]/ }
+      for CC in $ChoiceClean ; do
+        if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]] ; then # reset choice if out of bounds
+          echo "Number not in list: $CC" ; unset ChoiceClean ; break 1
+        else
+          SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
+        fi
+      done
+    fi
+  done
+  printf "\nUpdating containers:\n"
+  printf "%s\n" "${SelectedUpdates[@]}"
+  printf "\n"
+}
+
+### Version check & initiate self update
+[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
@@ -64,10 +135,8 @@ fi
 $regbin version &> /dev/null  || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
 
 ### Check docker compose binary:
-if docker compose version &> /dev/null ; then 
-  DockerBin="docker compose"
-elif docker-compose -v &> /dev/null; then
-  DockerBin="docker-compose"
+if docker compose version &> /dev/null ; then DockerBin="docker compose" ;
+elif docker-compose -v &> /dev/null; then DockerBin="docker-compose" ;
 elif docker -v &> /dev/null; then
   printf "%s\n" "No docker compose binary available, using plain docker (Not recommended!)"
   printf "%s\n" "'docker run' will ONLY update images, not the container itself."
@@ -83,31 +152,6 @@ for i in "${GotUpdates[@]}"; do
   echo "$num) $i"
   ((num++))
 done
-}
-
-### Choose from list -function:
-choosecontainers() {
-  while [[ -z "$ChoiceClean" ]]; do
-    read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
-    if [[ "$Choice" =~ [qQnN] ]] ; then 
-      exit 0
-    elif [[ "$Choice" =~ [aAyY] ]] ; then
-      SelectedUpdates=( "${GotUpdates[@]}" )
-      ChoiceClean=${Choice//[,.:;]/ }
-    else
-      ChoiceClean=${Choice//[,.:;]/ }
-      for CC in $ChoiceClean ; do
-        if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]] ; then # reset choice if out of bounds
-          echo "Number not in list: $CC" ; unset ChoiceClean ; break 1
-        else
-          SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
-        fi
-      done
-    fi
-  done
-  printf "\nUpdating containers:\n"
-  printf "%s\n" "${SelectedUpdates[@]}"
-  printf "\n"
 }
 
 ### Check the image-hash of every running container VS the registry
@@ -184,7 +228,7 @@ if [ -n "$GotUpdates" ] ; then
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
       docker pull "$ContImage"
       ### Reformat for multi-compose:
-      IFS=',' read -r -a Confs <<< "$ContConfigFile" ; unset IFS
+      IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
       for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
       
       ### Check if the container got an environment file set, use it if so:
