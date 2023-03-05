@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.2.31"
-### ChangeNotes: Nothing fancy, just testing
+VERSION="v0.2.3"
+### ChangeNotes: Added self-updating git/curl-function and a dirty changenote.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
 
