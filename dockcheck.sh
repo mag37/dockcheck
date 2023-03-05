@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.2.38"
+VERSION="v0.2.39"
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
 
@@ -65,14 +65,41 @@ self_update_curl() {
     printf "curl not available - download the update manually: %s \n" "$RawUrl"
   fi
 }
-if [ "$VERSION" != "$LatestRelease" ] ; then 
-  printf "New version available! Local: %s - Latest: %s \n" "$VERSION" "$LatestRelease"
+self_update_select() {
   read -r -p "Choose update procedure (or do it manually) - git/curl/[no]: " SelfUpQ
   if [[ "$SelfUpQ" == "git" ]]; then self_update_git ;
   elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ; 
   else printf "Download it manually from the repo: %s \n\n" "$Github"
   fi
-fi
+}
+
+### Choose from list -function:
+choosecontainers() {
+  while [[ -z "$ChoiceClean" ]]; do
+    read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
+    if [[ "$Choice" =~ [qQnN] ]] ; then 
+      exit 0
+    elif [[ "$Choice" =~ [aAyY] ]] ; then
+      SelectedUpdates=( "${GotUpdates[@]}" )
+      ChoiceClean=${Choice//[,.:;]/ }
+    else
+      ChoiceClean=${Choice//[,.:;]/ }
+      for CC in $ChoiceClean ; do
+        if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]] ; then # reset choice if out of bounds
+          echo "Number not in list: $CC" ; unset ChoiceClean ; break 1
+        else
+          SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
+        fi
+      done
+    fi
+  done
+  printf "\nUpdating containers:\n"
+  printf "%s\n" "${SelectedUpdates[@]}"
+  printf "\n"
+}
+
+### Version check & initiate self update
+[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n" "$VERSION" "$LatestRelease" ; self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
@@ -125,31 +152,6 @@ for i in "${GotUpdates[@]}"; do
   echo "$num) $i"
   ((num++))
 done
-}
-
-### Choose from list -function:
-choosecontainers() {
-  while [[ -z "$ChoiceClean" ]]; do
-    read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
-    if [[ "$Choice" =~ [qQnN] ]] ; then 
-      exit 0
-    elif [[ "$Choice" =~ [aAyY] ]] ; then
-      SelectedUpdates=( "${GotUpdates[@]}" )
-      ChoiceClean=${Choice//[,.:;]/ }
-    else
-      ChoiceClean=${Choice//[,.:;]/ }
-      for CC in $ChoiceClean ; do
-        if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]] ; then # reset choice if out of bounds
-          echo "Number not in list: $CC" ; unset ChoiceClean ; break 1
-        else
-          SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
-        fi
-      done
-    fi
-  done
-  printf "\nUpdating containers:\n"
-  printf "%s\n" "${SelectedUpdates[@]}"
-  printf "\n"
 }
 
 ### Check the image-hash of every running container VS the registry
