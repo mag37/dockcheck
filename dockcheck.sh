@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-VERSION="v0.2.39"
+VERSION="v0.2.30"
+### ChangeNotes: Nothing fancy, just testing
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/selfupdate/dockcheck.sh"
-
-### Check if there's a new release of the script:
-LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 
 ### Variables for self updating
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptName="$(basename "$ScriptPath")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
+
+### Check if there's a new release of the script:
+LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNotes: //p")"
 
 ### Help Function:
 Help() {
@@ -41,7 +43,7 @@ shift "$((OPTIND-1))"
 self_update_git() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
   [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
-  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}") || { printf "Script not in cloned directory, skipping update.\n" ; return ; }
+  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}") || { printf "Script not in git directory, skipping update.\n" ; return ; }
   git fetch
   [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
@@ -99,7 +101,7 @@ choosecontainers() {
 }
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n" "$VERSION" "$LatestRelease" ; self_update_select ; }
+[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
