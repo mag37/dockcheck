@@ -41,13 +41,13 @@ shift "$((OPTIND-1))"
 self_update_git() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
   [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
-  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream}) || { printf "Script not in cloned directory, skipping update.\n" ; return ; }
+  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}") || { printf "Script not in cloned directory, skipping update.\n" ; return ; }
   git fetch
   [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
    # git checkout "$ScriptUpstream"
     git pull --force
-    echo "Running the new version..."
+    printf "%s\n" "--- starting over with the updated version ---"
     cd - || { printf "Path error.\n" ; return ; }
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # exit the old instance
