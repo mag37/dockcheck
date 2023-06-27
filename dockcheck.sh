@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.2.3"
-### ChangeNotes: Added self-updating git/curl-function and a dirty changenote.
+VERSION="v0.2.4"
+### ChangeNotes: Fixes to the Exclude-option to only exclude exact matches. +cleaning
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -154,9 +154,17 @@ for i in "${GotUpdates[@]}"; do
 done
 }
 
+### Listing typed exclusions:
+if [[ -n ${Excludes[*]} ]] ; then
+  printf "\n\033[0;34mExcluding these names:\033[0m\n"
+  printf "%s\n" "${Excludes[@]}"
+  printf "\n"
+fi
+
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
-  [[ " ${Excludes[*]} " =~ ${i} ]] && continue; # Skip if the container is excluded
+  ### Looping every item over the list of excluded names and skipping:
+  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
@@ -200,8 +208,11 @@ if [ -n "$GotUpdates" ] ; then
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
+    NumberofUpdates="${#SelectedUpdates[@]}"
+    CurrentQue=0
     for i in "${SelectedUpdates[@]}"
     do
+      ((CurrentQue+=1))
       unset CompleteConfs
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
@@ -226,6 +237,7 @@ if [ -n "$GotUpdates" ] ; then
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
+      printf "\n\033[0;36mNow updating (%s/%s): \033[0;34m%s\033[0m\n" "$CurrentQue" "$NumberofUpdates" "$i"
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
