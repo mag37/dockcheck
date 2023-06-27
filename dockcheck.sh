@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.2.4"
-### ChangeNotes: Fixes to the Exclude-option to only exclude exact matches.
+### ChangeNotes: Fixes to the Exclude-option to only exclude exact matches. +cleaning
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -208,8 +208,11 @@ if [ -n "$GotUpdates" ] ; then
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
+    NumberofUpdates="${#SelectedUpdates[@]}"
+    CurrentQue=0
     for i in "${SelectedUpdates[@]}"
     do
+      ((CurrentQue+=1))
       unset CompleteConfs
       ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
       ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
@@ -234,6 +237,7 @@ if [ -n "$GotUpdates" ] ; then
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
+      printf "\n\033[0;36mNow updating (%s/%s): \033[0;34m%s\033[0m\n" "$CurrentQue" "$NumberofUpdates" "$i"
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
