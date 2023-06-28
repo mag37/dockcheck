@@ -101,7 +101,7 @@ choosecontainers() {
 }
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; self_update_select ; }
+[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$UpdYes" ]] && self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
