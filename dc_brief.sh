@@ -17,7 +17,6 @@ SearchName="$1"
 
 for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
-  # [[ " ${Excludes[*]} " =~ ${i} ]] && continue; # Skip if the container is excluded
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
