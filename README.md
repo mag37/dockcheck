@@ -44,8 +44,8 @@ Options:
 -h     Print this Help.
 -a|y   Automatic updates, without interaction.
 -n     No updates, only checking availability.
--p     Auto-Prune dangling images after update.
 -e     Exclude containers, separated by comma.
+-p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
 ```
 
@@ -87,7 +87,7 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 ___
 
 ## Check out a spinoff brother-project:
-### [Palleri/dockcheck-web](https://github.com/Palleri/dockcheck-web) for a WebUI-front!
+### [Palleri/DCW](https://github.com/Palleri/DCW) for a WebUI-front with exporters and notifications.
 
 ## Special Thanks:
 - :bison: [t0rnis](https://github.com/t0rnis)   
