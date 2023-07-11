@@ -16,7 +16,7 @@ IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 SearchName="$1"
 
 for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
-  [[ " ${Excludes[*]} " =~ ${i} ]] && continue; # Skip if the container is excluded
+  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
