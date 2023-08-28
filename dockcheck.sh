@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.2.4"
-### ChangeNotes: Fixes to the Exclude-option to only exclude exact matches. +cleaning
+VERSION="v0.2.5"
+### ChangeNotes: Added an -s option to include stopped contianers in the check.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -25,18 +25,19 @@ Help() {
   echo "-n     No updates, only checking availability."
   echo "-e     Exclude containers, separated by comma."
   echo "-p     Auto-Prune dangling images after update."
-  echo "-s     Check stopped containers"
-    echo "-r     Allow updating images for docker run, wont update the container"
+  echo "-r     Allow updating images for docker run, wont update the container"
+  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
-while getopts "aynprhse:" options; do   
+Stopped=""
+while getopts "aynprhse:" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
     r) DrUp="yes" ;;
     p) PruneQ="yes" ;;
     e) Exclude=${OPTARG} ;;
-    s) Stopped="yes" ;; 
+    s) Stopped="-a" ;;
     h|*) Help ; exit 0 ;;
   esac
 done
@@ -163,18 +164,9 @@ if [[ -n ${Excludes[*]} ]] ; then
   printf "\n"
 fi
 
-if [ "$Stopped" == "yes" ]; then 
-  Cadena="$(docker ps -a --filter "name=$SearchName" --format '{{.Names}}')";
- 
-  else 
-  Cadena="$(docker ps  --filter "name=$SearchName" --format '{{.Names}}')";
-  
-
-fi
-
 ### Check the image-hash of every running container VS the registry
-for i in ${Cadena}  ; do
-   ### Looping every item over the list of excluded names and skipping:
+for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
+  ### Looping every item over the list of excluded names and skipping:
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
@@ -186,10 +178,6 @@ for i in ${Cadena}  ; do
     GotErrors+=("$i")
   fi
 done
-
-
-
-
 
 ### Sort arrays alphabetically
 IFS=$'\n' 
