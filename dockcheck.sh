@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.2.4"
-### ChangeNotes: Fixes to the Exclude-option to only exclude exact matches. +cleaning
+VERSION="v0.2.5"
+### ChangeNotes: Added an -s option to include stopped contianers in the check.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -26,15 +26,18 @@ Help() {
   echo "-e     Exclude containers, separated by comma."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
+  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
-while getopts "aynprhe:" options; do
+Stopped=""
+while getopts "aynprhse:" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
     r) DrUp="yes" ;;
     p) PruneQ="yes" ;;
     e) Exclude=${OPTARG} ;;
+    s) Stopped="-a" ;;
     h|*) Help ; exit 0 ;;
   esac
 done
@@ -162,7 +165,7 @@ if [[ -n ${Excludes[*]} ]] ; then
 fi
 
 ### Check the image-hash of every running container VS the registry
-for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
+for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
   ### Looping every item over the list of excluded names and skipping:
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
   printf ". "
