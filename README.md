@@ -48,6 +48,7 @@ Options:
 -e     Exclude containers, separated by comma.
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
+-s     Include stopped containers in the check. (Logic: docker ps -a).
 ```
 
 Basic example:
@@ -77,8 +78,9 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 Containers need to be manually stopped, removed and created again to run on the new image.
 
 ### :hammer: Known issues
-- No detailed error feedback (just skip + list what's skipped) .
+- No detailed error feedback (just skip + list what's skipped).
 - Not respecting `--profile` options when re-creating the container.
+- Not working well with containers created by Portainer.
 
 ## `dc_brief.sh`
 Just a brief, slimmed down version of the script to only print what containers got updates, no updates or errors.
