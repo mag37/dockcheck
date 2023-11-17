@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.2.5"
+VERSION="v0.2.5.1"
 ### ChangeNotes: Added an -s option to include stopped contianers in the check.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
@@ -16,28 +16,28 @@ LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNot
 
 ### Help Function:
 Help() {
-  echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]" 
+  echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]"
   echo "Example:    dockcheck.sh -a -e nextcloud,heimdall"
   echo
   echo "Options:"
   echo "-h     Print this Help."
-  echo "-a|y   Automatic updates, without interaction."
+  echo "-y     Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
   echo "-e     Exclude containers, separated by comma."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
-  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
+  echo "-a     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
 Stopped=""
 while getopts "aynprhse:" options; do
   case "${options}" in
-    a|y) UpdYes="yes" ;;
+    y) UpdYes="yes" ;;
     n) UpdYes="no" ;;
     r) DrUp="yes" ;;
     p) PruneQ="yes" ;;
     e) Exclude=${OPTARG} ;;
-    s) Stopped="-a" ;;
+    a) Stopped="-a" ;;
     h|*) Help ; exit 0 ;;
   esac
 done
@@ -61,8 +61,8 @@ self_update_git() {
 }
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
-  if [[ $(builtin type -P curl) ]]; then 
-    curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"  
+  if [[ $(builtin type -P curl) ]]; then
+    curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"
     printf "%s\n" "--- starting over with the updated version ---"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # exit the old instance
@@ -73,7 +73,7 @@ self_update_curl() {
 self_update_select() {
   read -r -p "Choose update procedure (or do it manually) - git/curl/[no]: " SelfUpQ
   if [[ "$SelfUpQ" == "git" ]]; then self_update_git ;
-  elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ; 
+  elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ;
   else printf "Download it manually from the repo: %s \n\n" "$Github"
   fi
 }
@@ -82,7 +82,7 @@ self_update_select() {
 choosecontainers() {
   while [[ -z "$ChoiceClean" ]]; do
     read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
-    if [[ "$Choice" =~ [qQnN] ]] ; then 
+    if [[ "$Choice" =~ [qQnN] ]] ; then
       exit 0
     elif [[ "$Choice" =~ [aAyY] ]] ; then
       SelectedUpdates=( "${GotUpdates[@]}" )
@@ -104,38 +104,12 @@ choosecontainers() {
 }
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$UpdYes" ]] && self_update_select ; }
+#[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$UpdYes" ]] && self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
 ### Create array of excludes
 IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
-
-### Check if required binary exists in PATH or directory:
-if [[ $(builtin type -P "regctl") ]]; then regbin="regctl" ;
-elif [[ -f "./regctl" ]]; then regbin="./regctl" ;
-else
-  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
-  if [[ "$GetDep" =~ [yY] ]] ; then
-    ### Check arch:
-    case "$(uname --machine)" in
-      x86_64|amd64) architecture="amd64" ;;
-      arm64|aarch64) architecture="arm64";;
-      *) echo "Architecture not supported, exiting." ; exit 1;;
-    esac
-    RegUrl="https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture"
-    if [[ $(builtin type -P curl) ]]; then curl -L $RegUrl > ./regctl ; chmod +x ./regctl ; regbin="./regctl" ;
-    elif [[ $(builtin type -P wget) ]]; then wget $RegUrl -O ./regctl ; chmod +x ./regctl ; regbin="./regctl" ;
-    else
-      printf "%s\n" "curl/wget not available - get regctl manually from the repo link, quitting."
-    fi
-  else
-    printf "%s\n" "Dependency missing, quitting."
-    exit 1
-  fi
-fi
-### final check if binary is correct
-$regbin version &> /dev/null  || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
 
 ### Check docker compose binary:
 if docker compose version &> /dev/null ; then DockerBin="docker compose" ;
@@ -163,16 +137,57 @@ if [[ -n ${Excludes[*]} ]] ; then
   printf "%s\n" "${Excludes[@]}"
   printf "\n"
 fi
+# Check repository
+regcheck() {
+  hub='hub.docker.com'
+  namespace=''
+  repository=''
+  arg=$1
+#echo $arg
+  if [[ "$arg" == *":"* ]] ;then
+    tag=`echo $arg| cut -f 2 -d ":"`
+    arg=`echo $arg |cut -f 1 -d ":"`
+  else
+    tag='latest'
+  fi
+#echo $arg
+  if [[ "$arg" == *"."* ]] ; then
+    hub=`echo $arg| cut -f 1 -d "/"`
+    arg=`echo $arg| cut -f 2- -d "/"`
+  fi
+#echo $arg
+  if [[ "$arg" == *"/"* ]] ;then
+    namespace=`echo $arg| cut -f 1 -d "/"`
+    repository=`echo $arg |cut -f 2 -d "/"`
+  else
+    namespace='library'
+    repository=$arg
+  fi
+#echo "$hub -> $namespace -> $repository -> $tag"
+res=`curl -L -s -w "%{http_code}" https://$hub/v2/namespaces/$namespace/repositories/$repository/tags/$tag`
+http_code="${res:${#res}-3}"
+if [ ${#res} -eq 3 ]; then
+  body=""
+  return 1
+else
+  body="${res:0:${#res}-3}"
+fi
+#echo $http_code
+#echo $res
+echo $body|jq -r .digest
+}
 
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
   ### Looping every item over the list of excluded names and skipping:
-  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
+  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
-  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
+  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}'|cut -f 2 -d "@")
   ### Checking for errors while setting the variable:
-  if RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null) ; then
+#echo "Repo url: $RepoUrl Hash: $LocalHash"
+#regcheck $RepoUrl; continue
+  if RegHash=$(regcheck $RepoUrl ) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
   else
     GotErrors+=("$i")
@@ -180,7 +195,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
 done
 
 ### Sort arrays alphabetically
-IFS=$'\n' 
+IFS=$'\n'
 NoUpdates=($(sort <<<"${NoUpdates[*]}"))
 GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 GotErrors=($(sort <<<"${GotErrors[*]}"))
@@ -197,12 +212,12 @@ if [[ -n ${GotErrors[*]} ]] ; then
   printf "\n\033[0;31mContainers with errors, wont get updated:\033[0m\n"
   printf "%s\n" "${GotErrors[@]}"
 fi
-if [[ -n ${GotUpdates[*]} ]] ; then 
+if [[ -n ${GotUpdates[*]} ]] ; then
    printf "\n\033[0;33mContainers with updates available:\033[0m\n"
    [[ -z "$UpdYes" ]] && options || printf "%s\n" "${GotUpdates[@]}"
 fi
 
-### Optionally get updates if there's any 
+### Optionally get updates if there's any
 if [ -n "$GotUpdates" ] ; then
   if [ -z "$UpdYes" ] ; then
   printf "\n\033[0;36mChoose what containers to update.\033[0m\n"
@@ -223,14 +238,14 @@ if [ -n "$GotUpdates" ] ; then
       ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       ### Checking if compose-values are empty - hence started with docker run:
-      if [ -z "$ContPath" ] ; then 
+      if [ -z "$ContPath" ] ; then
         if [ "$DrUp" == "yes" ] ; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
           printf "\n\033[33;1m%s\033[0m has no compose labels, probably started with docker run - \033[33;1mskipping\033[0m\n\n" "$i"
         fi
-        continue 
+        continue
       fi
       ### Checking if "com.docker.compose.project.config_files" returns the full path to the config file or just the file name
       if [[ $ContConfigFile = '/'* ]] ; then
@@ -244,10 +259,10 @@ if [ -n "$GotUpdates" ] ; then
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
-      for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
-      
+      for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done
+
       ### Check if the container got an environment file set, use it if so:
-      if [ -n "$ContEnv" ]; then 
+      if [ -n "$ContEnv" ]; then
         $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName" # unquoted array to allow split - rework?
       else
         $DockerBin ${CompleteConfs[@]} up -d "$ContName" # unquoted array to allow split - rework?
@@ -255,7 +270,7 @@ if [ -n "$GotUpdates" ] ; then
     done
     printf "\033[0;32mAll done!\033[0m\n"
     [[ -z "$PruneQ" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " PruneQ
-    [[ "$PruneQ" =~ [yY] ]] && docker image prune -f 
+    [[ "$PruneQ" =~ [yY] ]] && docker image prune -f
   else
     printf "\nNo updates installed, exiting.\n"
   fi
