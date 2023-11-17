@@ -166,7 +166,7 @@ regcheck() {
 #echo "$hub -> $namespace -> $repository -> $tag"
 res=`curl -L -s -w "%{http_code}" https://$hub/v2/namespaces/$namespace/repositories/$repository/tags/$tag`
 http_code="${res:${#res}-3}"
-if [ ${#res} -eq 3 ]; then
+if [ ${#res} -eq 3 ] || || [ "$http_code" -ne "200" ] ;then
   body=""
   return 1
 else
