@@ -114,6 +114,7 @@ IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 ### Check if required binary exists in PATH or directory:
 if [[ $(builtin type -P "regctl") ]]; then regbin="regctl" ;
 elif [[ -f "./regctl" ]]; then regbin="./regctl" ;
+elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
   if [[ "$GetDep" =~ [yY] ]] ; then
