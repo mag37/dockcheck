@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+cd "$(dirname "$0")"
 VERSION="v0.2.5"
 ### ChangeNotes: Added an -s option to include stopped contianers in the check.
 Github="https://github.com/mag37/dockcheck"
