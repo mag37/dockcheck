@@ -16,6 +16,7 @@
 
 
 ### :pushpin: Recent changes:
+- **v0.2.6**: regctl check / download logic changed. Now using the scripts directory as primary location.
 - **v0.2.5**: Added a new option `-s` to include stopped containers in the check for updates.
 - **v0.2.4**: Fixed a bug with the Exclude-logic to only exclude exact matches. Added a counter.
 - **v0.2.3**: Added a self updating function (curl/git) and a ugly changenote-message for updates.
