@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.2.5"
-### ChangeNotes: Added an -s option to include stopped contianers in the check.
+VERSION="v0.2.6"
+### ChangeNotes: Logic change on regctl check/download. Will match the scripts workdir.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -50,7 +50,6 @@ self_update_git() {
   git fetch
   [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
     printf "%s\n" "Pulling the latest version."
-   # git checkout "$ScriptUpstream"
     git pull --force
     printf "%s\n" "--- starting over with the updated version ---"
     cd - || { printf "Path error.\n" ; return ; }
@@ -113,7 +112,6 @@ IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
 ### Check if required binary exists in PATH or directory:
 if [[ $(builtin type -P "regctl") ]]; then regbin="regctl" ;
-elif [[ -f "./regctl" ]]; then regbin="./regctl" ;
 elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
@@ -125,8 +123,8 @@ else
       *) echo "Architecture not supported, exiting." ; exit 1;;
     esac
     RegUrl="https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture"
-    if [[ $(builtin type -P curl) ]]; then curl -L $RegUrl > ./regctl ; chmod +x ./regctl ; regbin="./regctl" ;
-    elif [[ $(builtin type -P wget) ]]; then wget $RegUrl -O ./regctl ; chmod +x ./regctl ; regbin="./regctl" ;
+    if [[ $(builtin type -P curl) ]]; then curl -L $RegUrl > "$ScriptWorkDir/regctl" ; chmod +x "$ScriptWorkDir/regctl" ; regbin="$ScriptWorkDir/regctl" ;
+    elif [[ $(builtin type -P wget) ]]; then wget $RegUrl -O "$ScriptWorkDir/regctl" ; chmod +x "$ScriptWorkDir/regctl" ; regbin="$ScriptWorkDir/regctl" ;
     else
       printf "%s\n" "curl/wget not available - get regctl manually from the repo link, quitting."
     fi
