@@ -16,6 +16,7 @@
 
 
 ### :pushpin: Recent changes:
+- **v0.3.0**: Added a flag `-d N` to choose how many days old new images have to be before being pulled and updated.
 - **v0.2.6**: regctl check / download logic changed. Now using the scripts directory as primary location.
 - **v0.2.5**: Added a new option `-s` to include stopped containers in the check for updates.
 - **v0.2.4**: Fixed a bug with the Exclude-logic to only exclude exact matches. Added a counter.
@@ -39,17 +40,18 @@ ___
 ## `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
-Syntax:     dockcheck.sh [OPTION] [part of name to filter]
-Example:    dockcheck.sh -a -e nextcloud,heimdall
-
-Options:
--h     Print this Help.
--a|y   Automatic updates, without interaction.
--n     No updates, only checking availability.
--e     Exclude containers, separated by comma.
--p     Auto-Prune dangling images after update.
--r     Allow updating images for docker run, wont update the container.
--s     Include stopped containers in the check. (Logic: docker ps -a).
+ Syntax:     dockcheck.sh [OPTION] [part of name to filter] 
+ Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
+ 
+ Options:
+ -h     Print this Help.
+ -a|y   Automatic updates, without interaction.
+ -n     No updates, only checking availability.
+ -e X   Exclude containers, separated by comma.
+ -d N   Only update to new images that are N+ days old. Lists too recent with +prefix. 2xSlower.
+ -p     Auto-Prune dangling images after update.
+ -r     Allow updating images for docker run, wont update the container.
+ -s     Include stopped containers in the check. (Logic: docker ps -a).
 ```
 
 Basic example:
