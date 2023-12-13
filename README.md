@@ -92,8 +92,7 @@ Just a brief, slimmed down version of the script to only print what containers g
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 ___
 
-## Check out a spinoff brother-project:
-### [Palleri/DCW](https://github.com/Palleri/DCW) for a WebUI-front with exporters and notifications.
+### Check out a spinoff project: [Palleri/DCW](https://github.com/Palleri/DCW) for a WebUI-front with exporters and notifications.
 
 ## Special Thanks:
 - :bison: [t0rnis](https://github.com/t0rnis)   
