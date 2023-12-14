@@ -15,7 +15,7 @@
 <h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4</h3>
 
 
-### :pushpin: Recent changes:
+### :bell: Recent changes
 - **v0.3.0**: Added a flag `-d N` to choose how many days old new images have to be before being pulled and updated.
 - **v0.2.6**: regctl check / download logic changed. Now using the scripts directory as primary location.
 - **v0.2.5**: Added a new option `-s` to include stopped containers in the check for updates.
@@ -28,7 +28,7 @@
 - **v0.1.9:** Fixed custom env-support. 
 ___
 
-## Dependencies:
+## Dependencies
 Running docker (duh) and compose, either standalone or plugin.   
 [`regclient/regctl`](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
 User will be prompted to download `regctl` if not in `PATH` or `PWD`
@@ -75,7 +75,7 @@ Enter number(s) separated by comma, [a] for all - [q] to quit:
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
-### `-r flag` :warning: disclaimer and warning:
+### `-r flag` :warning: disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**   
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.
@@ -94,6 +94,6 @@ ___
 
 ### Check out a spinoff project: [Palleri/DCW](https://github.com/Palleri/DCW) for a WebUI-front with exporters and notifications.
 
-## Special Thanks:
+## Special Thanks
 - :bison: [t0rnis](https://github.com/t0rnis)   
 - :leopard: [Palleri](https://github.com/Palleri)
