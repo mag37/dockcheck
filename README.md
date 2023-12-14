@@ -16,7 +16,7 @@
 
 
 ### :bell: Recent changes
-- **v0.3.0**: Added a flag `-d N` to choose how many days old new images have to be before being pulled and updated.
+- **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
 - **v0.2.6**: regctl check / download logic changed. Now using the scripts directory as primary location.
 - **v0.2.5**: Added a new option `-s` to include stopped containers in the check for updates.
 - **v0.2.4**: Fixed a bug with the Exclude-logic to only exclude exact matches. Added a counter.
@@ -67,15 +67,13 @@ Containers with updates available:
 2) syncthing
 3) whoogle-search
 
-
 Choose what containers to update:
 Enter number(s) separated by comma, [a] for all - [q] to quit:
-
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
-### `-r flag` :warning: disclaimer and warning
+### :warning: `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**   
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.
