@@ -24,7 +24,7 @@ Help() {
   echo "-a|y   Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
   echo "-e X   Exclude containers, separated by comma."
-  echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix. 2xSlower."
+  echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
@@ -106,9 +106,9 @@ choosecontainers() {
 }
 
 datecheck() {
-  DaysAgo=$(date -d "$DaysOld days ago" +"%Y-%m-%d")
   ImageDate=$($regbin image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
-  if [ $(date -d "$ImageDate" +%s) -le $(date -d "$DaysAgo" +%s) ] ; then
+  ImageAge=$((($(date +%s) - $(date -d "$ImageDate" +%s))/86400))
+  if [ $ImageAge -gt $DaysOld ] ; then
     return 0
   else
     return 1
@@ -190,7 +190,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
       NoUpdates+=("$i") 
     else 
       if [[ -n "$DaysOld" ]] && ! datecheck ; then
-        NoUpdates+=("+$i") 
+        NoUpdates+=("+$i ${ImageAge}d") 
       else 
         GotUpdates+=("$i")
       fi
