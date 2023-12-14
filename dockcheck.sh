@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.2.6"
-### ChangeNotes: Logic change on regctl check/download. Will match the scripts workdir.
+VERSION="v0.3.0"
+### ChangeNotes: Added feature (-d N) to only update to new images that are N+ days old.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -17,28 +17,31 @@ LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNot
 ### Help Function:
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]" 
-  echo "Example:    dockcheck.sh -a -e nextcloud,heimdall"
+  echo "Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
   echo "-h     Print this Help."
   echo "-a|y   Automatic updates, without interaction."
   echo "-n     No updates, only checking availability."
-  echo "-e     Exclude containers, separated by comma."
+  echo "-e X   Exclude containers, separated by comma."
+  echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
 Stopped=""
-while getopts "aynprhse:" options; do
+while getopts "aynprhse:d:" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
-    n) UpdYes="no" ;;
-    r) DrUp="yes" ;;
-    p) PruneQ="yes" ;;
-    e) Exclude=${OPTARG} ;;
-    s) Stopped="-a" ;;
-    h|*) Help ; exit 0 ;;
+    n)   UpdYes="no" ;;
+    r)   DrUp="yes" ;;
+    p)   PruneQ="yes" ;;
+    e)   Exclude=${OPTARG} ;;
+    s)   Stopped="-a" ;;
+    d)   DaysOld=${OPTARG}
+         if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
+    h|*) Help ; exit 2 ;;
   esac
 done
 shift "$((OPTIND-1))"
@@ -101,6 +104,17 @@ choosecontainers() {
   printf "%s\n" "${SelectedUpdates[@]}"
   printf "\n"
 }
+
+datecheck() {
+  ImageDate=$($regbin image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
+  ImageAge=$((($(date +%s) - $(date -d "$ImageDate" +%s))/86400))
+  if [ $ImageAge -gt $DaysOld ] ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 
 ### Version check & initiate self update
 [[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$UpdYes" ]] && self_update_select ; }
@@ -172,7 +186,15 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   ### Checking for errors while setting the variable:
   if RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null) ; then
-    if [[ "$LocalHash" = *"$RegHash"* ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
+    if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
+      NoUpdates+=("$i") 
+    else 
+      if [[ -n "$DaysOld" ]] && ! datecheck ; then
+        NoUpdates+=("+$i ${ImageAge}d") 
+      else 
+        GotUpdates+=("$i")
+      fi
+    fi
   else
     GotErrors+=("$i")
   fi
