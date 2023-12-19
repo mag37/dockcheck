@@ -27,6 +27,7 @@ Help() {
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
+  echo "-m     Monochrome mode, no printf color codes."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
@@ -40,13 +41,14 @@ c_reset="\033[0m"
 
 
 Stopped=""
-while getopts "aynprhse:d:" options; do
+while getopts "aynprhsme:d:" options; do
   case "${options}" in
     a|y) UpdYes="yes" ;;
     n)   UpdYes="no" ;;
     r)   DrUp="yes" ;;
     p)   PruneQ="yes" ;;
     e)   Exclude=${OPTARG} ;;
+    m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
