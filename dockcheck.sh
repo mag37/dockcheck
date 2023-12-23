@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.0"
-### ChangeNotes: Added feature (-d N) to only update to new images that are N+ days old.
+VERSION="v0.3.1"
+### ChangeNotes: Added feature (-m) Monochrome Mode, no printf color codes.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -20,24 +20,35 @@ Help() {
   echo "Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
-  echo "-h     Print this Help."
   echo "-a|y   Automatic updates, without interaction."
-  echo "-n     No updates, only checking availability."
-  echo "-e X   Exclude containers, separated by comma."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
+  echo "-e X   Exclude containers, separated by comma."
+  echo "-h     Print this Help."
+  echo "-m     Monochrome mode, no printf color codes."
+  echo "-n     No updates, only checking availability."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
+### Colors:
+c_red="\033[0;31m"
+c_green="\033[0;32m"
+c_yellow="\033[0;33m"
+c_blue="\033[0;34m"
+c_teal="\033[0;36m"
+c_reset="\033[0m"
+
+
 Stopped=""
-while getopts "aynprhse:d:" options; do
+while getopts "aynprhsme:d:" options; do
   case "${options}" in
-    a|y) UpdYes="yes" ;;
-    n)   UpdYes="no" ;;
-    r)   DrUp="yes" ;;
-    p)   PruneQ="yes" ;;
+    a|y) AutoUp="yes" ;;
+    n)   AutoUp="no" ;;
+    r)   DRunUp="yes" ;;
+    p)   AutoPrune="yes" ;;
     e)   Exclude=${OPTARG} ;;
+    m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
@@ -117,7 +128,7 @@ datecheck() {
 
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$UpdYes" ]] && self_update_select ; }
+[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$AutoUp" ]] && self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
@@ -172,7 +183,7 @@ done
 
 ### Listing typed exclusions:
 if [[ -n ${Excludes[*]} ]] ; then
-  printf "\n\033[0;34mExcluding these names:\033[0m\n"
+  printf "\n%bExcluding these names:%b\n" $c_blue $c_reset
   printf "%s\n" "${Excludes[@]}"
   printf "\n"
 fi
@@ -211,27 +222,27 @@ UpdCount="${#GotUpdates[@]}"
 
 ### List what containers got updates or not
 if [[ -n ${NoUpdates[*]} ]] ; then
-  printf "\n\033[0;32mContainers on latest version:\033[0m\n"
+  printf "\n%bContainers on latest version:%b\n" "$c_green" "$c_reset"
   printf "%s\n" "${NoUpdates[@]}"
 fi
 if [[ -n ${GotErrors[*]} ]] ; then
-  printf "\n\033[0;31mContainers with errors, wont get updated:\033[0m\n"
+  printf "\n%bContainers with errors, wont get updated:%b\n" "$c_red" "$c_reset"
   printf "%s\n" "${GotErrors[@]}"
 fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
-   printf "\n\033[0;33mContainers with updates available:\033[0m\n"
-   [[ -z "$UpdYes" ]] && options || printf "%s\n" "${GotUpdates[@]}"
+   printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
+   [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
 fi
 
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
-  if [ -z "$UpdYes" ] ; then
-  printf "\n\033[0;36mChoose what containers to update.\033[0m\n"
+  if [ -z "$AutoUp" ] ; then
+  printf "\n%bChoose what containers to update.%b\n" "$c_teal" "$c_reset"
   choosecontainers
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
+  if [ "$AutoUp" == "${AutoUp#[Nn]}" ] ; then
     NumberofUpdates="${#SelectedUpdates[@]}"
     CurrentQue=0
     for i in "${SelectedUpdates[@]}"
@@ -245,11 +256,11 @@ if [ -n "$GotUpdates" ] ; then
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       ### Checking if compose-values are empty - hence started with docker run:
       if [ -z "$ContPath" ] ; then 
-        if [ "$DrUp" == "yes" ] ; then
+        if [ "$DRunUp" == "yes" ] ; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
-          printf "\n\033[33;1m%s\033[0m has no compose labels, probably started with docker run - \033[33;1mskipping\033[0m\n\n" "$i"
+          printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
         fi
         continue 
       fi
@@ -261,7 +272,7 @@ if [ -n "$GotUpdates" ] ; then
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
-      printf "\n\033[0;36mNow updating (%s/%s): \033[0;34m%s\033[0m\n" "$CurrentQue" "$NumberofUpdates" "$i"
+      printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
@@ -274,9 +285,9 @@ if [ -n "$GotUpdates" ] ; then
         $DockerBin ${CompleteConfs[@]} up -d "$ContName" # unquoted array to allow split - rework?
       fi
     done
-    printf "\033[0;32mAll done!\033[0m\n"
-    [[ -z "$PruneQ" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " PruneQ
-    [[ "$PruneQ" =~ [yY] ]] && docker image prune -f 
+    printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
+    [[ -z "$AutoPrune" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune
+    [[ "$AutoPrune" =~ [yY] ]] && docker image prune -f 
   else
     printf "\nNo updates installed, exiting.\n"
   fi

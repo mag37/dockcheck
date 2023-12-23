@@ -16,6 +16,7 @@
 
 
 ### :bell: Recent changes
+- **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
 - **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
 - **v0.2.6**: regctl check / download logic changed. Now using the scripts directory as primary location.
 - **v0.2.5**: Added a new option `-s` to include stopped containers in the check for updates.
