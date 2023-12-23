@@ -20,14 +20,14 @@ Help() {
   echo "Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
-  echo "-h     Print this Help."
   echo "-a|y   Automatic updates, without interaction."
-  echo "-n     No updates, only checking availability."
-  echo "-e X   Exclude containers, separated by comma."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
+  echo "-e X   Exclude containers, separated by comma."
+  echo "-h     Print this Help."
+  echo "-m     Monochrome mode, no printf color codes."
+  echo "-n     No updates, only checking availability."
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container"
-  echo "-m     Monochrome mode, no printf color codes."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
 }
 
@@ -43,10 +43,10 @@ c_reset="\033[0m"
 Stopped=""
 while getopts "aynprhsme:d:" options; do
   case "${options}" in
-    a|y) UpdYes="yes" ;;
-    n)   UpdYes="no" ;;
-    r)   DrUp="yes" ;;
-    p)   PruneQ="yes" ;;
+    a|y) AutoUp="yes" ;;
+    n)   AutoUp="no" ;;
+    r)   DRunUp="yes" ;;
+    p)   AutoPrune="yes" ;;
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
@@ -128,7 +128,7 @@ datecheck() {
 
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$UpdYes" ]] && self_update_select ; }
+[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$AutoUp" ]] && self_update_select ; }
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
@@ -231,18 +231,18 @@ if [[ -n ${GotErrors[*]} ]] ; then
 fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
-   [[ -z "$UpdYes" ]] && options || printf "%s\n" "${GotUpdates[@]}"
+   [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
 fi
 
 ### Optionally get updates if there's any 
 if [ -n "$GotUpdates" ] ; then
-  if [ -z "$UpdYes" ] ; then
+  if [ -z "$AutoUp" ] ; then
   printf "\n%bChoose what containers to update.%b\n" "$c_teal" "$c_reset"
   choosecontainers
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [ "$UpdYes" == "${UpdYes#[Nn]}" ] ; then
+  if [ "$AutoUp" == "${AutoUp#[Nn]}" ] ; then
     NumberofUpdates="${#SelectedUpdates[@]}"
     CurrentQue=0
     for i in "${SelectedUpdates[@]}"
@@ -256,7 +256,7 @@ if [ -n "$GotUpdates" ] ; then
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       ### Checking if compose-values are empty - hence started with docker run:
       if [ -z "$ContPath" ] ; then 
-        if [ "$DrUp" == "yes" ] ; then
+        if [ "$DRunUp" == "yes" ] ; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
@@ -286,8 +286,8 @@ if [ -n "$GotUpdates" ] ; then
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
-    [[ -z "$PruneQ" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " PruneQ
-    [[ "$PruneQ" =~ [yY] ]] && docker image prune -f 
+    [[ -z "$AutoPrune" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune
+    [[ "$AutoPrune" =~ [yY] ]] && docker image prune -f 
   else
     printf "\nNo updates installed, exiting.\n"
   fi
