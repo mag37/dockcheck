@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.0"
-### ChangeNotes: Added feature (-d N) to only update to new images that are N+ days old.
+VERSION="v0.3.1"
+### ChangeNotes: Added feature (-m) Monochrome Mode, no printf color codes.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
