@@ -14,6 +14,8 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNotes: //p")"
 
+[ -s $ScriptWorkDir/notify.sh ] && source $ScriptWorkDir/notify.sh
+
 ### Help Function:
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]" 
@@ -232,6 +234,7 @@ fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
+   [[ $(type -t send_notification) == function ]] && send_notification ${GotUpdates[@]}
 fi
 
 ### Optionally get updates if there's any 
