@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.1"
-### ChangeNotes: Added feature (-m) Monochrome Mode, no printf color codes.
+VERSION="v0.3.2"
+### ChangeNotes: Added a notify function - template and email script (DSM etc)
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -234,7 +234,7 @@ fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ $(type -t send_notification) == function ]] && send_notification ${GotUpdates[@]}
+   [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}"
 fi
 
 ### Optionally get updates if there's any 

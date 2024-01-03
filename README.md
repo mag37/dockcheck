@@ -16,6 +16,7 @@
 
 
 ### :bell: Recent changes
+- **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
 - **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
 - **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
 - **v0.2.6**: regctl check / download logic changed. Now using the scripts directory as primary location.
@@ -73,6 +74,10 @@ Enter number(s) separated by comma, [a] for all - [q] to quit:
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
+
+### Notifications:
+
+A simple email notification function is added, with a generic example and DSM/Ssmtp script by [yoyoma2](https://github.com/yoyoma2). Further addons are welcome, suggestions or PR!   
 
 ### :warning: `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**   
