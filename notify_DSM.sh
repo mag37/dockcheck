@@ -15,15 +15,15 @@ ssmtp $SendMailTo << __EOF
 From: "$FromHost" <$SendMailTo>
 date:$(date -R)
 To: <$SendMailTo>
-Subject: [diskstation] Some docker packages need to be updated
+Subject: [diskstation] Some docker containers need to be updated
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-The following docker packages on $FromHost need to be updated:
+The following docker containers on $FromHost need to be updated:
 
-"$UpdToString"
+$UpdToString
 
-From $FromHost
+ From $FromHost
 
 __EOF
 }

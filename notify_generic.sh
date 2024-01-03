@@ -9,5 +9,5 @@ send_notification() {
 
   # platform specific notification code would go here
   printf "\n%bGeneric notification addon:%b" "$c_green" "$c_reset"
-  printf "\nThe following docker packages on %s need to be updated:\n%s\n" "$FromHost" "$UpdToString"
+  printf "\nThe following docker containers on %s need to be updated:\n%s\n" "$FromHost" "$UpdToString"
 }
