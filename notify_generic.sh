@@ -1,4 +1,5 @@
-# copy/rename this file to notify.sh to enable email/text notifications
+### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+# Copy/rename this file to notify.sh to enable email/text notifications
 # generic sample, the "Hello World" of notification addons
 
 send_notification() {
