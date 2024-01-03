@@ -1,4 +1,6 @@
-# copy/rename this file to notify.sh to enable email notifications on synology DSM
+### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+# Copy/rename this file to notify.sh to enable email notifications on synology DSM
+# Modify to your liking - changing SendMailTo and Subject and content.
 
 send_notification() {
 Updates=("$@")
