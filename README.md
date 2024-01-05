@@ -76,7 +76,7 @@ Enter number(s) separated by comma, [a] for all - [q] to quit:
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
-### Notifications:
+### :loudspeaker: Notifications
 
 Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs!   
 Current templates:
