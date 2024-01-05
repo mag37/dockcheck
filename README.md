@@ -85,7 +85,8 @@ Current templates:
 - Apprise - both [native](https://github.com/caronc/apprise) and [API](https://github.com/caronc/apprise-api) (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
 
 
-A simple email notification function is added, with a generic example and DSM/Ssmtp script by [yoyoma2](https://github.com/yoyoma2). Further addons are welcome, suggestions or PR!   
+Further additions are welcome - suggestions or PR!   
+Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).  
 
 ### :warning: `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**   
