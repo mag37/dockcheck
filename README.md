@@ -78,7 +78,7 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 
 ### Notifications:
 
-Use a `notify_X.sh` template file, copy it to `notify.sh` in the same location as the script, modify it to your needs!
+Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs!   
 Current templates:
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [sSMTP](https://wiki.debian.org/sSMTP)  
