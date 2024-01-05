@@ -16,6 +16,7 @@
 
 
 ### :bell: Recent changes
+- **v0.3.3**: Notification tweaks, added Apprise template.
 - **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
 - **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
 - **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
@@ -76,6 +77,13 @@ Then it proceedes to run `pull` and `up -d` on every container with updates.
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
 ### Notifications:
+
+Use a `notify_X.sh` template file, copy it to `notify.sh` in the same location as the script, modify it to your needs!
+Current templates:
+- Synology [DSM](https://www.synology.com/en-global/dsm)
+- Email with [sSMTP](https://wiki.debian.org/sSMTP)  
+- Apprise - both [native](https://github.com/caronc/apprise) and [API](https://github.com/caronc/apprise-api) (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
+
 
 A simple email notification function is added, with a generic example and DSM/Ssmtp script by [yoyoma2](https://github.com/yoyoma2). Further addons are welcome, suggestions or PR!   
 
