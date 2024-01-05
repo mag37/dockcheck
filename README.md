@@ -16,7 +16,7 @@
 
 
 ### :bell: Recent changes
-- **v0.3.3**: Notification tweaks, added Apprise template.
+- **v0.3.3**: Added Apprise template and the option `-i` inform - to send notifications.
 - **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
 - **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
 - **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
@@ -43,18 +43,20 @@ ___
 ## `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
- Syntax:     dockcheck.sh [OPTION] [part of name to filter] 
+ Syntax:     dockcheck.sh [OPTION] [part of name to filter]
  Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
  
  Options:
- -h     Print this Help.
  -a|y   Automatic updates, without interaction.
- -n     No updates, only checking availability.
+ -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
  -e X   Exclude containers, separated by comma.
- -d N   Only update to new images that are N+ days old. Lists too recent with +prefix. 2xSlower.
+ -h     Print this Help.
+ -i     Inform - send a preconfigured notification.
+ -m     Monochrome mode, no printf color codes.
+ -n     No updates, only checking availability.
  -p     Auto-Prune dangling images after update.
  -r     Allow updating images for docker run, wont update the container.
- -s     Include stopped containers in the check. (Logic: docker ps -a).
+ -s     Include stopped containers in the check. (Logic: docker ps -a)
 ```
 
 Basic example:
@@ -77,6 +79,7 @@ Then it proceedes to run `pull` and `up -d` on every container with updates.
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
 ### :loudspeaker: Notifications
+Trigger with the `-i` flag.   
 
 Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs!   
 Current templates:

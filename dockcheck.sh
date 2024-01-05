@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.2"
-### ChangeNotes: Added a notify function - template and email script (DSM etc)
+VERSION="v0.3.3"
+### ChangeNotes: Added option -i, inform - notify. Added Appraise template.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -14,7 +14,6 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNotes: //p")"
 
-[ -s $ScriptWorkDir/notify.sh ] && source $ScriptWorkDir/notify.sh
 
 ### Help Function:
 Help() {
@@ -26,6 +25,7 @@ Help() {
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-h     Print this Help."
+  echo "-i     Inform - send a preconfigured notification."
   echo "-m     Monochrome mode, no printf color codes."
   echo "-n     No updates, only checking availability."
   echo "-p     Auto-Prune dangling images after update."
@@ -41,14 +41,14 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-
 Stopped=""
-while getopts "aynprhsme:d:" options; do
+while getopts "aynprhisme:d:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     n)   AutoUp="no" ;;
     r)   DRunUp="yes" ;;
     p)   AutoPrune="yes" ;;
+    i)   [ -s $ScriptWorkDir/notify.sh ] && { source $ScriptWorkDir/notify.sh ; Notify="yes" ; } ;;
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
@@ -234,7 +234,7 @@ fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}"
+   [[ ! -z "$Notify" ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n" ; }
 fi
 
 ### Optionally get updates if there's any 
