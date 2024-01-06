@@ -1,8 +1,8 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
 #
-# Copy/rename this file to notify.sh to enable email notifications on Synology DSM
-# DSM Notification Email has to be configured manually.
-# Modify to your liking - changing SendMailTo and Subject and content.
+# Copy/rename this file to notify.sh to enable the notification snipppet.
+# sSMTP has to be installed and configured manually.
+# Modify to fit your setup - changing SendMailFrom, SendMailTo, SubjectTag
 
 send_notification() {
 Updates=("$@")
@@ -10,14 +10,14 @@ UpdToString=$( printf "%s\n" "${Updates[@]}" )
 FromHost=$(hostname)
 
 # User variables:
-# change this to your usual destination for synology DSM notification emails
-SendMailTo="me@mydomain.com"
-SubjectTag="diskstation"
+SendMailFrom="me@mydomain.tld"
+SendMailTo="me@mydomain.tld"
+SubjectTag="dockcheck"
 
 printf "\nSending email notification.\n"
 
 ssmtp $SendMailTo << __EOF
-From: "$FromHost" <$SendMailTo>
+From: "$FromHost" <$SendMailFrom>
 date:$(date -R)
 To: <$SendMailTo>
 Subject: [$SubjectTag] Updates available on $FromHost
@@ -27,8 +27,6 @@ Content-Transfer-Encoding: 7bit
 The following containers on $FromHost have updates available:
 
 $UpdToString
-
- From $FromHost
 
 __EOF
 }

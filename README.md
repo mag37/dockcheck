@@ -15,7 +15,8 @@
 <h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4</h3>
 
 
-### :bell: Recent changes
+### :bell: Changelog
+- **v0.3.3**: Added Apprise template and the option `-i` inform - to send notifications.
 - **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
 - **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
 - **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
@@ -31,9 +32,10 @@
 ___
 
 ## Dependencies
-Running docker (duh) and compose, either standalone or plugin.   
-[`regclient/regctl`](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
-User will be prompted to download `regctl` if not in `PATH` or `PWD`
+- Running docker (duh) and compose, either standalone or plugin.   
+- [`regclient/regctl`](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
+  - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
+  - regctl requires `amd64/arm64` - see [workaround](#workaround-for-non-amd64--arm64) if other architecture is used.
 ___
 
 
@@ -42,18 +44,20 @@ ___
 ## `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
- Syntax:     dockcheck.sh [OPTION] [part of name to filter] 
+ Syntax:     dockcheck.sh [OPTION] [part of name to filter]
  Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
  
  Options:
- -h     Print this Help.
  -a|y   Automatic updates, without interaction.
- -n     No updates, only checking availability.
+ -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
  -e X   Exclude containers, separated by comma.
- -d N   Only update to new images that are N+ days old. Lists too recent with +prefix. 2xSlower.
+ -h     Print this Help.
+ -i     Inform - send a preconfigured notification.
+ -m     Monochrome mode, no printf color codes.
+ -n     No updates, only checking availability.
  -p     Auto-Prune dangling images after update.
  -r     Allow updating images for docker run, wont update the container.
- -s     Include stopped containers in the check. (Logic: docker ps -a).
+ -s     Include stopped containers in the check. (Logic: docker ps -a)
 ```
 
 Basic example:
@@ -75,9 +79,20 @@ Enter number(s) separated by comma, [a] for all - [q] to quit:
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
-### Notifications:
+### :loudspeaker: Notifications
+Trigger with the `-i` flag.   
+Run it scheduled with `-ni` to only get notified when there's updates available!  
 
-A simple email notification function is added, with a generic example and DSM/Ssmtp script by [yoyoma2](https://github.com/yoyoma2). Further addons are welcome, suggestions or PR!   
+Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs!   
+Current templates:
+- Synology [DSM](https://www.synology.com/en-global/dsm)
+- Email with [sSMTP](https://wiki.debian.org/sSMTP)  
+- Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
+  - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
+
+Further additions are welcome - suggestions or PR!   
+Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).  
+
 
 ### :warning: `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**   
@@ -88,6 +103,27 @@ Containers need to be manually stopped, removed and created again to run on the 
 - No detailed error feedback (just skip + list what's skipped).
 - Not respecting `--profile` options when re-creating the container.
 - Not working well with containers created by Portainer.
+
+### Workaround for non **amd64** / **arm64**
+`regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
+Run regctl in a contianer wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
+
+```sh
+cat >regctl <<EOF
+#!/bin/sh
+opts=""
+case "\$*" in
+  "registry login"*) opts="-t";;
+esac
+docker container run \$opts -i --rm --net host \\
+  -u "\$(id -u):\$(id -g)" -e HOME -v \$HOME:\$HOME \\
+  -v /etc/docker/certs.d:/etc/docker/certs.d:ro \\
+  ghcr.io/regclient/regctl:latest "\$@"
+EOF
+chmod 755 regctl
+```
+Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
+
 
 ## `dc_brief.sh`
 Just a brief, slimmed down version of the script to only print what containers got updates, no updates or errors.
