@@ -104,9 +104,9 @@ Containers need to be manually stopped, removed and created again to run on the 
 - Not respecting `--profile` options when re-creating the container.
 - Not working well with containers created by Portainer.
 
-### Workaround for non **amd64** / **arm64**
+### :roller_coaster: Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
-Run regctl in a contianer wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
+Run regctl in a container wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
 
 ```sh
 cat >regctl <<EOF
