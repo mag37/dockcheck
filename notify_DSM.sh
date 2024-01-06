@@ -11,10 +11,10 @@ FromHost=$(hostname)
 
 # User variables:
 # change this to your usual destination for synology DSM notification emails
-SendMailTo=me@mydomain.com
+SendMailTo="me@mydomain.com"
 SubjectTag="diskstation"
 
-printf "\nSending email notification\n"
+printf "\nSending email notification.\n"
 
 ssmtp $SendMailTo << __EOF
 From: "$FromHost" <$SendMailTo>
