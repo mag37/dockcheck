@@ -35,7 +35,7 @@ ___
 - Running docker (duh) and compose, either standalone or plugin.   
 - [`regclient/regctl`](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
-  - regctl requires `amd64/aarch64` - see [workaround](#workaround-for-non-amd64--aarch64) if other architecture is used.
+  - regctl requires `amd64/arm64` - see [workaround](#workaround-for-non-amd64--arm64) if other architecture is used.
 ___
 
 
@@ -81,6 +81,7 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 
 ### :loudspeaker: Notifications
 Trigger with the `-i` flag.   
+Run it scheduled with `-ni` to only get notified when there's updates available!  
 
 Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs!   
 Current templates:
@@ -88,8 +89,6 @@ Current templates:
 - Email with [sSMTP](https://wiki.debian.org/sSMTP)  
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
-
-Run it scheduled with `-ni` to only get notified when there's updates available!  
 
 Further additions are welcome - suggestions or PR!   
 Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).  
@@ -105,8 +104,8 @@ Containers need to be manually stopped, removed and created again to run on the 
 - Not respecting `--profile` options when re-creating the container.
 - Not working well with containers created by Portainer.
 
-### Workaround for non **amd64** / **aarch64**
-`regctl` provides binaries for amd64/aarch64, to use on other architecture you could try this workaround.
+### Workaround for non **amd64** / **arm64**
+`regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
 Run regctl in a contianer wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
 
 ```sh
