@@ -85,8 +85,10 @@ Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your nee
 Current templates:
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [sSMTP](https://wiki.debian.org/sSMTP)  
-- Apprise - both [native](https://github.com/caronc/apprise) and [API](https://github.com/caronc/apprise-api) (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
+- Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
+  - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
 
+Run it scheduled with `-ni` to only get notified when there's updates available!  
 
 Further additions are welcome - suggestions or PR!   
 Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).  
