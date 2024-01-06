@@ -35,7 +35,7 @@ ___
 - Running docker (duh) and compose, either standalone or plugin.   
 - [`regclient/regctl`](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
-  - regctl requires `amd64/aarch64` - see [workaround](#workaround-for-non-amd-aarch) if other architecture is used.
+  - regctl requires `amd64/aarch64` - see [workaround](#workaround-for-non-amd64--aarch64) if other architecture is used.
 ___
 
 
