@@ -1,23 +1,26 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
 #
 # Copy/rename this file to notify.sh to enable the notification snipppet.
-# Required receiving services must already be set up.
-# Modify to fit your setup - changing SendMailFrom, SendMailTo
+# sSMTP has to be installed and configured manually.
+# Modify to fit your setup - changing SendMailFrom, SendMailTo, SubjectTag
 
 send_notification() {
 Updates=("$@")
 UpdToString=$( printf "%s\n" "${Updates[@]}" )
-SendMailFrom=me@mydomain.tld
-SendMailTo=me@mydomain.tld
 FromHost=$(hostname)
 
-printf "\nSending email notification\n"
+# User variables:
+SendMailFrom="me@mydomain.tld"
+SendMailTo="me@mydomain.tld"
+SubjectTag="dockcheck"
+
+printf "\nSending email notification.\n"
 
 ssmtp $SendMailTo << __EOF
 From: "$FromHost" <$SendMailFrom>
 date:$(date -R)
 To: <$SendMailTo>
-Subject: [dockcheck] Updates available on $FromHost
+Subject: [$SubjectTag] Updates available on $FromHost
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
