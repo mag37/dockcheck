@@ -1,2 +1,4 @@
 # ignore users custom notify.sh
 /notify.sh
+# ignore the auto-installed regctl
+regctl
