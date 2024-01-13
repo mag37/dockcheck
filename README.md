@@ -12,7 +12,8 @@
 </p>
 
 <h3 align="center">A script checking updates for docker images <b>without pulling</b><br>Then selectively auto-update containers.</h3>
-<h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4</h3>
+<h2 align="center">Now with a simple Apprise integration!</h2>
+<h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4>
 
 
 ### :bell: Changelog
@@ -82,9 +83,10 @@ Current templates:
 - Email with [sSMTP](https://wiki.debian.org/sSMTP)  
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
+  - Read the [QuickStart](extras/apprise_quickstart.md)
 
 Further additions are welcome - suggestions or PR!   
-Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).  
+<sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
 
 ### :warning: `-r flag` disclaimer and warning
