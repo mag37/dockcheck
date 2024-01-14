@@ -15,8 +15,8 @@
 <h2 align="center">Now with a simple Apprise integration!</h2>
 <h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4>
 
-
-### :bell: Changelog
+___
+## :bell: Changelog
 - **v0.3.3**: Added Apprise template and the option `-i` inform - to send notifications.
 - **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
 - **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
@@ -25,9 +25,9 @@
 - **v0.2.5**: Added a new option `-s` to include stopped containers in the check for updates.
 ___
 
-## Dependencies
+## :nut_and_bolt: Dependencies
 - Running docker (duh) and compose, either standalone or plugin.   
-- [`regclient/regctl`](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
+- [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
   - regctl requires `amd64/arm64` - see [workaround](#workaround-for-non-amd64--arm64) if other architecture is used.
 ___
@@ -35,7 +35,7 @@ ___
 
 ![](extras/example.gif)
 
-## `dockcheck.sh`
+## :mag_right: `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
  Syntax:     dockcheck.sh [OPTION] [part of name to filter]
@@ -54,7 +54,7 @@ $ ./dockcheck.sh -h
  -s     Include stopped containers in the check. (Logic: docker ps -a)
 ```
 
-Basic example:
+### Basic example:
 ```
 $ ./dockcheck.sh
 . . .
@@ -73,7 +73,7 @@ Enter number(s) separated by comma, [a] for all - [q] to quit:
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
-### :loudspeaker: Notifications
+## :loudspeaker: Notifications
 Trigger with the `-i` flag.   
 Run it scheduled with `-ni` to only get notified when there's updates available!  
 
@@ -88,18 +88,7 @@ Current templates:
 Further additions are welcome - suggestions or PR!   
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
-
-### :warning: `-r flag` disclaimer and warning
-**Wont auto-update the containers, only their images. (compose is recommended)**   
-`docker run` dont support using new images just by restarting a container.  
-Containers need to be manually stopped, removed and created again to run on the new image.
-
-### :hammer: Known issues
-- No detailed error feedback (just skip + list what's skipped).
-- Not respecting `--profile` options when re-creating the container.
-- Not working well with containers created by Portainer.
-
-### :roller_coaster: Workaround for non **amd64** / **arm64**
+## :roller_coaster: Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
 Run regctl in a container wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
 
@@ -119,18 +108,23 @@ chmod 755 regctl
 ```
 Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
+## :hammer: Known issues
+- No detailed error feedback (just skip + list what's skipped).
+- Not respecting `--profile` options when re-creating the container.
+- Not working well with containers created by Portainer.
 
-## `dc_brief.sh`
-Just a brief, slimmed down version of the script to only print what containers got updates, no updates or errors.
+## :warning: `-r flag` disclaimer and warning
+**Wont auto-update the containers, only their images. (compose is recommended)**   
+`docker run` dont support using new images just by restarting a container.  
+Containers need to be manually stopped, removed and created again to run on the new image.
 
-# License
+## :scroll: License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 
-## The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in the mirror.
+### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in the mirror.
 
 ___
 
-### Check out a spinoff project: [Palleri/DCW](https://github.com/Palleri/DCW) for a WebUI-front with exporters and notifications.
 
 ## Special Thanks
 - :bison: [t0rnis](https://github.com/t0rnis)   
