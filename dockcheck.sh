@@ -198,7 +198,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   ### Checking for errors while setting the variable:
-  if RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null) ; then
+  if RegHash=$($regbin image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
       NoUpdates+=("$i") 
     else 
@@ -209,7 +209,8 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
       fi
     fi
   else
-    GotErrors+=("$i")
+    # Here the RegHash is the result of an error code.
+    GotErrors+=("$i - ${RegHash}")
   fi
 done
 
@@ -230,6 +231,7 @@ fi
 if [[ -n ${GotErrors[*]} ]] ; then
   printf "\n%bContainers with errors, wont get updated:%b\n" "$c_red" "$c_reset"
   printf "%s\n" "${GotErrors[@]}"
+  printf "%binfo:%b 'unauthorized' often means not found in a public registry.%b\n" "$c_blue" "$c_reset"
 fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
