@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.3"
-### ChangeNotes: Added option -i, inform - notify. Added Appraise template.
+VERSION="v0.3.4"
+### ChangeNotes: Added ntfy.sh template and error message on registry fail.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
