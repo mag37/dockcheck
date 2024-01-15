@@ -9,7 +9,7 @@ Updates=("$@")
 UpdToString=$( printf "%s\n" "${Updates[@]}" )
 FromHost=$(hostname)
 
-printf "\nSending Apprise notification\n"
+printf "\nSending ntfy.sh notification\n"
 
 MessageTitle="$FromHost - updates available."
 # Setting the MessageBody variable here.
@@ -23,7 +23,7 @@ __EOF
 # Modify to fit your setup:
 NtfyUrl="ntfy.sh/YourUniqueTopicName"
 
-curl \
+curl -sS -o /dev/null --show-error --fail \
   -H "Title: $MessageTitle" \
   -d "$MessageBody" \
   $NtfyUrl
