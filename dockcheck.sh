@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.4"
-### ChangeNotes: Added ntfy.sh template and error message on registry fail.
+VERSION="v0.3.5"
+### ChangeNotes: Added a simple handcrafted progress bar.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -128,6 +128,17 @@ datecheck() {
   fi
 }
 
+progress_bar() {
+  QueCurrent="$1"
+  QueTotal="$2"
+  ((Percent=100*${QueCurrent}/${QueTotal}))
+  ((Complete=50*${Percent}/100)) # change first number for width (50)
+  ((Left=50-${Complete})) # change first number for width (50)
+  BarComplete=$(printf "%${Complete}s" | tr " " "#")
+  BarLeft=$(printf "%${Left}s" | tr " " "-")
+  [[ $QueTotal == $QueCurrent ]] || printf "\r[%s%s] %s/%s " $BarComplete $BarLeft $QueCurrent $QueTotal
+  [[ $QueTotal == $QueCurrent ]] && printf "\r[%b%s%b] %s/%s \n" $c_teal $BarComplete $c_reset $QueCurrent $QueTotal
+}
 
 ### Version check & initiate self update
 [[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! Local: %s - Latest: %s \n Change Notes: %s \n" "$VERSION" "$LatestRelease" "$LatestChanges" ; [[ -z "$AutoUp" ]] && self_update_select ; }
@@ -190,11 +201,16 @@ if [[ -n ${Excludes[*]} ]] ; then
   printf "\n"
 fi
 
+# Variables for progress_bar function
+DocCount=$(docker ps --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
+RegCheckQue=0
+
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
+  ((RegCheckQue+=1))
+  progress_bar $RegCheckQue $DocCount
   ### Looping every item over the list of excluded names and skipping:
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
-  printf ". "
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   ### Checking for errors while setting the variable:
@@ -301,3 +317,4 @@ else
 fi
 
 exit 0
+
