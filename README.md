@@ -17,12 +17,12 @@
 
 ___
 ## :bell: Changelog
+- **v0.3.6**: Added pushbullet template.
 - **v0.3.5**: Added a simple progress bar for the registry checkup.
 - **v0.3.4**: Added ntfy.sh template and error message on registry fail.
 - **v0.3.3**: Added Apprise template and the option `-i` inform - to send notifications.
 - **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
 - **v0.3.1**: Addded option `-m` , monochrome mode - no printf color codes.
-- **v0.3.0**: Added option `-d N`, age (days) new images have to be before being pulled and updated.
 ___
 
 ## :nut_and_bolt: Dependencies
