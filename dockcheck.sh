@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.5"
-### ChangeNotes: Added a simple handcrafted progress bar.
+VERSION="v0.3.6"
+### ChangeNotes: Added a Pushbullet template.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
