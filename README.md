@@ -84,6 +84,8 @@ Current templates:
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
   - Read the [QuickStart](extras/apprise_quickstart.md)
+- [ntfy.sh](https://ntfy.sh/) - HTTP-based pub-sub notifications.
+- [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 
 Further additions are welcome - suggestions or PR!   
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
