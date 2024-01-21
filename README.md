@@ -38,21 +38,24 @@ ___
 ## :mag_right: `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
- Syntax:     dockcheck.sh [OPTION] [part of name to filter]
- Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
- 
- Options:
- -a|y   Automatic updates, without interaction.
- -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
- -e X   Exclude containers, separated by comma.
- -h     Print this Help.
- -i     Inform - send a preconfigured notification.
- -m     Monochrome mode, no printf color codes.
- -n     No updates, only checking availability.
- -p     Auto-Prune dangling images after update.
- -r     Allow updating images for docker run, wont update the container.
- -s     Include stopped containers in the check. (Logic: docker ps -a)
+Syntax:     dockcheck.sh [OPTION] [part of name to filter]
+Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
+
+Options:"
+-a|y   Automatic updates, without interaction.
+-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
+-e X   Exclude containers, separated by comma.
+-f     Force stack restart after update. Caution: restarts once for every updated container within stack.
+-h     Print this Help.
+-i     Inform - send a preconfigured notification.
+-l     Only update if label is set. See readme.
+-m     Monochrome mode, no printf color codes.
+-n     No updates, only checking availability.
+-p     Auto-Prune dangling images after update.
+-r     Allow updating images for docker run, wont update the container.
+-s     Include stopped containers in the check. (Logic: docker ps -a).
 ```
+
 
 ### Basic example:
 ```
@@ -90,6 +93,16 @@ Current templates:
 Further additions are welcome - suggestions or PR!   
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
+## :bookmark: Labels
+Optionally add labels to compose-files. Currently these are the usable labels:
+```
+    labels:
+      mag37.dockcheck.restart-stack: true
+      mag37.dockcheck.update: true
+```
+- `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
+- `mag37.dockcheck.update: true` will when used with the `-l` option only update containers with this label and skip the rest. Will still list updates as usual.
+
 ## :roller_coaster: Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
 Run regctl in a container wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
@@ -123,7 +136,7 @@ Containers need to be manually stopped, removed and created again to run on the 
 ## :scroll: License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 
-### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in the mirror.
+### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
 
 ___
 

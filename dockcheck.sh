@@ -24,7 +24,7 @@ Help() {
   echo "-a|y   Automatic updates, without interaction."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
-  echo "-f     Force stack restart after update. Caution: will once for every updated container within stack."
+  echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-l     Only update if label is set. See readme."
