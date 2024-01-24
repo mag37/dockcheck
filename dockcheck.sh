@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.6"
-### ChangeNotes: Added a Pushbullet template.
+VERSION="v0.3.7"
+### ChangeNotes: Added label support (see readme) and -f (force restart stack) option.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -24,8 +24,10 @@ Help() {
   echo "-a|y   Automatic updates, without interaction."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
+  echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
+  echo "-l     Only update if label is set. See readme."
   echo "-m     Monochrome mode, no printf color codes."
   echo "-n     No updates, only checking availability."
   echo "-p     Auto-Prune dangling images after update."
@@ -42,12 +44,14 @@ c_teal="\033[0;36m"
 c_reset="\033[0m"
 
 Stopped=""
-while getopts "aynprhisme:d:" options; do
+while getopts "aynpfrhlisme:d:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     n)   AutoUp="no" ;;
     r)   DRunUp="yes" ;;
     p)   AutoPrune="yes" ;;
+    l)   OnlyLabel=true ;;
+    f)   ForceRestartStacks=true ;;
     i)   [ -s $ScriptWorkDir/notify.sh ] && { source $ScriptWorkDir/notify.sh ; Notify="yes" ; } ;;
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
@@ -275,6 +279,8 @@ if [ -n "$GotUpdates" ] ; then
       ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
       ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+      ContUpdateLabel=$(docker inspect "$i" --format '{{ index .Config.Labels "mag37.dockcheck.update" }}')
+      ContRestartStack=$(docker inspect "$i" --format '{{ index .Config.Labels "mag37.dockcheck.restart-stack" }}')
       ### Checking if compose-values are empty - hence started with docker run:
       if [ -z "$ContPath" ] ; then 
         if [ "$DRunUp" == "yes" ] ; then
@@ -294,16 +300,25 @@ if [ -n "$GotUpdates" ] ; then
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+      ### Checking if Label Only -option is set, and if container got the label
+      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No label, skipping" ; continue ; } }
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
       for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
-      
       ### Check if the container got an environment file set, use it if so:
-      if [ -n "$ContEnv" ]; then 
-        $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName" # unquoted array to allow split - rework?
+      if [ -n "$ContEnv" ]; then # also checking if stack should be restarted
+        if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
+          $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d 
+        else
+          $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName" # unquoted array to allow split - rework?
+        fi
       else
-        $DockerBin ${CompleteConfs[@]} up -d "$ContName" # unquoted array to allow split - rework?
+        if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
+          $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} up -d
+        else
+          $DockerBin ${CompleteConfs[@]} up -d "$ContName"
+        fi
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
