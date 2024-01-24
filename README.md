@@ -17,12 +17,14 @@
 
 ___
 ## :bell: Changelog
+
 - **v0.3.7**: Added support for [labels](#labels), added the `-f` option (force restart stack).
 - **v0.3.6**: Added pushbullet template.
 - **v0.3.5**: Added a simple progress bar for the registry checkup.
 - **v0.3.4**: Added ntfy.sh template and error message on registry fail.
 - **v0.3.3**: Added Apprise template and the option `-i` inform - to send notifications.
 - **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
+
 ___
 
 ## :nut_and_bolt: Dependencies
