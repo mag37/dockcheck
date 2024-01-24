@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.6"
-### ChangeNotes: Added a Pushbullet template.
+VERSION="v0.3.7"
+### ChangeNotes: Added label support (see readme) and -f (force restart stack) option.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
