@@ -18,7 +18,7 @@
 ___
 ## :bell: Changelog
 
-- **v0.3.7**: Added support for [labels](#labels), added the `-f` option (force restart stack).
+- **v0.3.7**: Added support for [labels](#bookmark-labels), added the `-f` option (force restart stack).
 - **v0.3.6**: Added pushbullet template.
 - **v0.3.5**: Added a simple progress bar for the registry checkup.
 - **v0.3.4**: Added ntfy.sh template and error message on registry fail.
@@ -31,7 +31,7 @@ ___
 - Running docker (duh) and compose, either standalone or plugin.   
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
-  - regctl requires `amd64/arm64` - see [workaround](#workaround-for-non-amd64--arm64) if other architecture is used.
+  - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 ___
 
 
