@@ -307,7 +307,6 @@ if [ -n "$GotUpdates" ] ; then
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
       for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
       ### Check if the container got an environment file set, use it if so:
-      set -x
       if [ -n "$ContEnv" ]; then 
         ### prepare env-files arguments
         ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " $env; done)
