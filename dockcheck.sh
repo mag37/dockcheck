@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.7"
-### ChangeNotes: Added label support (see readme) and -f (force restart stack) option.
+VERSION="v0.3.8"
+### ChangeNotes: Fixed --env-file logic to work with multiple env-files.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
