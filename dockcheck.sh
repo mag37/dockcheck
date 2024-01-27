@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.7"
-### ChangeNotes: Added label support (see readme) and -f (force restart stack) option.
+VERSION="v0.3.8"
+### ChangeNotes: Fixed --env-file logic to work with multiple env-files.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -301,17 +301,20 @@ if [ -n "$GotUpdates" ] ; then
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       ### Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No label, skipping" ; continue ; } }
+      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping." ; continue ; } }
       docker pull "$ContImage"
       ### Reformat for multi-compose:
       IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
       for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
       ### Check if the container got an environment file set, use it if so:
-      if [ -n "$ContEnv" ]; then # also checking if stack should be restarted
+      if [ -n "$ContEnv" ]; then 
+        ### prepare env-files arguments
+        ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " $env; done)
+        ### Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
-          $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d 
+          $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} ${ContEnvs} up -d 
         else
-          $DockerBin ${CompleteConfs[@]} --env-file "$ContEnv" up -d "$ContName" # unquoted array to allow split - rework?
+          $DockerBin ${CompleteConfs[@]} ${ContEnvs} up -d "$ContName" # unquoted array to allow split - rework?
         fi
       else
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
