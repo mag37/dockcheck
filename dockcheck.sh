@@ -206,7 +206,7 @@ if [[ -n ${Excludes[*]} ]] ; then
 fi
 
 # Variables for progress_bar function
-DocCount=$(docker ps --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
+DocCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
 RegCheckQue=0
 
 ### Check the image-hash of every running container VS the registry
