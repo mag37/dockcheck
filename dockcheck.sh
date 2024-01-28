@@ -124,7 +124,7 @@ choosecontainers() {
 
 datecheck() {
   ImageDate=$($regbin image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
-  ImageAge=$((($(date +%s) - $(date -d "$ImageDate" +%s))/86400))
+  ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) )/86400 ))
   if [ $ImageAge -gt $DaysOld ] ; then
     return 0
   else
