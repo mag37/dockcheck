@@ -63,37 +63,35 @@ while getopts "aynpfrhlisme:d:" options; do
 done
 shift "$((OPTIND-1))"
 
-self_update_git() {
-  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
-  [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
-  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}") || { printf "Script not in git directory, choose a different method.\n" ; self_update_select ; return ; }
-  git fetch
-  [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
-    printf "%s\n" "Pulling the latest version."
-    git pull --force
-    printf "%s\n" "--- starting over with the updated version ---"
-    cd - || { printf "Path error.\n" ; return ; }
-    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
-    exit 1 # exit the old instance
-  }
-  echo "Local is already latest."
-}
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if [[ $(builtin type -P curl) ]]; then 
     curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"  
-    printf "%s\n" "--- starting over with the updated version ---"
+    printf "\n%s\n" "--- starting over with the updated version ---"
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  elif [[ $(builtin type -P wget) ]]; then 
+    wget $RawUrl -O "$ScriptPath" ; chmod +x "$ScriptPath"
+    printf "\n%s\n" "--- starting over with the updated version ---"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # exit the old instance
   else
-    printf "curl not available - download the update manually: %s \n" "$RawUrl"
+    printf "curl/wget not available - download the update manually: %s \n" "$RawUrl"
   fi
 }
-self_update_select() {
-  read -r -p "Choose update procedure (or do it manually) - git/curl/[no]: " SelfUpQ
-  if [[ "$SelfUpQ" == "git" ]]; then self_update_git ;
-  elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ; 
-  else printf "Download it manually from the repo: %s \n\n" "$Github"
+
+self_update() {
+  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
+  if [[ $(builtin type -P git) ]] && [[ "$(git ls-remote --get-url)" =~ .*"mag37/dockcheck".* ]] ; then
+    printf "\n%s\n" "Pulling the latest version."
+    git pull --force || { printf "Git error, manually pull/clone.\n" ; return ; }
+    printf "\n%s\n" "--- starting over with the updated version ---"
+    cd - || { printf "Path error.\n" ; return ; }
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  else
+    cd -
+    self_update_curl
   fi
 }
 
@@ -145,7 +143,13 @@ progress_bar() {
 }
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges" ; [[ -z "$AutoUp" ]] && self_update_select ; }
+if [[ "$VERSION" != "$LatestRelease" ]] ; then 
+  printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+  if [[ -z "$AutoUp" ]] ; then 
+    read -r -p "Would you like to update? y/[n]: " SelfUpdate
+    [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  fi
+fi
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
