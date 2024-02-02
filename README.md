@@ -94,6 +94,7 @@ Current templates:
   - Read the [QuickStart](extras/apprise_quickstart.md)
 - [ntfy.sh](https://ntfy.sh/) - HTTP-based pub-sub notifications.
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
+- [Telegram](https://telegram.org/) - Telegram chat API.
 
 Further additions are welcome - suggestions or PR!   
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
