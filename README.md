@@ -18,7 +18,7 @@
 ___
 ## :bell: Changelog
 
-- **v0.3.4**: Reworked selfupdate (auto git/curl/wget), general syntax cleanup, added -v for version.
+- **v0.4.0**: Reworked selfupdate (auto git/curl/wget), general syntax cleanup, added -v for version.
 - **v0.3.8**: Fixed `--env-file` logic to work with multiple env-files.
 - **v0.3.7**: Added support for [labels](#bookmark-labels), added the `-f` option (force restart stack).
 - **v0.3.6**: Added pushbullet template.
@@ -129,8 +129,7 @@ chmod 755 regctl
 Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
 ## :open_hands: Function to auth with docker hub before running
-### Example
-Change names, paths, and remove cat+password flag if you rather get prompted:
+**Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
 ```sh
 function dchk {
   cat ~/pwd.txt | docker login --username YourUser --password-stdin
