@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.8"
-### ChangeNotes: Fixed --env-file logic to work with multiple env-files.
+VERSION="v0.4.0"
+### ChangeNotes: Reworked selfupdate (auto git/curl/wget), cleanups, -v for version.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -31,8 +31,9 @@ Help() {
   echo "-m     Monochrome mode, no printf color codes."
   echo "-n     No updates, only checking availability."
   echo "-p     Auto-Prune dangling images after update."
-  echo "-r     Allow updating images for docker run, wont update the container"
-  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
+  echo "-r     Allow updating images for docker run, wont update the container."
+  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
+  echo "-v     Prints current version."
 }
 
 ### Colors:
@@ -44,7 +45,7 @@ c_teal="\033[0;36m"
 c_reset="\033[0m"
 
 Stopped=""
-while getopts "aynpfrhlisme:d:" options; do
+while getopts "aynpfrhlisvme:d:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     n)   AutoUp="no" ;;
@@ -52,10 +53,11 @@ while getopts "aynpfrhlisme:d:" options; do
     p)   AutoPrune="yes" ;;
     l)   OnlyLabel=true ;;
     f)   ForceRestartStacks=true ;;
-    i)   [ -s $ScriptWorkDir/notify.sh ] && { source $ScriptWorkDir/notify.sh ; Notify="yes" ; } ;;
+    i)   [ -s "$ScriptWorkDir"/notify.sh ] && { source "$ScriptWorkDir"/notify.sh ; Notify="yes" ; } ;;
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
+    v)   printf "%s\n" "$VERSION" ; exit 0 ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
     h|*) Help ; exit 2 ;;
@@ -63,37 +65,35 @@ while getopts "aynpfrhlisme:d:" options; do
 done
 shift "$((OPTIND-1))"
 
-self_update_git() {
-  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
-  [[ $(builtin type -P git) ]] || { printf "Git not installed, skipping update.\n" ; return ; }
-  ScriptUpstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}") || { printf "Script not in git directory, choose a different method.\n" ; self_update_select ; return ; }
-  git fetch
-  [ -n "$(git diff --name-only "$ScriptUpstream" "$ScriptName")" ] && {
-    printf "%s\n" "Pulling the latest version."
-    git pull --force
-    printf "%s\n" "--- starting over with the updated version ---"
-    cd - || { printf "Path error.\n" ; return ; }
-    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
-    exit 1 # exit the old instance
-  }
-  echo "Local is already latest."
-}
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if [[ $(builtin type -P curl) ]]; then 
     curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"  
-    printf "%s\n" "--- starting over with the updated version ---"
+    printf "\n%s\n" "--- starting over with the updated version ---"
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  elif [[ $(builtin type -P wget) ]]; then 
+    wget $RawUrl -O "$ScriptPath" ; chmod +x "$ScriptPath"
+    printf "\n%s\n" "--- starting over with the updated version ---"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # exit the old instance
   else
-    printf "curl not available - download the update manually: %s \n" "$RawUrl"
+    printf "curl/wget not available - download the update manually: %s \n" "$RawUrl"
   fi
 }
-self_update_select() {
-  read -r -p "Choose update procedure (or do it manually) - git/curl/[no]: " SelfUpQ
-  if [[ "$SelfUpQ" == "git" ]]; then self_update_git ;
-  elif [[ "$SelfUpQ" == "curl" ]]; then self_update_curl ; 
-  else printf "Download it manually from the repo: %s \n\n" "$Github"
+
+self_update() {
+  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
+  if [[ $(builtin type -P git) ]] && [[ "$(git ls-remote --get-url)" =~ .*"mag37/dockcheck".* ]] ; then
+    printf "\n%s\n" "Pulling the latest version."
+    git pull --force || { printf "Git error, manually pull/clone.\n" ; return ; }
+    printf "\n%s\n" "--- starting over with the updated version ---"
+    cd - || { printf "Path error.\n" ; return ; }
+    exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
+    exit 1 # exit the old instance
+  else
+    cd - || { printf "Path error.\n" ; return ; }
+    self_update_curl
   fi
 }
 
@@ -125,7 +125,7 @@ choosecontainers() {
 datecheck() {
   ImageDate=$($regbin image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
   ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) )/86400 ))
-  if [ $ImageAge -gt $DaysOld ] ; then
+  if [ "$ImageAge" -gt "$DaysOld" ] ; then
     return 0
   else
     return 1
@@ -135,17 +135,23 @@ datecheck() {
 progress_bar() {
   QueCurrent="$1"
   QueTotal="$2"
-  ((Percent=100*${QueCurrent}/${QueTotal}))
-  ((Complete=50*${Percent}/100)) # change first number for width (50)
-  ((Left=50-${Complete})) # change first number for width (50)
+  ((Percent=100*QueCurrent/QueTotal))
+  ((Complete=50*Percent/100)) # change first number for width (50)
+  ((Left=50-Complete)) # change first number for width (50)
   BarComplete=$(printf "%${Complete}s" | tr " " "#")
   BarLeft=$(printf "%${Left}s" | tr " " "-")
-  [[ $QueTotal == $QueCurrent ]] || printf "\r[%s%s] %s/%s " $BarComplete $BarLeft $QueCurrent $QueTotal
-  [[ $QueTotal == $QueCurrent ]] && printf "\r[%b%s%b] %s/%s \n" $c_teal $BarComplete $c_reset $QueCurrent $QueTotal
+  [[ "$QueTotal" == "$QueCurrent" ]] || printf "\r[%s%s] %s/%s " "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal"
+  [[ "$QueTotal" == "$QueCurrent" ]] && printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
 }
 
 ### Version check & initiate self update
-[[ "$VERSION" != "$LatestRelease" ]] && { printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges" ; [[ -z "$AutoUp" ]] && self_update_select ; }
+if [[ "$VERSION" != "$LatestRelease" ]] ; then 
+  printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+  if [[ -z "$AutoUp" ]] ; then 
+    read -r -p "Would you like to update? y/[n]: " SelfUpdate
+    [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  fi
+fi
 
 ### Set $1 to a variable for name filtering later.
 SearchName="$1"
@@ -200,7 +206,7 @@ done
 
 ### Listing typed exclusions:
 if [[ -n ${Excludes[*]} ]] ; then
-  printf "\n%bExcluding these names:%b\n" $c_blue $c_reset
+  printf "\n%bExcluding these names:%b\n" "$c_blue" "$c_reset"
   printf "%s\n" "${Excludes[@]}"
   printf "\n"
 fi
@@ -212,7 +218,7 @@ RegCheckQue=0
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
   ((RegCheckQue+=1))
-  progress_bar $RegCheckQue $DocCount
+  progress_bar "$RegCheckQue" "$DocCount"
   ### Looping every item over the list of excluded names and skipping:
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
@@ -256,7 +262,7 @@ fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ ! -z "$Notify" ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n" ; }
+   [[ -n "$Notify" ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n" ; }
 fi
 
 ### Optionally get updates if there's any 
@@ -309,7 +315,7 @@ if [ -n "$GotUpdates" ] ; then
       ### Check if the container got an environment file set, use it if so:
       if [ -n "$ContEnv" ]; then 
         ### prepare env-files arguments
-        ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " $env; done)
+        ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " "$env"; done)
         ### Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
           $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} ${ContEnvs} up -d 
