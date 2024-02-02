@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.3.8"
-### ChangeNotes: Fixed --env-file logic to work with multiple env-files.
+VERSION="v0.4.0"
+### ChangeNotes: Reworked selfupdate (auto git/curl/wget), cleanups, -v for version.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
