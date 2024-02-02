@@ -31,8 +31,9 @@ Help() {
   echo "-m     Monochrome mode, no printf color codes."
   echo "-n     No updates, only checking availability."
   echo "-p     Auto-Prune dangling images after update."
-  echo "-r     Allow updating images for docker run, wont update the container"
-  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)"
+  echo "-r     Allow updating images for docker run, wont update the container."
+  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
+  echo "-v     Prints current version."
 }
 
 ### Colors:
@@ -44,7 +45,7 @@ c_teal="\033[0;36m"
 c_reset="\033[0m"
 
 Stopped=""
-while getopts "aynpfrhlisme:d:" options; do
+while getopts "aynpfrhlisvme:d:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     n)   AutoUp="no" ;;
@@ -56,6 +57,7 @@ while getopts "aynpfrhlisme:d:" options; do
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
+    v)   printf "%s\n" "$VERSION" ; exit 0 ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
     h|*) Help ; exit 2 ;;
