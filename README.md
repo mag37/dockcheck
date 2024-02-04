@@ -2,7 +2,6 @@
   <img src="extras/dockcheck_logo_by_booYah187.png" width="160" title="dockcheck">
 </p>
 <p align="center"> 
-  <img src="https://img.shields.io/badge/coded%20by%20Human-100%25-yellow?style=flat-square" alt="No AI!">
   <img src="https://img.shields.io/badge/bash-4.3-green?style=flat-square&logo=gnubash" alt="bash">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/license-GPLv3-red?style=flat-square" alt="GPLv3"></a>
   <img src="https://img.shields.io/github/v/tag/mag37/dockcheck?style=flat-square&label=release" alt="release">
@@ -11,9 +10,9 @@
   <a href="https://github.com/sponsors/mag37"><img src="https://img.shields.io/badge/-Sponsor-grey?style=flat-square&logo=github" alt="Github Sponsor"></a>
 </p>
 
-<h3 align="center">A script checking updates for docker images <b>without pulling</b><br>Then selectively auto-update containers.</h3>
-<h2 align="center">Now with a simple Apprise integration!</h2>
-<h4 align="center">With features like excluding specific containers, filter by name, auto-prune dangling images and more.</h4>
+<h3 align="center">CLI tool to automate docker image updates. <br>No <b>pre-pull</b>, selective, optional notifications and prune when done.</h3>
+<h2 align="center">Now with simple notification integrations!</h2>
+<h4 align="center">With features like excluding specific containers, custom container labels, auto-prune when done and more.</h4>
 
 ___
 ## :bell: Changelog
@@ -23,17 +22,6 @@ ___
 - **v0.3.7**: Added support for [labels](#bookmark-labels), added the `-f` option (force restart stack).
 - **v0.3.6**: Added pushbullet template.
 - **v0.3.5**: Added a simple progress bar for the registry checkup.
-- **v0.3.4**: Added ntfy.sh template and error message on registry fail.
-- **v0.3.3**: Added Apprise template and the option `-i` inform - to send notifications.
-- **v0.3.2**: Added a notify function to wrap a notify-script, currently DSM/Ssmtp + template script.
-
-___
-
-## :nut_and_bolt: Dependencies
-- Running docker (duh) and compose, either standalone or plugin.   
-- [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
-  - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
-  - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 ___
 
 
@@ -80,6 +68,15 @@ Enter number(s) separated by comma, [a] for all - [q] to quit:
 ```
 Then it proceedes to run `pull` and `up -d` on every container with updates.   
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
+
+___
+
+## :nut_and_bolt: Dependencies
+- Running docker (duh) and compose, either standalone or plugin.   
+- [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
+  - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
+  - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
+
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.   
