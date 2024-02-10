@@ -21,7 +21,7 @@ send_notification() {
     MatrixServer="Enter Your HomeServer URL"
     MsgBody="{\"msgtype\":\"m.text\",\"body\":\"$MessageBody\"}"
 
-    # URL Example:  https://matrix.org/_matrix/client/r0/rooms/!xxxxxx:example.com/send/m.room.message/?access_token=xxxxxxxx
+    # URL Example:  https://matrix.org/_matrix/client/r0/rooms/!xxxxxx:example.com/send/m.room.message?access_token=xxxxxxxx
 
     curl -sS -o /dev/null --fail -X PUT "$MatrixServer/_matrix/client/r0/rooms/$Room_id/send/m.room.message?access_token=$AccessToken" -H 'Content-Type: application/json' -d "$MsgBody"
     
