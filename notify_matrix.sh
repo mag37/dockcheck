@@ -2,7 +2,7 @@
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
-# Modify to fit your setup - set MatrixServer, Room_id and AccessToken and .
+# Modify to fit your setup - set MatrixServer, Room_id and AccessToken
 
 send_notification() {
     Updates=("$@")
