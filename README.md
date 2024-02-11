@@ -92,6 +92,7 @@ Current templates:
 - [ntfy.sh](https://ntfy.sh/) - HTTP-based pub-sub notifications.
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 - [Telegram](https://telegram.org/) - Telegram chat API.
+- [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
 
 Further additions are welcome - suggestions or PR!   
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
