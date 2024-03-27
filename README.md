@@ -77,6 +77,15 @@ ___
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
+## :tent: Install Instructions
+Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.
+```sh
+curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o ~/.local/bin/dockcheck.sh
+chmod +x ~/local/bin/dockcheck.sh
+```
+Then call the script anywhere with just `dockcheck.sh`.
+Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
+
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.   
@@ -127,7 +136,7 @@ chmod 755 regctl
 ```
 Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
-## :open_hands: Function to auth with docker hub before running
+## :guardsman: Function to auth with docker hub before running
 **Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
 ```sh
 function dchk {
