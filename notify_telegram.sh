@@ -19,7 +19,8 @@ send_notification() {
     TelegramToken="Your Telegram token here"
     TelegramChatId="Your Telegram ChatId here"
     TelegramUrl="https://api.telegram.org/bot$TelegramToken"
-    TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"disable_notification\": false}"
+    TelegramTopicID=12345678 ## Set to 0 if not using specific topic within chat
+    TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false}"
     
     curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$TelegramData"
     
