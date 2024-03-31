@@ -80,8 +80,12 @@ ___
 ## :tent: Install Instructions
 Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.
 ```sh
+# basic example with curl:
 curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o ~/.local/bin/dockcheck.sh
-chmod +x ~/local/bin/dockcheck.sh
+chmod +x ~/.local/bin/dockcheck.sh
+
+# or oneliner with wget:
+wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh" && chmod +x ~/.local/bin/dockcheck.sh
 ```
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
