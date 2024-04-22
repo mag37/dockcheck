@@ -240,11 +240,10 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
 done
 
 ### Sort arrays alphabetically
-IFS=$'\n' 
-NoUpdates=($(sort <<<"${NoUpdates[*]}"))
-GotUpdates=($(sort <<<"${GotUpdates[*]}"))
-GotErrors=($(sort <<<"${GotErrors[*]}"))
-unset IFS
+readarray -td '' NoUpdates < <(printf '%s\0' "${NoUpdates[@]}" | sort -z -n)
+readarray -td '' GotUpdates < <(printf '%s\0' "${GotUpdates[@]}" | sort -z -n)
+readarray -td '' GotErrors < <(printf '%s\0' "${GotErrors[@]}" | sort -z -n)
+
 ### Define how many updates are available
 UpdCount="${#GotUpdates[@]}"
 
