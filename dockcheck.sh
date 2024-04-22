@@ -295,37 +295,25 @@ if [ -n "$GotUpdates" ] ; then
         fi
         continue 
       fi
-      ### Checking if "com.docker.compose.project.config_files" returns the full path to the config file or just the file name
-      if [[ $ContConfigFile = '/'* ]] ; then
-        ComposeFile="$ContConfigFile"
-      else
-        ComposeFile="$ContPath/$ContConfigFile"
-      fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
+      ## Reformatting path + multi compose
+      if [[ $ContConfigFile = '/'* ]] ; then
+        CompleteConfs=$(for conf in ${ContConfigFile//,/ } ; do printf -- "-f %s " "$conf"; done)
+      else
+        CompleteConfs=$(for conf in ${ContConfigFile//,/ } ; do printf -- "-f %s/%s " "$ContPath" "$conf"; done)
+      fi
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       ### Checking if Label Only -option is set, and if container got the label
       [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping." ; continue ; } }
       docker pull "$ContImage"
-      ### Reformat for multi-compose:
-      IFS=',' read -r -a Confs <<< "$ComposeFile" ; unset IFS
-      for conf in "${Confs[@]}"; do CompleteConfs+="-f $conf " ; done 
-      ### Check if the container got an environment file set, use it if so:
-      if [ -n "$ContEnv" ]; then 
-        ### prepare env-files arguments
-        ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " "$env"; done)
-        ### Check if the whole stack should be restarted
-        if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
-          $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} ${ContEnvs} up -d 
-        else
-          $DockerBin ${CompleteConfs[@]} ${ContEnvs} up -d "$ContName" # unquoted array to allow split - rework?
-        fi
+      ### Check if the container got an environment file set and reformat it
+      if [ -n "$ContEnv" ]; then ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " "$env"; done) ; fi
+      ### Check if the whole stack should be restarted
+      if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
+        $DockerBin ${CompleteConfs} stop ; $DockerBin ${CompleteConfs} ${ContEnvs} up -d 
       else
-        if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
-          $DockerBin ${CompleteConfs[@]} stop ; $DockerBin ${CompleteConfs[@]} up -d
-        else
-          $DockerBin ${CompleteConfs[@]} up -d "$ContName"
-        fi
+        $DockerBin ${CompleteConfs} ${ContEnvs} up -d ${ContName} 
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
