@@ -7,7 +7,6 @@ RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 ### Variables for self updating
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
-ScriptName="$(basename "$ScriptPath")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
 ### Check if there's a new release of the script:
@@ -78,7 +77,7 @@ self_update_curl() {
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # exit the old instance
   else
-    printf "curl/wget not available - download the update manually: %s \n" "$RawUrl"
+    printf "curl/wget not available - download the update manually: %s \n" "$Github"
   fi
 }
 
@@ -257,7 +256,7 @@ fi
 if [[ -n ${GotErrors[*]} ]] ; then
   printf "\n%bContainers with errors, wont get updated:%b\n" "$c_red" "$c_reset"
   printf "%s\n" "${GotErrors[@]}"
-  printf "%binfo:%b 'unauthorized' often means not found in a public registry.%b\n" "$c_blue" "$c_reset"
+  printf "%binfo:%b 'unauthorized' often means not found in a public registry.\n" "$c_blue" "$c_reset"
 fi
 if [[ -n ${GotUpdates[*]} ]] ; then 
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
