@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.0"
-### ChangeNotes: Reworked selfupdate (auto git/curl/wget), cleanups, -v for version.
+VERSION="v0.4.1"
+### ChangeNotes: Syntax and logic cleanups, bugfixes for multi compose and env-files.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
