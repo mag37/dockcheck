@@ -17,6 +17,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.4.1**: Syntax and logic cleanups, bugfixes on multi compose and env-files.
 - **v0.4.0**: Reworked selfupdate (auto git/curl/wget), general syntax cleanup, added -v for version.
 - **v0.3.8**: Fixed `--env-file` logic to work with multiple env-files.
 - **v0.3.7**: Added support for [labels](#bookmark-labels), added the `-f` option (force restart stack).
