@@ -83,7 +83,7 @@ self_update_curl() {
 
 self_update() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n" ; return ; }
-  if [[ $(builtin type -P git) ]] && [[ "$(git ls-remote --get-url)" =~ .*"mag37/dockcheck".* ]] ; then
+  if [[ $(builtin type -P git) ]] && [[ "$(git ls-remote --get-url 2>/dev/null)" =~ .*"mag37/dockcheck".* ]] ; then
     printf "\n%s\n" "Pulling the latest version."
     git pull --force || { printf "Git error, manually pull/clone.\n" ; return ; }
     printf "\n%s\n" "--- starting over with the updated version ---"
