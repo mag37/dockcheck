@@ -17,6 +17,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.4.2**: Added timeout option to skip container if registry check takes too long (10s default).
 - **v0.4.1**: Syntax and logic cleanups, bugfixes on multi compose and env-files.
 - **v0.4.0**: Reworked selfupdate (auto git/curl/wget), general syntax cleanup, added -v for version.
 - **v0.3.8**: Fixed `--env-file` logic to work with multiple env-files.
@@ -47,6 +48,7 @@ Options:"
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
+-t     Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -v     Prints current version.
 ```
 
