@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.1"
-### ChangeNotes: Syntax and logic cleanups, bugfixes for multi compose and env-files.
+VERSION="v0.4.2"
+### ChangeNotes: Added timeout option to skip container if registry check takes too long (10s default).
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -32,6 +32,7 @@ Help() {
   echo "-p     Auto-Prune dangling images after update."
   echo "-r     Allow updating images for docker run, wont update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
+  echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-v     Prints current version."
 }
 
@@ -44,7 +45,7 @@ c_teal="\033[0;36m"
 c_reset="\033[0m"
 
 Stopped=""
-while getopts "aynpfrhlisvme:d:" options; do
+while getopts "aynpfrhlisvme:d:t:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     n)   AutoUp="no" ;;
@@ -56,6 +57,7 @@ while getopts "aynpfrhlisvme:d:" options; do
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
+    t)   Timeout="${OPTARG:-10}" ;; 
     v)   printf "%s\n" "$VERSION" ; exit 0 ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
@@ -223,7 +225,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   ### Checking for errors while setting the variable:
-  if RegHash=$($regbin image digest --list "$RepoUrl" 2>&1) ; then
+  if RegHash=$(timeout ${Timeout} $regbin image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
       NoUpdates+=("$i") 
     else 
