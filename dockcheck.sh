@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.2"
-### ChangeNotes: Added timeout option to skip container if registry check takes too long (10s default).
+VERSION="v0.4.3"
+### ChangeNotes: Added timeout option to skip container if registry check takes too long (10s default) + fix.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
