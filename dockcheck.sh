@@ -44,6 +44,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
+Timeout=10
 Stopped=""
 while getopts "aynpfrhlisvme:d:t:" options; do
   case "${options}" in
@@ -57,7 +58,7 @@ while getopts "aynpfrhlisvme:d:t:" options; do
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
-    t)   Timeout="${OPTARG:-10}" ;; 
+    t)   Timeout="${OPTARG}" ;; 
     v)   printf "%s\n" "$VERSION" ; exit 0 ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
