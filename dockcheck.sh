@@ -226,7 +226,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   ### Checking for errors while setting the variable:
-  if RegHash=$(timeout ${Timeout} $regbin image digest --list "$RepoUrl" 2>&1) ; then
+  if RegHash=$(timeout --foreground ${Timeout} $regbin image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
       NoUpdates+=("$i") 
     else 
