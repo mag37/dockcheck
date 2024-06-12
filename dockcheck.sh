@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.4.5"
-### ChangeNotes: Bugfix for non coreutils architectures that dont have timeout
+### ChangeNotes: Compatability changes to arrays and timeout.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -245,9 +245,11 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
 done
 
 ### Sort arrays alphabetically
-readarray -td '' NoUpdates < <(printf '%s\0' "${NoUpdates[@]}" | sort -z -n)
-readarray -td '' GotUpdates < <(printf '%s\0' "${GotUpdates[@]}" | sort -z -n)
-readarray -td '' GotErrors < <(printf '%s\0' "${GotErrors[@]}" | sort -z -n)
+IFS=$'\n'
+NoUpdates=($(sort <<<"${NoUpdates[*]}"))
+GotUpdates=($(sort <<<"${GotUpdates[*]}"))
+unset IFS
+
 
 ### Define how many updates are available
 UpdCount="${#GotUpdates[@]}"

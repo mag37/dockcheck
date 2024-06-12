@@ -17,6 +17,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
 - **v0.4.3**: Added timeout option to skip container if registry check takes too long (10s default).
 - **v0.4.1**: Syntax and logic cleanups, bugfixes on multi compose and env-files.
 - **v0.4.0**: Reworked selfupdate (auto git/curl/wget), general syntax cleanup, added -v for version.
