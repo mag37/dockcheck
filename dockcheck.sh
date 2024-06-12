@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.4"
-### ChangeNotes: Bugfix for non amd64/arm64 arch with new timeout function.
+VERSION="v0.4.5"
+### ChangeNotes: Compatability changes to arrays and timeout.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -225,8 +225,10 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
-  ### Checking for errors while setting the variable:
-  if RegHash=$(timeout --foreground ${Timeout} $regbin image digest --list "$RepoUrl" 2>&1) ; then
+  # Setting timeout-binary if existing
+  if [[ $(builtin type -P "timeout") ]]; then t_out="timeout --foreground ${Timeout}"; else t_out=""; fi
+  # Checking for errors while setting the variable:
+  if RegHash=$(${t_out} $regbin image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
       NoUpdates+=("$i") 
     else 
@@ -243,9 +245,11 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
 done
 
 ### Sort arrays alphabetically
-readarray -td '' NoUpdates < <(printf '%s\0' "${NoUpdates[@]}" | sort -z -n)
-readarray -td '' GotUpdates < <(printf '%s\0' "${GotUpdates[@]}" | sort -z -n)
-readarray -td '' GotErrors < <(printf '%s\0' "${GotErrors[@]}" | sort -z -n)
+IFS=$'\n'
+NoUpdates=($(sort <<<"${NoUpdates[*]}"))
+GotUpdates=($(sort <<<"${GotUpdates[*]}"))
+unset IFS
+
 
 ### Define how many updates are available
 UpdCount="${#GotUpdates[@]}"
