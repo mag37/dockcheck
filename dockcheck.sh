@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.5"
-### ChangeNotes: Compatability changes to arrays and timeout.
+VERSION="v0.4.6"
+### ChangeNotes: Compatability changes due to busyboxs timemout.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -217,6 +217,17 @@ fi
 DocCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
 RegCheckQue=0
 
+### Testing and setting timeout binary
+t_out=$(type -P "timeout") 
+if [[ $t_out ]]; then
+  t_out=$(realpath $t_out 2>/dev/null || readlink -f $t_out)
+  if [[ $t_out =~ "busybox" ]]; then
+    t_out="timeout ${Timeout}"
+  else t_out="timeout --foreground ${Timeout}"
+  fi
+else t_out=""
+fi
+
 ### Check the image-hash of every running container VS the registry
 for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
   ((RegCheckQue+=1))
@@ -225,8 +236,6 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
-  # Setting timeout-binary if existing
-  if [[ $(builtin type -P "timeout") ]]; then t_out="timeout --foreground ${Timeout}"; else t_out=""; fi
   # Checking for errors while setting the variable:
   if RegHash=$(${t_out} $regbin image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
