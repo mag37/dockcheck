@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.5"
-### ChangeNotes: Compatability changes to arrays and timeout.
+VERSION="v0.4.6"
+### ChangeNotes: Compatability changes due to busyboxs timemout.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 

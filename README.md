@@ -17,6 +17,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.4.6**: Compatibility changes to timeout, due to busybox.
 - **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
 - **v0.4.3**: Added timeout option to skip container if registry check takes too long (10s default).
 - **v0.4.1**: Syntax and logic cleanups, bugfixes on multi compose and env-files.
@@ -77,6 +78,7 @@ ___
 
 ## :nut_and_bolt: Dependencies
 - Running docker (duh) and compose, either standalone or plugin.   
+- Bash shell or compatible shell of at least v4.3
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
