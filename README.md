@@ -101,14 +101,15 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 Trigger with the `-i` flag.   
 Run it scheduled with `-ni` to only get notified when there's updates available!  
 
-Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs!   
-Current templates:
+Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs! (notify.sh is added to .gitignore)     
+**Current templates:**
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [sSMTP](https://wiki.debian.org/sSMTP)  
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
   - Read the [QuickStart](extras/apprise_quickstart.md)
 - [ntfy.sh](https://ntfy.sh/) - HTTP-based pub-sub notifications.
+- [Gotify](https://gotify.net/) - a simple server for sending and receiving messages.
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 - [Telegram](https://telegram.org/) - Telegram chat API.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
