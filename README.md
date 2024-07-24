@@ -16,7 +16,11 @@
 
 ___
 ## :bell: Changelog
+* Create notify_gotify.sh by @cerealconyogurt in https://github.com/mag37/dockcheck/pull/87
+* zero configuration DSM notification emails by @yoyoma2 in https://github.com/mag37/dockcheck/pull/88
+* smtp-changes, deprecate ssmtp, suggest msmtp by @mag37 in https://github.com/mag37/dockcheck/pull/90
 
+- **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
 - **v0.4.6**: Compatibility changes to timeout, due to busybox.
 - **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
 - **v0.4.3**: Added timeout option to skip container if registry check takes too long (10s default).
@@ -104,7 +108,7 @@ Run it scheduled with `-ni` to only get notified when there's updates available!
 Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs! (notify.sh is added to .gitignore)     
 **Current templates:**
 - Synology [DSM](https://www.synology.com/en-global/dsm)
-- Email with [sSMTP](https://wiki.debian.org/sSMTP)  
+- Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
   - Read the [QuickStart](extras/apprise_quickstart.md)
