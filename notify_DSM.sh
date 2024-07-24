@@ -1,8 +1,21 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+# INFO: ssmtp is depcerated - consider to use msmtp instead.
 #
-# Copy/rename this file to notify.sh to enable email notifications on Synology DSM
+# Copy/rename this file to notify.sh to enable the notification snipppet.
+# mSMTP/sSMTP has to be installed and configured manually.
 # The existing DSM Notification Email configuration will be used automatically.
 # Modify to your liking - changing SendMailTo and Subject and content.
+
+MSMTP=$(which msmtp)
+SSMTP=$(which ssmtp)
+
+if [ -n $MSMPT ] ; then  
+	MAIL=$MSMTP
+elif [ -n $SSMTP ] && [ -z $MAIL ] ; then
+	MAIL=$SSMTP
+else
+	echo "No msmtp or ssmtp binary found in PATH: $PATH" ; exit 1
+fi
 
 send_notification() {
 Updates=("$@")
@@ -23,7 +36,7 @@ SenderMail=${SenderMail:-$(grep 'eventmail1' $CfgFile | sed -n 's/.*"\([^"]*\)".
 
 printf "\nSending email notification.\n"
 
-ssmtp $SendMailTo << __EOF
+$MAIL $SendMailTo << __EOF
 From: "$SenderName" <$SenderMail>
 date:$(date -R)
 To: <$SendMailTo>
