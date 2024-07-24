@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.6"
-### ChangeNotes: Compatability changes due to busyboxs timeout.
+VERSION="v0.4.7"
+### ChangeNotes: Notification template changes for: gotify(new), DSM(improved), SMTP(deprecation alternative).
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
