@@ -16,9 +16,6 @@
 
 ___
 ## :bell: Changelog
-* Create notify_gotify.sh by @cerealconyogurt in https://github.com/mag37/dockcheck/pull/87
-* zero configuration DSM notification emails by @yoyoma2 in https://github.com/mag37/dockcheck/pull/88
-* smtp-changes, deprecate ssmtp, suggest msmtp by @mag37 in https://github.com/mag37/dockcheck/pull/90
 
 - **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
 - **v0.4.6**: Compatibility changes to timeout, due to busybox.
