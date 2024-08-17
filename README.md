@@ -17,6 +17,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
 - **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
 - **v0.4.6**: Compatibility changes to timeout, due to busybox.
 - **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
