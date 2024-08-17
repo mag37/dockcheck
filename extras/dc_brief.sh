@@ -29,7 +29,7 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
 done
 
 ### Sort arrays alphabetically
-IFS=$'\n' 
+IFS=$'\n'
 NoUpdates=($(sort <<<"${NoUpdates[*]}"))
 GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 GotErrors=($(sort <<<"${GotErrors[*]}"))
@@ -44,7 +44,7 @@ if [[ -n ${GotErrors[*]} ]] ; then
   printf "\n\033[0;31mContainers with errors, wont get updated:\033[0m\n"
   printf "%s\n" "${GotErrors[@]}"
 fi
-if [[ -n ${GotUpdates[*]} ]] ; then 
+if [[ -n ${GotUpdates[*]} ]] ; then
    printf "\n\033[0;33mContainers with updates available:\033[0m\n"
    printf "%s\n" "${GotUpdates[@]}"
 fi

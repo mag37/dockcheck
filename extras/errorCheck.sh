@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 SearchName="$1"
-for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do  
+for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   echo "------------ $i ------------"
   ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
   [ -z "$ContPath" ] && { "$i has no compose labels - skipping" ; continue ; }
@@ -8,7 +8,7 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
   ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
   ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-  
+
   if [[ $ContConfigFile = '/'* ]] ; then
     ComposeFile="$ContConfigFile"
   else
