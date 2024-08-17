@@ -25,13 +25,13 @@ services:
 Then browse to the webui.
 ![](apprise-ex1.png)
 Here you'll click **Configuration Manager**, read the overview and then click on **Configuration**.
-Under **Configuration** you'll craft/paste your notification config. 
+Under **Configuration** you'll craft/paste your notification config.
 
 ![](apprise-ex2.png)
-The simplest way is just paste the url's as is (like in the example above).    
-There are many ways to customize with tags, groups, json and more. Read [caronc/apprise-api](https://github.com/caronc/apprise-api) for more info!   
+The simplest way is just paste the url's as is (like in the example above).  
+There are many ways to customize with tags, groups, json and more. Read [caronc/apprise-api](https://github.com/caronc/apprise-api) for more info!  
 
-Look at the [apprise wiki: Notification Services](https://github.com/caronc/apprise/wiki) for more info about how the url syntax for different services works.   
+Look at the [apprise wiki: Notification Services](https://github.com/caronc/apprise/wiki) for more info about how the url syntax for different services works.  
 
 
 You can also use the [caronc/apprise-api](https://github.com/caronc/apprise-api) to host the api as a frontend to an already existing **Apprise**-setup on the host.
@@ -40,7 +40,7 @@ You can also use the [caronc/apprise-api](https://github.com/caronc/apprise-api)
 ### Customize the **notify.sh** file.
 After you're done with the setup of the container and tried your notifications, you can copy the `notify_apprise.sh` file to `notify.sh` and start editing it.
 
-Comment out/remove the bare metal apprise-command (starting with `apprise -vv -t...`). 
+Comment out/remove the bare metal apprise-command (starting with `apprise -vv -t...`).
 Uncomment and edit the `AppriseURL` variable and *curl* line
 It should look something like this when curling the API:
 ```bash
@@ -72,11 +72,11 @@ ___
 
 
 ## On host installed **Apprise**
-Follow the official guide on [caronc/apprise](https://github.com/caronc/apprise)! 
+Follow the official guide on [caronc/apprise](https://github.com/caronc/apprise)!
 
 ### A brief, basic "get started"
 
-- Install **apprise** 
+- Install **apprise**
     - python package `pip install apprise`
     - packaged in EPEL/Fedora `dnf install apprise`
     - packaged in AUR `[yay/pikaur/paru/other] apprise`
@@ -92,7 +92,7 @@ Then either source the notifications with `-c=/path/to/config/apprise` or store 
 - Test apprise with a single notification:
     - `apprise -vv -t 'test title' -b 'test notification body' 'mailto://myemail:mypass@gmail.com'`
 - Set up your notification URL's and test them.
-    - Look at the [apprise wiki: Notification Services](https://github.com/caronc/apprise/wiki) for more info about how the url syntax for different services works.   
+    - Look at the [apprise wiki: Notification Services](https://github.com/caronc/apprise/wiki) for more info about how the url syntax for different services works.  
 
 ### When done, customize the **notify.sh** file.
 After you're done with the setup of the container and tried your notifications, you can copy the `notify_apprise.sh` file to `notify.sh` and start editing it.

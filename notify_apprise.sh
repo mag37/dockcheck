@@ -33,5 +33,3 @@ apprise -vv -t "$MessageTitle" -b "$MessageBody" \
 # curl -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL
 
 }
-
-

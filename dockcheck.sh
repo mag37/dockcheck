@@ -16,7 +16,7 @@ LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNot
 
 ### Help Function:
 Help() {
-  echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]" 
+  echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]"
   echo "Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
@@ -58,7 +58,7 @@ while getopts "aynpfrhlisvme:d:t:" options; do
     e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
-    t)   Timeout="${OPTARG}" ;; 
+    t)   Timeout="${OPTARG}" ;;
     v)   printf "%s\n" "$VERSION" ; exit 0 ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
@@ -69,12 +69,12 @@ shift "$((OPTIND-1))"
 
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
-  if [[ $(builtin type -P curl) ]]; then 
-    curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"  
+  if [[ $(builtin type -P curl) ]]; then
+    curl -L $RawUrl > "$ScriptPath" ; chmod +x "$ScriptPath"
     printf "\n%s\n" "--- starting over with the updated version ---"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # exit the old instance
-  elif [[ $(builtin type -P wget) ]]; then 
+  elif [[ $(builtin type -P wget) ]]; then
     wget $RawUrl -O "$ScriptPath" ; chmod +x "$ScriptPath"
     printf "\n%s\n" "--- starting over with the updated version ---"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
@@ -103,7 +103,7 @@ self_update() {
 choosecontainers() {
   while [[ -z "$ChoiceClean" ]]; do
     read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
-    if [[ "$Choice" =~ [qQnN] ]] ; then 
+    if [[ "$Choice" =~ [qQnN] ]] ; then
       exit 0
     elif [[ "$Choice" =~ [aAyY] ]] ; then
       SelectedUpdates=( "${GotUpdates[@]}" )
@@ -147,9 +147,9 @@ progress_bar() {
 }
 
 ### Version check & initiate self update
-if [[ "$VERSION" != "$LatestRelease" ]] ; then 
+if [[ "$VERSION" != "$LatestRelease" ]] ; then
   printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
-  if [[ -z "$AutoUp" ]] ; then 
+  if [[ -z "$AutoUp" ]] ; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
   fi
@@ -218,7 +218,7 @@ DocCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' 
 RegCheckQue=0
 
 ### Testing and setting timeout binary
-t_out=$(type -P "timeout") 
+t_out=$(type -P "timeout")
 if [[ $t_out ]]; then
   t_out=$(realpath $t_out 2>/dev/null || readlink -f $t_out)
   if [[ $t_out =~ "busybox" ]]; then
@@ -233,17 +233,17 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   ((RegCheckQue+=1))
   progress_bar "$RegCheckQue" "$DocCount"
   ### Looping every item over the list of excluded names and skipping:
-  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done 
+  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   # Checking for errors while setting the variable:
   if RegHash=$(${t_out} $regbin image digest --list "$RepoUrl" 2>&1) ; then
-    if [[ "$LocalHash" = *"$RegHash"* ]] ; then 
-      NoUpdates+=("$i") 
-    else 
+    if [[ "$LocalHash" = *"$RegHash"* ]] ; then
+      NoUpdates+=("$i")
+    else
       if [[ -n "$DaysOld" ]] && ! datecheck ; then
-        NoUpdates+=("+$i ${ImageAge}d") 
-      else 
+        NoUpdates+=("+$i ${ImageAge}d")
+      else
         GotUpdates+=("$i")
       fi
     fi
@@ -273,13 +273,13 @@ if [[ -n ${GotErrors[*]} ]] ; then
   printf "%s\n" "${GotErrors[@]}"
   printf "%binfo:%b 'unauthorized' often means not found in a public registry.\n" "$c_blue" "$c_reset"
 fi
-if [[ -n ${GotUpdates[*]} ]] ; then 
+if [[ -n ${GotUpdates[*]} ]] ; then
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
    [[ -n "$Notify" ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n" ; }
 fi
 
-### Optionally get updates if there's any 
+### Optionally get updates if there's any
 if [ -n "$GotUpdates" ] ; then
   if [ -z "$AutoUp" ] ; then
   printf "\n%bChoose what containers to update.%b\n" "$c_teal" "$c_reset"
@@ -302,14 +302,14 @@ if [ -n "$GotUpdates" ] ; then
       ContUpdateLabel=$(docker inspect "$i" --format '{{ index .Config.Labels "mag37.dockcheck.update" }}')
       ContRestartStack=$(docker inspect "$i" --format '{{ index .Config.Labels "mag37.dockcheck.restart-stack" }}')
       ### Checking if compose-values are empty - hence started with docker run:
-      if [ -z "$ContPath" ] ; then 
+      if [ -z "$ContPath" ] ; then
         if [ "$DRunUp" == "yes" ] ; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
           printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
         fi
-        continue 
+        continue
       fi
       ### cd to the compose-file directory to account for people who use relative volumes, eg - ${PWD}/data:data
       cd "$ContPath" || { echo "Path error - skipping $i" ; continue ; }
@@ -326,15 +326,15 @@ if [ -n "$GotUpdates" ] ; then
       ### Check if the container got an environment file set and reformat it
       if [ -n "$ContEnv" ]; then ContEnvs=$(for env in ${ContEnv//,/ } ; do printf -- "--env-file %s " "$env"; done) ; fi
       ### Check if the whole stack should be restarted
-      if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then 
-        $DockerBin ${CompleteConfs} stop ; $DockerBin ${CompleteConfs} ${ContEnvs} up -d 
+      if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]] ; then
+        $DockerBin ${CompleteConfs} stop ; $DockerBin ${CompleteConfs} ${ContEnvs} up -d
       else
-        $DockerBin ${CompleteConfs} ${ContEnvs} up -d ${ContName} 
+        $DockerBin ${CompleteConfs} ${ContEnvs} up -d ${ContName}
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
     [[ -z "$AutoPrune" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune
-    [[ "$AutoPrune" =~ [yY] ]] && docker image prune -f 
+    [[ "$AutoPrune" =~ [yY] ]] && docker image prune -f
   else
     printf "\nNo updates installed, exiting.\n"
   fi
@@ -343,4 +343,3 @@ else
 fi
 
 exit 0
-

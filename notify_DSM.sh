@@ -9,7 +9,7 @@
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
 
-if [ -n $MSMPT ] ; then  
+if [ -n $MSMPT ] ; then
 	MAIL=$MSMTP
 elif [ -n $SSMTP ] && [ -z $MAIL ] ; then
 	MAIL=$SSMTP

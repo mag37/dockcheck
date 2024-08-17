@@ -1,7 +1,7 @@
 <p align="center">
   <img src="extras/dockcheck_logo_by_booYah187.png" width="160" title="dockcheck">
 </p>
-<p align="center"> 
+<p align="center">
   <img src="https://img.shields.io/badge/bash-4.3-green?style=flat-square&logo=gnubash" alt="bash">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/license-GPLv3-red?style=flat-square" alt="GPLv3"></a>
   <img src="https://img.shields.io/github/v/tag/mag37/dockcheck?style=flat-square&label=release" alt="release">
@@ -72,16 +72,16 @@ Containers with updates available:
 Choose what containers to update:
 Enter number(s) separated by comma, [a] for all - [q] to quit:
 ```
-Then it proceedes to run `pull` and `up -d` on every container with updates.   
+Then it proceedes to run `pull` and `up -d` on every container with updates.  
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
 ___
 
 ## :nut_and_bolt: Dependencies
-- Running docker (duh) and compose, either standalone or plugin.   
+- Running docker (duh) and compose, either standalone or plugin.  
 - Bash shell or compatible shell of at least v4.3
-- [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))   
-  - User will be prompted to download `regctl` if not in `PATH` or `PWD`.   
+- [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
+  - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
 ## :tent: Install Instructions
@@ -99,10 +99,10 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 
 
 ## :loudspeaker: Notifications
-Trigger with the `-i` flag.   
+Trigger with the `-i` flag.  
 Run it scheduled with `-ni` to only get notified when there's updates available!  
 
-Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs! (notify.sh is added to .gitignore)     
+Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs! (notify.sh is added to .gitignore)  
 **Current templates:**
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
@@ -115,7 +115,7 @@ Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your nee
 - [Telegram](https://telegram.org/) - Telegram chat API.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
 
-Further additions are welcome - suggestions or PR!   
+Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
 ## :bookmark: Labels
@@ -163,7 +163,7 @@ function dchk {
 - Not working well with containers created by Portainer.
 
 ## :warning: `-r flag` disclaimer and warning
-**Wont auto-update the containers, only their images. (compose is recommended)**   
+**Wont auto-update the containers, only their images. (compose is recommended)**  
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.
 
@@ -176,5 +176,5 @@ ___
 
 
 ## Special Thanks
-- :bison: [t0rnis](https://github.com/t0rnis)   
+- :bison: [t0rnis](https://github.com/t0rnis)  
 - :leopard: [Palleri](https://github.com/Palleri)

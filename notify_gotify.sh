@@ -8,18 +8,18 @@ send_notification() {
     Updates=("$@")
     UpdToString=$( printf "%s\n" "${Updates[@]}" )
     FromHost=$(hostname)
-    
+
     # platform specific notification code would go here
     printf "\nSending Gotify notification\n"
-    
+
     # Setting the MessageTitle and MessageBody variable here.
     MessageTitle="${FromHost} - updates available."
     MessageBody="Containers on ${FromHost} with updates available: ${UpdToString}"
-    
+
     # Modify to fit your setup:
     GotifyToken="Your Gotify token here"
-    GotifyUrl="https://api.gotify/message?token=${GotifyToken}"   
-    
+    GotifyUrl="https://api.gotify/message?token=${GotifyToken}"
+
     curl \
         -F "title=${MessageTitle}" \
         -F "message=${MessageBody}" \
