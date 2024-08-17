@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.7"
-### ChangeNotes: Notification template changes for: gotify(new), DSM(improved), SMTP(deprecation alternative).
+VERSION="v0.4.8"
+### ChangeNotes: Rewrote prune to not prompt (default no) if -a|-y or -n flags are used. -p will still autoprune.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -333,7 +333,7 @@ if [ -n "$GotUpdates" ] ; then
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
-    [[ -z "$AutoPrune" ]] && read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune
+    if [[ -z "$AutoPrune" ]] && [[ -z "$AutoUp" ]]; then read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune ; fi
     [[ "$AutoPrune" =~ [yY] ]] && docker image prune -f
   else
     printf "\nNo updates installed, exiting.\n"
