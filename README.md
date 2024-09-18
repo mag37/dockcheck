@@ -22,12 +22,6 @@ ___
 - **v0.4.6**: Compatibility changes to timeout, due to busybox.
 - **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
 - **v0.4.3**: Added timeout option to skip container if registry check takes too long (10s default).
-- **v0.4.1**: Syntax and logic cleanups, bugfixes on multi compose and env-files.
-- **v0.4.0**: Reworked selfupdate (auto git/curl/wget), general syntax cleanup, added -v for version.
-- **v0.3.8**: Fixed `--env-file` logic to work with multiple env-files.
-- **v0.3.7**: Added support for [labels](#bookmark-labels), added the `-f` option (force restart stack).
-- **v0.3.6**: Added pushbullet template.
-- **v0.3.5**: Added a simple progress bar for the registry checkup.
 ___
 
 
@@ -103,7 +97,7 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 Trigger with the `-i` flag.  
 Run it scheduled with `-ni` to only get notified when there's updates available!  
 
-Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your needs! (notify.sh is added to .gitignore)  
+Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)  
 **Current templates:**
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
@@ -115,6 +109,7 @@ Use a `notify_X.sh` template file, copy it to `notify.sh`, modify it to your nee
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 - [Telegram](https://telegram.org/) - Telegram chat API.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
+- [Pushover](https://pushover.net/) - Simple Notifications (to your phone, wearables, desktops)
 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
@@ -161,12 +156,17 @@ function dchk {
 ## :hammer: Known issues
 - No detailed error feedback (just skip + list what's skipped).
 - Not respecting `--profile` options when re-creating the container.
-- Not working well with containers created by Portainer.
+- Not working well with containers created by **Portainer**.
+- **Watchtower** might cause issues due to retagging images when checking for updates (and thereby pulling new images).
 
 ## :warning: `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**  
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.
+
+## :wrench: Debugging
+If you hit issues, you could check the output of the `extras/errorCheck.sh` script for clues. 
+Another option is to run the main script with debugging in a subshell `bash -x dockcheck.sh` - if there's a particular container/image that's causing issues you can filter for just that through `bash -x dockcheck.sh nginx`.
 
 ## :scroll: License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
@@ -175,7 +175,3 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 
 ___
 
-
-## Special Thanks
-- :bison: [t0rnis](https://github.com/t0rnis)  
-- :leopard: [Palleri](https://github.com/Palleri)
