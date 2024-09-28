@@ -34,6 +34,8 @@ Help() {
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-v     Prints current version."
+  echo
+  echo "Project source: $Github"
 }
 
 ### Colors:
