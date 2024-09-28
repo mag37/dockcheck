@@ -171,7 +171,11 @@ Another option is to run the main script with debugging in a subshell `bash -x d
 ## :scroll: License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 
-### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
+## :heartpulse: Sponsorlist
+
+- [avegy](https://github.com/avegy)
 
 ___
+
+### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
 
