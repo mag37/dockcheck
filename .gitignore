@@ -1,4 +1,5 @@
 # ignore users custom notify.sh
 /notify.sh
+/urls.list
 # ignore the auto-installed regctl
 regctl
