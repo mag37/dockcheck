@@ -148,6 +148,17 @@ progress_bar() {
   [[ "$QueTotal" == "$QueCurrent" ]] && printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
 }
 
+### Function to add user-provided urls to releasenotes
+releasenotes() { 
+    for update in ${Updates[@]}; do
+        found=false
+        while read -r container url; do
+            [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
+        done < "$ScriptWorkDir"/urls.list
+        [[ $found == false ]] && printf "%s  ->  no url in list\n" "$update"
+    done
+}
+
 ### Version check & initiate self update
 if [[ "$VERSION" != "$LatestRelease" ]] ; then
   printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"

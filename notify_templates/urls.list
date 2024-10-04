@@ -1,3 +1,7 @@
+# This is a list of container names and releasenote urls, separated by space.
+# Modify, add and (if necessary) remove to fit your needs.
+# Additions are welcome! Append your list to the git-repo, use generic names and sensible urls.
+
 apprise-api https://github.com/linuxserver/docker-apprise-api/releases
 homer https://github.com/bastienwirtz/homer/releases
 nginx https://github.com/docker-library/official-images/blob/master/library/nginx
