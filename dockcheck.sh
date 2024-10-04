@@ -155,7 +155,7 @@ releasenotes() {
         while read -r container url; do
             [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
         done < "$ScriptWorkDir"/urls.list
-        [[ $found == false ]] && printf "%s  ->  no url in list\n" "$update"
+        [[ $found == false ]] && printf "%s  ->  url missing\n" "$update"
     done
 }
 
