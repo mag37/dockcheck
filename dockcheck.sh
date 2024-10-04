@@ -13,7 +13,6 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/### ChangeNotes: //p")"
 
-
 ### Help Function:
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]"
@@ -150,13 +149,13 @@ progress_bar() {
 
 ### Function to add user-provided urls to releasenotes
 releasenotes() { 
-    for update in ${Updates[@]}; do
-        found=false
-        while read -r container url; do
-            [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
-        done < "$ScriptWorkDir"/urls.list
-        [[ $found == false ]] && printf "%s  ->  url missing\n" "$update" || continue
-    done
+  for update in ${Updates[@]}; do
+    found=false
+    while read -r container url; do
+      [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
+    done < "$ScriptWorkDir"/urls.list
+    [[ $found == false ]] && printf "%s  ->  url missing\n" "$update" || continue
+  done
 }
 
 ### Version check & initiate self update
@@ -271,7 +270,6 @@ IFS=$'\n'
 NoUpdates=($(sort <<<"${NoUpdates[*]}"))
 GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 unset IFS
-
 
 ### Define how many updates are available
 UpdCount="${#GotUpdates[@]}"
