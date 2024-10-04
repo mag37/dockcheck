@@ -11,7 +11,7 @@ releasenotes() {
         found=false
         while read -r container url; do
             [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
-        done < urls.list
+        done < "$ScriptWorkDir"/urls.list
         [[ $found == false ]] && printf "%s\n" "$update"
     done
 }
