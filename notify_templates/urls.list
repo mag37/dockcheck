@@ -5,3 +5,4 @@
 apprise-api https://github.com/linuxserver/docker-apprise-api/releases
 homer https://github.com/bastienwirtz/homer/releases
 nginx https://github.com/docker-library/official-images/blob/master/library/nginx
+vaultwarden-server https://github.com/dani-garcia/vaultwarden/releases

@@ -17,6 +17,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-Notifications)
 - **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
 - **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
 - **v0.4.6**: Compatibility changes to timeout, due to busybox.
@@ -113,6 +114,19 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
+
+### :date: Release notes addon to Notifications
+There's a function to use a lookup-file to add release note URL's to the notification message.    
+Copy the notify_templates/`urls.list` file to the script directory and modify it as necessary, it will be used automatically if it's there.   
+The output of the notification will look something like this:
+```
+Containers on hostname with updates available:
+apprise-api  ->  https://github.com/linuxserver/docker-apprise-api/releases
+homer  ->  https://github.com/bastienwirtz/homer/releases
+nginx  ->  https://github.com/docker-library/official-images/blob/master/library/nginx
+...
+```
+The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
 
 ## :bookmark: Labels
 Optionally add labels to compose-files. Currently these are the usable labels:

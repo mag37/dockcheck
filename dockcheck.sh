@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.8"
-### ChangeNotes: Rewrote prune to not prompt (default no) if -a|-y or -n flags are used. -p will still autoprune.
+VERSION="v0.4.9"
+### ChangeNotes: Added a function to enrich the notify-message with release note URLs. See README.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -155,7 +155,7 @@ releasenotes() {
         while read -r container url; do
             [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
         done < "$ScriptWorkDir"/urls.list
-        [[ $found == false ]] && printf "%s  ->  url missing\n" "$update"
+        [[ $found == false ]] && printf "%s  ->  url missing\n" "$update" || continue
     done
 }
 
