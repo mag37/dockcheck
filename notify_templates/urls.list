@@ -22,7 +22,7 @@ bazarr-ls https://github.com/linuxserver/docker-bazarr/releases
 prowlarr https://github.com/Prowlarr/Prowlarr/releases
 prowlarr-ls https://github.com/linuxserver/docker-prowlarr/releases
 recyclarr https://github.com/recyclarr/recyclarr/releases
-sabnzbd https://github.com/linuxserver/docker-sabnzbd
+sabnzbd https://github.com/linuxserver/docker-sabnzbd/releases
 sonarr https://github.com/linuxserver/docker-sonarr/releases
 radarr https://github.com/linuxserver/docker-radarr/releases
 lidarr https://github.com/linuxserver/docker-lidarr/releases
