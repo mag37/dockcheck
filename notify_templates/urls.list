@@ -6,3 +6,29 @@ apprise-api https://github.com/linuxserver/docker-apprise-api/releases
 homer https://github.com/bastienwirtz/homer/releases
 nginx https://github.com/docker-library/official-images/blob/master/library/nginx
 vaultwarden-server https://github.com/dani-garcia/vaultwarden/releases
+actual_server https://actualbudget.org/blog
+gotify https://github.com/gotify/server/releases
+traefik https://github.com/traefik/traefik/releases
+caddy https://github.com/caddyserver/caddy/releases
+
+calibre https://github.com/linuxserver/docker-calibre/releases
+calibre-web https://github.com/linuxserver/docker-calibre-web/releases
+readarr https://github.com/Readarr/Readarr/releases
+audiobookshelf https://github.com/advplyr/audiobookshelf/releases
+
+gluetun https://github.com/qdm12/gluetun/releases
+bazarr https://github.com/morpheus65535/bazarr/releases
+bazarr-ls https://github.com/linuxserver/docker-bazarr/releases
+prowlarr https://github.com/Prowlarr/Prowlarr/releases
+prowlarr-ls https://github.com/linuxserver/docker-prowlarr/releases
+recyclarr https://github.com/recyclarr/recyclarr/releases
+sabnzbd https://github.com/linuxserver/docker-sabnzbd/releases
+sonarr https://github.com/linuxserver/docker-sonarr/releases
+radarr https://github.com/linuxserver/docker-radarr/releases
+lidarr https://github.com/linuxserver/docker-lidarr/releases
+jellyseerr https://github.com/Fallenbagel/jellyseerr/releases
+jellyfin https://github.com/jellyfin/jellyfin/releases
+
+home-assistant https://github.com/home-assistant/docker/releases
+zigbee2mqtt https://github.com/Koenkk/zigbee2mqtt/releases
+mqtt https://github.com/eclipse/mosquitto/tags
