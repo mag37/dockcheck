@@ -8,17 +8,17 @@
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
 
-if [ -n $MSMPT ] ; then
-	MAIL=$MSMTP
-elif [ -n $SSMTP ] && [ -z $MAIL ] ; then
-	MAIL=$SSMTP
+if [ -n "$MSMPT" ] ; then
+	MailPkg=$MSMTP
+elif [ -n "$SSMTP" ] ; then
+	MailPkg=$SSMTP
 else
 	echo "No msmtp or ssmtp binary found in PATH: $PATH" ; exit 1
 fi
 
 send_notification() {
 Updates=("$@")
-UpdToString=$( printf "%s\n" "${Updates[@]}" )
+[ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
 FromHost=$(hostname)
 
 # User variables:
@@ -28,7 +28,7 @@ SubjectTag="dockcheck"
 
 printf "\nSending email notification.\n"
 
-$MAIL $SendMailTo << __EOF
+$MailPkg $SendMailTo << __EOF
 From: "$FromHost" <$SendMailFrom>
 date:$(date -R)
 To: <$SendMailTo>

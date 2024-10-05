@@ -7,7 +7,7 @@
 
 send_notification() {
     Updates=("$@")
-    UpdToString=$( printf "%s\n" "${Updates[@]}" )
+    [ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
     FromHost=$(hostname)
 
     # platform specific notification code would go here

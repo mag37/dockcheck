@@ -6,7 +6,7 @@
 
 send_notification() {
 Updates=("$@")
-UpdToString=$( printf "%s\n" "${Updates[@]}" )
+[ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
 FromHost=$(hostname)
 
 printf "\nSending ntfy.sh notification\n"
