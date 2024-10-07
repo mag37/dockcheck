@@ -4,11 +4,13 @@
 # generic sample, the "Hello World" of notification addons
 
 send_notification() {
-  Updates=("$@")
-  [ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+  [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+  UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+
   FromHost=$(hostname)
 
   # platform specific notification code would go here
   printf "\n%bGeneric notification addon:%b" "$c_green" "$c_reset"
-  printf "\nThe following docker containers on %s need to be updated:\n%s\n" "$FromHost" "$UpdToString"
+  printf "\nThe following docker containers on %s need to be updated:\n" "$FromHost"
+  printf "$UpdToString"
 }

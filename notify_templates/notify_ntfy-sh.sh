@@ -5,20 +5,15 @@
 # Use your unique Topic Name in the URL below.
 
 send_notification() {
-Updates=("$@")
-[ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 FromHost=$(hostname)
 
 printf "\nSending ntfy.sh notification\n"
 
 MessageTitle="$FromHost - updates available."
 # Setting the MessageBody variable here.
-read -d '\n' MessageBody << __EOF
-Containers on $FromHost with updates available:
-
-$UpdToString
-
-__EOF
+MessageBody=$(printf "🐋 Containers on $FromHost with updates available: \n$UpdToString")
 
 # Modify to fit your setup:
 NtfyUrl="ntfy.sh/YourUniqueTopicName"

@@ -5,8 +5,8 @@
 # Modify to fit your setup - set TelegramChatId and TelegramToken.
 
 send_notification() {
-    Updates=("$@")
-    [ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
     FromHost=$(hostname)
 
     # platform specific notification code would go here

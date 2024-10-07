@@ -18,8 +18,8 @@ else
 fi
 
 send_notification() {
-Updates=("$@")
-[ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 FromHost=$(hostname)
 CfgFile="/usr/syno/etc/synosmtp.conf"
 
