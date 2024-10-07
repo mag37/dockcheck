@@ -149,12 +149,12 @@ progress_bar() {
 
 ### Function to add user-provided urls to releasenotes
 releasenotes() { 
-  for update in ${Updates[@]}; do
+  for update in ${GotUpdates[@]}; do
     found=false
     while read -r container url; do
-      [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
+      [[ $update == $container ]] && Updates+=("$update  ->   $url") && found=true
     done < "$ScriptWorkDir"/urls.list
-    [[ $found == false ]] && printf "%s  ->  url missing\n" "$update" || continue
+    [[ $found == false ]] && Updates+=("$update  ->  url missing") || continue
   done
 }
 
