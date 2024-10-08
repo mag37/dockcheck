@@ -8,7 +8,7 @@
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
 
-if [ -n "$MSMPT" ] ; then
+if [ -n "$MSMTP" ] ; then
 	MailPkg=$MSMTP
 elif [ -n "$SSMTP" ] ; then
 	MailPkg=$SSMTP
