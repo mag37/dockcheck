@@ -126,7 +126,7 @@ choosecontainers() {
 }
 
 datecheck() {
-  ImageDate=$($regbin image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
+  ImageDate=$($regbin -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
   ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) )/86400 ))
   if [ "$ImageAge" -gt "$DaysOld" ] ; then
     return 0
@@ -249,7 +249,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   # Checking for errors while setting the variable:
-  if RegHash=$(${t_out} $regbin image digest --list "$RepoUrl" 2>&1) ; then
+  if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then
       NoUpdates+=("$i")
     else
