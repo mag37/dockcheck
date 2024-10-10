@@ -15,7 +15,7 @@ send_notification() {
 
     MessageTitle="$FromHost - updates available."
     # Setting the MessageBody variable here.
-    MessageBody=$(printf "🐋 Containers on $FromHost with updates available: \n$UpdToString")
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
 
     # Modify to fit your setup:
     PushoverUrl="https://api.pushover.net/1/messages.json"

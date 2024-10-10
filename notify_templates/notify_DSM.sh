@@ -36,6 +36,8 @@ SenderMail=${SenderMail:-$(grep 'eventmail1' $CfgFile | sed -n 's/.*"\([^"]*\)".
 
 printf "\nSending email notification.\n"
 
+printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
+
 $MailPkg $SendMailTo << __EOF
 From: "$SenderName" <$SenderMail>
 date:$(date -R)
@@ -44,10 +46,7 @@ Subject: $SubjectTag Updates available on $FromHost
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-The following containers on $FromHost have updates available:
-
-$UpdToString
-
+$MessageBody
  From $SenderName
 __EOF
 }

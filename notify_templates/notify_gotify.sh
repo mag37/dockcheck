@@ -14,7 +14,7 @@ send_notification() {
 
     # Setting the MessageTitle and MessageBody variable here.
     MessageTitle="${FromHost} - updates available."
-    MessageBody=$(printf "🐋 Containers on $FromHost with updates available: \n$UpdToString")
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
 
     # Modify to fit your setup:
     GotifyToken="Your Gotify token here"
