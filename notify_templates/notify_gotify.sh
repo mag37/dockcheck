@@ -5,8 +5,8 @@
 # Modify to fit your setup - set GotifyUrl and GotifyToken.
 
 send_notification() {
-    Updates=("$@")
-    [ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
     FromHost=$(hostname)
 
     # platform specific notification code would go here
@@ -14,7 +14,7 @@ send_notification() {
 
     # Setting the MessageTitle and MessageBody variable here.
     MessageTitle="${FromHost} - updates available."
-    MessageBody="Containers on ${FromHost} with updates available: ${UpdToString}"
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
 
     # Modify to fit your setup:
     GotifyToken="Your Gotify token here"

@@ -6,8 +6,8 @@
 # Modify to fit your setup - set Url and Token.
 
 send_notification() {
-    Updates=("$@")
-    [ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
     FromHost=$(hostname)
 
     # platform specific notification code would go here
@@ -15,7 +15,7 @@ send_notification() {
 
     MessageTitle="$FromHost - updates available."
     # Setting the MessageBody variable here.
-    MessageBody="Containers on $FromHost with updates available: $UpdToString"
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
 
     # Modify to fit your setup:
     PushoverUrl="https://api.pushover.net/1/messages.json"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.4.9"
-### ChangeNotes: Added a function to enrich the notify-message with release note URLs. See README.
+VERSION="v0.5.0"
+### ChangeNotes: Rewritten notify logic - all templates adjusted, transfer your current settings to a new template! See README.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -126,7 +126,7 @@ choosecontainers() {
 }
 
 datecheck() {
-  ImageDate=$($regbin image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
+  ImageDate=$($regbin -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
   ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) )/86400 ))
   if [ "$ImageAge" -gt "$DaysOld" ] ; then
     return 0
@@ -149,12 +149,12 @@ progress_bar() {
 
 ### Function to add user-provided urls to releasenotes
 releasenotes() { 
-  for update in ${Updates[@]}; do
+  for update in ${GotUpdates[@]}; do
     found=false
     while read -r container url; do
-      [[ $update == $container ]] && printf "%s  ->  %s\n" "$update" "$url" && found=true
+      [[ $update == $container ]] && Updates+=("$update  ->  $url") && found=true
     done < "$ScriptWorkDir"/urls.list
-    [[ $found == false ]] && printf "%s  ->  url missing\n" "$update" || continue
+    [[ $found == false ]] && Updates+=("$update  ->  url missing") || continue
   done
 }
 
@@ -249,7 +249,7 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   # Checking for errors while setting the variable:
-  if RegHash=$(${t_out} $regbin image digest --list "$RepoUrl" 2>&1) ; then
+  if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then
       NoUpdates+=("$i")
     else

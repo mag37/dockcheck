@@ -17,6 +17,12 @@
 ___
 ## :bell: Changelog
 
+- **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
+    - Copy the custom settings from your current template to the new version of the same template.
+    - Look into, copy and customize the `urls.list` file if that's of interest.
+    - Other changes: 
+        - Added Discord notify template.
+        - Verbosity changed of `regctl`.
 - **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
 - **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
 - **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
@@ -117,7 +123,7 @@ Further additions are welcome - suggestions or PR!
 
 ### :date: Release notes addon to Notifications
 There's a function to use a lookup-file to add release note URL's to the notification message.    
-Copy the notify_templates/`urls.list` file to the script directory and modify it as necessary, it will be used automatically if it's there.   
+Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.   
 The output of the notification will look something like this:
 ```
 Containers on hostname with updates available:

@@ -9,7 +9,7 @@
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
 
-if [ -n "$MSMPT" ] ; then
+if [ -n "$MSMTP" ] ; then
 	MailPkg=$MSMTP
 elif [ -n "$SSMTP" ] ; then
 	MailPkg=$SSMTP
@@ -18,8 +18,8 @@ else
 fi
 
 send_notification() {
-Updates=("$@")
-[ -s "$ScriptWorkDir"/urls.list ] && UpdToString=$( releasenotes ) || UpdToString=$( printf "%s\n" "${Updates[@]}" )
+[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 FromHost=$(hostname)
 CfgFile="/usr/syno/etc/synosmtp.conf"
 
@@ -36,6 +36,8 @@ SenderMail=${SenderMail:-$(grep 'eventmail1' $CfgFile | sed -n 's/.*"\([^"]*\)".
 
 printf "\nSending email notification.\n"
 
+printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
+
 $MailPkg $SendMailTo << __EOF
 From: "$SenderName" <$SenderMail>
 date:$(date -R)
@@ -44,10 +46,7 @@ Subject: $SubjectTag Updates available on $FromHost
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-The following containers on $FromHost have updates available:
-
-$UpdToString
-
+$MessageBody
  From $SenderName
 __EOF
 }
