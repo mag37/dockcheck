@@ -17,9 +17,12 @@
 ___
 ## :bell: Changelog
 
-- **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated to.
+- **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
     - Copy the custom settings from your current template to the new version of the same template.
     - Look into, copy and customize the `urls.list` file if that's of interest.
+    - Other changes: 
+        - Added Discord notify template.
+        - Verbosity changed of `regctl`.
 - **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
 - **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
 - **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
