@@ -117,6 +117,7 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 - [Telegram](https://telegram.org/) - Telegram chat API.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
 - [Pushover](https://pushover.net/) - Simple Notifications (to your phone, wearables, desktops)
+- [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
