@@ -21,5 +21,8 @@ send_notification() {
     DiscordWebhookUrl="PasteYourFullDiscordWebhookURL"
 
     MsgBody="{\"username\":\"$FromHost\",\"content\":\"$MessageBody\"}"
+
     curl -sS -o /dev/null --fail -X POST -H "Content-Type: application/json" -d "$MsgBody" "$DiscordWebhookUrl"
+
+}
 
