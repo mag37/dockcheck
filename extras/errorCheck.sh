@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 SearchName="$1"
-for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
+for i in $(podman ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   echo "------------ $i ------------"
-  ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
-  [ -z "$ContPath" ] && { "$i has no compose labels - skipping" ; continue ; }
-  ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
-  ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
-  ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
-  ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+  ContPath=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
+  if [ -z "$ContPath" ]; then
+    echo "$i has no compose labels - skipping"
+    continue
+  fi
+  ContConfigFile=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
+  ContName=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
+  ContEnv=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.environment_file" }}')
+  ContImage=$(podman inspect "$i" --format='{{.ImageName}}')
 
   if [[ $ContConfigFile = '/'* ]] ; then
     ComposeFile="$ContConfigFile"
@@ -22,6 +25,6 @@ for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   echo -e "Container image:\t$ContImage"
   echo
   echo "Mounts:"
-  docker inspect  -f '{{ range .Mounts }}{{ .Source }}:{{ .Destination }}{{ printf "\n" }}{{ end }}' "$i"
+  podman inspect  -f '{{ range .Mounts }}{{ .Source }}:{{ .Destination }}{{ printf "\n" }}{{ end }}' "$i"
   echo
 done

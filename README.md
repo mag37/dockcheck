@@ -1,104 +1,100 @@
 <p align="center">
-  <img src="extras/dockcheck_logo_by_booYah187.png" width="160" title="dockcheck">
+  <img src="extras/podcheck.png" width="160" title="Podcheck">
 </p>
 <p align="center">
   <img src="https://img.shields.io/badge/bash-4.3-green?style=flat-square&logo=gnubash" alt="bash">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/license-GPLv3-red?style=flat-square" alt="GPLv3"></a>
-  <img src="https://img.shields.io/github/v/tag/mag37/dockcheck?style=flat-square&label=release" alt="release">
-  <a href="https://ko-fi.com/mag37"><img src="https://img.shields.io/badge/-Ko--fi-grey?style=flat-square&logo=Ko-fi" alt="Buy me a Coffee"></a>
-  <a href="https://liberapay.com/user-bin-rob/donate"><img src="https://img.shields.io/badge/-LiberaPay-grey?style=flat-square&logo=liberapay" alt="LiberaPay"></a>
-  <a href="https://github.com/sponsors/mag37"><img src="https://img.shields.io/badge/-Sponsor-grey?style=flat-square&logo=github" alt="Github Sponsor"></a>
+  <img src="https://img.shields.io/github/v/tag/sudo-kraken/podcheck?style=flat-square&label=release" alt="release">
+  <a href="https://www.buymeacoffee.com/jharrison94"><img src="https://img.shields.io/badge/-buy_me_a%C2%A0coffee-gray?logo=buy-me-a-coffee" alt="Buy Me A Coffee">
 </p>
 
-<h3 align="center">CLI tool to automate docker image updates. <br>No <b>pre-pull</b>, selective, optional notifications and prune when done.</h3>
+<h3 align="center">CLI tool to automate Podman image updates. <br>Selective updates, optional notifications, and image pruning when done.</h3>
 <h2 align="center">Now with simple notification integrations!</h2>
-<h4 align="center">With features like excluding specific containers, custom container labels, auto-prune when done and more.</h4>
+<h4 align="center">Features include excluding specific containers, custom container labels, auto-prune when done, and more.</h4>
 
 ___
 ## :bell: Changelog
-
-- **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
-    - Copy the custom settings from your current template to the new version of the same template.
-    - Look into, copy and customize the `urls.list` file if that's of interest.
-    - Other changes: 
-        - Added Discord notify template.
-        - Verbosity changed of `regctl`.
-- **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
-- **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
-- **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
-- **v0.4.6**: Compatibility changes to timeout, due to busybox.
-- **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
-- **v0.4.3**: Added timeout option to skip container if registry check takes too long (10s default).
+- **v0.5.6**: Directly checking for systemd units matching container names.
+    - Improved Quadlet detection by checking for systemd units named after the container.
+    - Ensures better compatibility with Quadlet-managed containers.
+- **v0.5.5**: Switched to podman compose command.
+    - Adjusted the script to use podman compose instead of podman-compose.
+    - Removed unnecessary messages.
+- **v0.5.4**: Improved Quadlet detection by matching container IDs with systemd units.
+    - The script now searches systemd unit files for references to the container ID.
+    - Provides reliable detection of Quadlet-managed containers.
+- **v0.5.0**: Initial release of Podcheck, inspired by Dockcheck.
+    - Supports updating containers managed by Podman Compose and Quadlet.
+    - Includes options for automatic updates, notifications, and more.
 ___
 
-
-![](extras/example.gif)
-
-## :mag_right: `dockcheck.sh`
+## :mag_right: `podcheck.sh`
 ```
-$ ./dockcheck.sh -h
-Syntax:     dockcheck.sh [OPTION] [part of name to filter]
-Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
+$ ./podcheck.sh -h
+Syntax:     podcheck.sh [OPTION] [part of name to filter]
+Example:    podcheck.sh -y -d 10 -e nextcloud,heimdall
 
-Options:"
+Options:
 -a|y   Automatic updates, without interaction.
--d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
+-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age.
 -e X   Exclude containers, separated by comma.
--f     Force stack restart after update. Caution: restarts once for every updated container within stack.
+-f     Force pod restart after update.
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
 -l     Only update if label is set. See readme.
 -m     Monochrome mode, no printf color codes.
--n     No updates, only checking availability.
--p     Auto-Prune dangling images after update.
--r     Allow updating images for docker run, wont update the container.
--s     Include stopped containers in the check. (Logic: docker ps -a).
+-n     No updates; only checking availability.
+-p     Auto-prune dangling images after update.
+-r     Allow updating images for podman run; won't update the container.
+-s     Include stopped containers in the check.
 -t     Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -v     Prints current version.
 ```
 
-
 ### Basic example:
 ```
-$ ./dockcheck.sh
-. . .
+$ ./podcheck.sh
+...
 Containers on latest version:
-glances
-homer
+filebrowser
+foundryvtt
 
 Containers with updates available:
-1) adguardhome
-2) syncthing
-3) whoogle-search
+1) joplin-db
+2) it-tools
 
 Choose what containers to update:
 Enter number(s) separated by comma, [a] for all - [q] to quit:
 ```
-Then it proceedes to run `pull` and `up -d` on every container with updates.  
-After the updates are complete, you'll get prompted if you'd like to prune dangling images.
+Then it proceeds to run podman pull and podman compose up -d, or restarts systemd units for every container with updates. 
+After the updates are complete, you'll be prompted if you'd like to prune dangling images
 
 ___
 
 ## :nut_and_bolt: Dependencies
-- Running docker (duh) and compose, either standalone or plugin.  
+- Podman: Ensure you have Podman installed and properly configured.
+- Podman Compose: For containers managed with podman compose, make sure it's installed.
+  - Note: podman compose is included in recent versions of Podman.
+- Quadlet: If you're using systemd units to manage your containers, ensure they are correctly set up.    
 - Bash shell or compatible shell of at least v4.3
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
+- jq: Used for parsing JSON output from podman inspect.
+- timeout: Optional but recommended for setting timeouts on registry checks.
 
 ## :tent: Install Instructions
 Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.
 ```sh
-# basic example with curl:
-curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o ~/.local/bin/dockcheck.sh
-chmod +x ~/.local/bin/dockcheck.sh
+# Using curl:
+curl -L https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh -o ~/.local/bin/podcheck.sh
+chmod +x ~/.local/bin/podcheck.sh
 
-# or oneliner with wget:
-wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh" && chmod +x ~/.local/bin/dockcheck.sh
+# Or using wget:
+wget -O ~/.local/bin/podcheck.sh "https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh" && chmod +x ~/.local/bin/podcheck.sh
 ```
-Then call the script anywhere with just `dockcheck.sh`.
-Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
-
+Then call the script anywhere with `podcheck.sh`.
+Add your preferred notify.sh template to the same directory—this will not be touched by the script's self-update function.
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
@@ -120,30 +116,33 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 
 Further additions are welcome - suggestions or PR!  
-<sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
+<sub><sup>Initiated and first contributed by [mag37](https://github.com/mag37) as dockcheck.</sup></sub>  
 
 ### :date: Release notes addon to Notifications
-There's a function to use a lookup-file to add release note URL's to the notification message.    
-Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.   
+There's a function to use a lookup file to add release note URLs to the notification message.
+
+Copy the notify_templates/urls.list file to the script directory—it will be used automatically if it's there. Modify it as necessary; the names of interest in the left column need to match your container names.
+
 The output of the notification will look something like this:
 ```
 Containers on hostname with updates available:
-apprise-api  ->  https://github.com/linuxserver/docker-apprise-api/releases
-homer  ->  https://github.com/bastienwirtz/homer/releases
-nginx  ->  https://github.com/docker-library/official-images/blob/master/library/nginx
+joplin-db  ->  https://github.com/laurent22/joplin/releases
+it-tools    ->  https://github.com/CorentinTh/it-tools/releases
 ...
 ```
 The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
 
 ## :bookmark: Labels
-Optionally add labels to compose-files. Currently these are the usable labels:
+
+Optionally, you can add labels to your containers to control how Podcheck handles them. Currently, these are the usable labels:
+
+```yaml
+labels:
+  sudo-kraken.podcheck.restart-stack: true
+  sudo-kraken.podcheck.update: true
 ```
-    labels:
-      mag37.dockcheck.restart-stack: true
-      mag37.dockcheck.update: true
-```
-- `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
-- `mag37.dockcheck.update: true` will when used with the `-l` option only update containers with this label and skip the rest. Will still list updates as usual.
+- `sudo-kraken.podcheck.restart-stack`: true works instead of the `-f` option, forcing a restart of the entire pod or compose stack when an update is applied. Caution: This will restart the entire stack for every updated container within it.
+- `sudo-kraken.podcheck.update`: true will, when used with the `-l` option, only update containers with this label and skip the rest. It will still list all available updates.
 
 ## :roller_coaster: Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
@@ -169,8 +168,8 @@ Test it with `./regctl --help` and then either add the file to the same path as 
 **Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
 ```sh
 function dchk {
-  cat ~/pwd.txt | docker login --username YourUser --password-stdin
-  ~/dockcheck.sh "$@"
+  cat ~/pwd.txt | podman login --username YourUser --password-stdin docker.io
+  ~/podcheck.sh "$@"
 }
 ```
 
@@ -182,21 +181,22 @@ function dchk {
 
 ## :warning: `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**  
-`docker run` dont support using new images just by restarting a container.  
+`podman run` does not support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.
 
 ## :wrench: Debugging
 If you hit issues, you could check the output of the `extras/errorCheck.sh` script for clues. 
-Another option is to run the main script with debugging in a subshell `bash -x dockcheck.sh` - if there's a particular container/image that's causing issues you can filter for just that through `bash -x dockcheck.sh nginx`.
+Another option is to run the main script with debugging in a subshell `bash -x podcheck.sh` - if there's a particular container/image that's causing issues you can filter for just that through `bash -x podcheck.sh nginx`.
 
 ## :scroll: License
-dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
-
-## :heartpulse: Sponsorlist
-
-- [avegy](https://github.com/avegy)
-
+podcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 ___
 
-### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
+### :floppy_disk: The Story Behind Podcheck
+Podcheck was created to bring the convenience of automated container updates to the Podman ecosystem. As a user of Dockcheck for Docker, the need for a similar tool for Podman became apparent. Podcheck aims to provide the same ease of use and automation, tailored for Podman users.
+
+## :star2: Acknowledgments
+Podcheck is inspired by the original Dockcheck script. Without Dockcheck, there wouldn't have been a Podcheck. Many thanks to mag37 and all the contributors to Dockcheck for their work and inspiration.
+___
+Please feel free to contribute, open issues, or submit pull requests to improve Podcheck!
 

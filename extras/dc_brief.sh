@@ -15,14 +15,14 @@ IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
 SearchName="$1"
 
-for i in $(docker ps --filter "name=$SearchName" --format '{{.Names}}') ; do
+for i in $(podman ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   printf ". "
-  RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
-  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
+  RepoUrl=$(podman inspect "$i" --format='{{.ImageName}}')
+  LocalHash=$(podman image inspect "$RepoUrl" --format '{{.Digest}}')
   ### Checking for errors while setting the variable:
   if RegHash=$($regbin image digest --list "$RepoUrl" 2>/dev/null) ; then
-    if [[ "$LocalHash" = *"$RegHash"* ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
+    if [[ "$LocalHash" == "$RegHash" ]] ; then NoUpdates+=("$i"); else GotUpdates+=("$i"); fi
   else
     GotErrors+=("$i")
   fi
@@ -41,7 +41,7 @@ if [[ -n ${NoUpdates[*]} ]] ; then
   printf "%s\n" "${NoUpdates[@]}"
 fi
 if [[ -n ${GotErrors[*]} ]] ; then
-  printf "\n\033[0;31mContainers with errors, wont get updated:\033[0m\n"
+  printf "\n\033[0;31mContainers with errors; won't get updated:\033[0m\n"
   printf "%s\n" "${GotErrors[@]}"
 fi
 if [[ -n ${GotUpdates[*]} ]] ; then
