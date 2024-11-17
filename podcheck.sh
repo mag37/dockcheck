@@ -236,7 +236,7 @@ for i in $(podman ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   # Looping every item over the list of excluded names and skipping
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   RepoUrl=$(podman inspect "$i" --format='{{.ImageName}}')
-  LocalHash=$(podman image inspect "$RepoUrl" --format '{{.Digest}}')
+  LocalHash=$(podman image inspect "$RepoUrl" --format '{{.RepoDigests}}')
   # Checking for errors while setting the variable
   if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" == *"$RegHash"* ]] ; then
