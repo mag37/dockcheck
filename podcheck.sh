@@ -239,7 +239,7 @@ for i in $(podman ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   LocalHash=$(podman image inspect "$RepoUrl" --format '{{.Digest}}')
   # Checking for errors while setting the variable
   if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
-    if [[ "$LocalHash" == "$RegHash" ]] ; then
+    if [[ "$LocalHash" == *"$RegHash"* ]] ; then
       NoUpdates+=("$i")
     else
       if [[ -n "$DaysOld" ]] && ! datecheck ; then
