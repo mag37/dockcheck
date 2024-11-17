@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.5.6"
+VERSION="v0.5.6.1"
 # ChangeNotes: Directly checking for systemd units matching container names.
 Github="https://github.com/sudo-kraken/podcheck"
 RawUrl="https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh"
