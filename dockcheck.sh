@@ -174,7 +174,7 @@ SearchName="$1"
 IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
 # Check if required binary exists in PATH or directory
-if [[ $(command -v "regctl") ]]; then regbin="regctl" ;
+if [[ $(command -v regctl) ]]; then regbin="regctl" ;
 elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
@@ -210,6 +210,12 @@ else
   exit 1
 fi
 
+# Check for jq binary
+if [[ ! $(command -v jq) ]] ; then
+  printf "%s\n" "No jq binary, please install jq and try again, exiting."
+  exit 1
+fi
+
 # Numbered List function
 options() {
 num=1
@@ -231,7 +237,7 @@ DocCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' 
 RegCheckQue=0
 
 # Testing and setting timeout binary
-t_out=$(command -v "timeout")
+t_out=$(command -v timeout)
 if [[ $t_out ]]; then
   t_out=$(realpath $t_out 2>/dev/null || readlink -f $t_out)
   if [[ $t_out =~ "busybox" ]]; then
@@ -306,13 +312,22 @@ if [ -n "$GotUpdates" ] ; then
     do
       ((CurrentQue+=1))
       unset CompleteConfs
-      ContPath=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
-      ContConfigFile=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
-      ContName=$(docker inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
-      ContEnv=$(docker inspect "$i" --format '{{index .Config.Labels "com.docker.compose.project.environment_file" }}')
+      # Extract labels and metadata
+      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-      ContUpdateLabel=$(docker inspect "$i" --format '{{ index .Config.Labels "mag37.dockcheck.update" }}')
-      ContRestartStack=$(docker inspect "$i" --format '{{ index .Config.Labels "mag37.dockcheck.restart-stack" }}')
+      ContPath=$(jq -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      [ "$ContPath" == "null" ] && ContPath=""
+      ContConfigFile=$(jq -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+      [ "$ContConfigFile" == "null" ] && ContConfigFile=""
+      ContName=$(jq -r '."com.docker.compose.service"' <<< "$ContLabels")
+      [ "$ContName" == "null" ] && ContName=""
+      ContEnv=$(jq -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+      [ "$ContEnv" == "null" ] && ContEnv=""
+      ContUpdateLabel=$(jq -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      [ "$ContUpdateLabel" == "null" ] && ContUpdateLabel=""
+      ContRestartStack=$(jq -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
+      [ "$ContRestartStack" == "null" ] && ContRestartStack=""
+
       # Checking if compose-values are empty - hence started with docker run
       if [ -z "$ContPath" ] ; then
         if [ "$DRunUp" == "yes" ] ; then
