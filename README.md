@@ -17,7 +17,7 @@
 ___
 ## :bell: Changelog
 
-- **v0.5.1**: Formatting and efficiency changes feeding back from the fork [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
+- **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 - **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
     - Copy the custom settings from your current template to the new version of the same template.
     - Look into, copy and customize the `urls.list` file if that's of interest.

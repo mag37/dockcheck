@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.0"
-# ChangeNotes: Rewritten notify logic - all templates adjusted, transfer your current settings to a new template! See README.
+VERSION="v0.5.1"
+# ChangeNotes: DEPENDENCY WARNING: now requires jq. And upstreaming changes from sudo-kraken/podcheck
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
