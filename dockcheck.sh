@@ -233,7 +233,7 @@ if [[ -n ${Excludes[*]} ]] ; then
 fi
 
 # Variables for progress_bar function
-DocCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
+ContCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
 RegCheckQue=0
 
 # Testing and setting timeout binary
@@ -250,7 +250,7 @@ fi
 # Check the image-hash of every running container VS the registry
 for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
   ((RegCheckQue+=1))
-  progress_bar "$RegCheckQue" "$DocCount"
+  progress_bar "$RegCheckQue" "$ContCount"
   # Looping every item over the list of excluded names and skipping
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
