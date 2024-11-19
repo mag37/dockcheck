@@ -163,7 +163,7 @@ SearchName="$1"
 IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
 # Check if required binary exists in PATH or directory
-if [[ $(command -v "regctl") ]]; then regbin="regctl" ;
+if [[ $(command -v regctl) ]]; then regbin="regctl" ;
 elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
@@ -215,11 +215,11 @@ if [[ -n ${Excludes[*]} ]] ; then
 fi
 
 # Variables for progress_bar function
-DocCount=$(podman ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
+ContCount=$(podman ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
 RegCheckQue=0
 
 # Testing and setting timeout binary
-t_out=$(command -v "timeout")
+t_out=$(command -v timeout)
 if [[ $t_out ]]; then
   t_out=$(realpath $t_out 2>/dev/null || readlink -f $t_out)
   if [[ $t_out =~ "busybox" ]]; then
@@ -232,7 +232,7 @@ fi
 # Check the image-hash of every running container VS the registry
 for i in $(podman ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
   ((RegCheckQue+=1))
-  progress_bar "$RegCheckQue" "$DocCount"
+  progress_bar "$RegCheckQue" "$ContCount"
   # Looping every item over the list of excluded names and skipping
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
   RepoUrl=$(podman inspect "$i" --format='{{.ImageName}}')
