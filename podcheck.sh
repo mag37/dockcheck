@@ -198,6 +198,12 @@ else
   exit 1
 fi
 
+# Check for jq binary
+if [[ ! $(command -v jq) ]] ; then
+  printf "%s\n" "No jq binary, please install jq and try again, exiting."
+  exit 1
+fi
+
 # Numbered List function
 options() {
 num=1
