@@ -6,10 +6,6 @@ for i in $(podman ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   ContImage=$(podman inspect "$i" --format='{{.ImageName}}')
   ContPath=$(jq -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
   [ "$ContPath" == "null" ] && ContPath=""
-  if [ -z "$ContPath" ]; then
-    echo "$i has no compose labels - skipping"
-    continue
-  fi
   ContConfigFile=$(jq -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
   [ "$ContConfigFile" == "null" ] && ContConfigFile=""
   ContName=$(jq -r '."com.docker.compose.service"' <<< "$ContLabels")
