@@ -23,7 +23,7 @@ ___
 - **v0.5.4**: Improved Quadlet detection by matching container IDs with systemd units.
     - The script now searches systemd unit files for references to the container ID.
     - Provides reliable detection of Quadlet-managed containers.
-- **v0.5.0**: Initial release of Podcheck, inspired by Dockcheck.
+- **v0.5.0**: Initial release of Podcheck, inspired by [Dockcheck](https://github.com/mag37/dockcheck).
     - Supports updating containers managed by Podman Compose and Quadlet.
     - Includes options for automatic updates, notifications, and more.
 ___
@@ -116,7 +116,7 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 
 Further additions are welcome - suggestions or PR!  
-<sub><sup>Initiated and first contributed by [mag37](https://github.com/mag37) as dockcheck.</sup></sub>  
+<sub><sup>Initiated and first contributed by [mag37](https://github.com/mag37) as [eck](https://github.com/mag37/eck).</sup></sub>  
 
 ### :date: Release notes addon to Notifications
 There's a function to use a lookup file to add release note URLs to the notification message.
@@ -162,7 +162,7 @@ docker container run \$opts -i --rm --net host \\
 EOF
 chmod 755 regctl
 ```
-Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
+Test it with `./regctl --help` and then either add the file to the same path as *eck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
 ## :guardsman: Function to auth with docker hub before running
 **Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
@@ -193,10 +193,10 @@ podcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/li
 ___
 
 ### :floppy_disk: The Story Behind Podcheck
-Podcheck was created to bring the convenience of automated container updates to the Podman ecosystem. As a user of Dockcheck for Docker, the need for a similar tool for Podman became apparent. Podcheck aims to provide the same ease of use and automation, tailored for Podman users.
+Podcheck was created to bring the convenience of automated container updates to the Podman ecosystem. As a user of [Dockcheck](https://github.com/mag37/dockcheck) for Docker, the need for a similar tool for Podman became apparent. Podcheck aims to provide the same ease of use and automation, tailored for Podman users.
 
 ## :star2: Acknowledgments
-Podcheck is inspired by the original Dockcheck script. Without Dockcheck, there wouldn't have been a Podcheck. Many thanks to mag37 and all the contributors to Dockcheck for their work and inspiration.
+Podcheck is inspired by the original [Dockcheck](https://github.com/mag37/dockcheck) script. Without Dockcheck, there wouldn't have been a Podcheck. Many thanks to mag37 and all the contributors to Dockcheck for their work and inspiration.
 ___
 Please feel free to contribute, open issues, or submit pull requests to improve Podcheck!
 
