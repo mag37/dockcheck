@@ -296,24 +296,18 @@ if [ -n "$GotUpdates" ] ; then
       unset CompleteConfs
       # Extract labels and metadata
       ContLabels=$(podman inspect "$i" --format '{{json .Config.Labels}}')
-      ContPath=$(echo "$ContLabels" | jq -r '."com.docker.compose.project.working_dir"')
-      [ "$ContPath" == "null" ] && ContPath=""
-      
-      ContConfigFile=$(echo "$ContLabels" | jq -r '."com.docker.compose.project.config_files"')
-      [ "$ContConfigFile" == "null" ] && ContConfigFile=""
-      
-      ContName=$(echo "$ContLabels" | jq -r '."com.docker.compose.service"')
-      [ "$ContName" == "null" ] && ContName=""
-      
-      ContEnv=$(echo "$ContLabels" | jq -r '."com.docker.compose.project.environment_file"')
-      [ "$ContEnv" == "null" ] && ContEnv=""
-      
       ContImage=$(podman inspect "$i" --format='{{.ImageName}}')
-      
-      ContUpdateLabel=$(echo "$ContLabels" | jq -r '."sudo-kraken.podcheck.update"')
+      ContPath=$(jq -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      [ "$ContPath" == "null" ] && ContPath=""
+      ContConfigFile=$(jq -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+      [ "$ContConfigFile" == "null" ] && ContConfigFile=""
+      ContName=$(jq -r '."com.docker.compose.service"' <<< "$ContLabels")
+      [ "$ContName" == "null" ] && ContName=""
+      ContEnv=$(jq -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+      [ "$ContEnv" == "null" ] && ContEnv=""
+      ContUpdateLabel=$(jq -r '."sudo-kraken.podcheck.update"' <<< "$ContLabels")
       [ "$ContUpdateLabel" == "null" ] && ContUpdateLabel=""
-      
-      ContRestartStack=$(echo "$ContLabels" | jq -r '."sudo-kraken.podcheck.restart-stack"')
+      ContRestartStack=$(jq -r '."sudo-kraken.podcheck.restart-stack"' <<< "$ContLabels")
       [ "$ContRestartStack" == "null" ] && ContRestartStack=""
       
       # Checking if compose-values are empty - possibly started with podman run or managed by Quadlet

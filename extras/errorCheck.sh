@@ -2,15 +2,24 @@
 SearchName="$1"
 for i in $(podman ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   echo "------------ $i ------------"
-  ContPath=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}')
+  ContLabels=$(podman inspect "$i" --format '{{json .Config.Labels}}')
+  ContImage=$(podman inspect "$i" --format='{{.ImageName}}')
+  ContPath=$(jq -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+  [ "$ContPath" == "null" ] && ContPath=""
   if [ -z "$ContPath" ]; then
     echo "$i has no compose labels - skipping"
     continue
   fi
-  ContConfigFile=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}')
-  ContName=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.service" }}')
-  ContEnv=$(podman inspect "$i" --format '{{ index .Config.Labels "com.docker.compose.project.environment_file" }}')
-  ContImage=$(podman inspect "$i" --format='{{.ImageName}}')
+  ContConfigFile=$(jq -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+  [ "$ContConfigFile" == "null" ] && ContConfigFile=""
+  ContName=$(jq -r '."com.docker.compose.service"' <<< "$ContLabels")
+  [ "$ContName" == "null" ] && ContName=""
+  ContEnv=$(jq -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+  [ "$ContEnv" == "null" ] && ContEnv=""
+  ContUpdateLabel=$(jq -r '."sudo-kraken.podcheck.update"' <<< "$ContLabels")
+  [ "$ContUpdateLabel" == "null" ] && ContUpdateLabel=""
+  ContRestartStack=$(jq -r '."sudo-kraken.podcheck.restart-stack"' <<< "$ContLabels")
+  [ "$ContRestartStack" == "null" ] && ContRestartStack=""
 
   if [[ $ContConfigFile = '/'* ]] ; then
     ComposeFile="$ContConfigFile"
@@ -23,6 +32,8 @@ for i in $(podman ps --filter "name=$SearchName" --format '{{.Names}}') ; do
   echo -e "Compose files:\t\t$ComposeFile"
   echo -e "Environment files:\t$ContEnv"
   echo -e "Container image:\t$ContImage"
+  echo -e "Update label:\t$ContUpdateLabel"
+  echo -e "Restart Stack label:\t$ContRestartStack"
   echo
   echo "Mounts:"
   podman inspect  -f '{{ range .Mounts }}{{ .Source }}:{{ .Destination }}{{ printf "\n" }}{{ end }}' "$i"
