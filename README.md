@@ -13,11 +13,12 @@
 <h3 align="center">CLI tool to automate docker image updates. <br>No <b>pre-pull</b>, selective, optional notifications and prune when done.</h3>
 <h2 align="center">Now with simple notification integrations!</h2>
 <h4 align="center">With features like excluding specific containers, custom container labels, auto-prune when done and more.</h4>
-<h4 align="center">Also see the fresh <a href="https://github.com/sudo-kraken/podcheck">Podman fork!</a></h4>
+<h4 align="center">Also see the fresh Podman fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
 ___
 ## :bell: Changelog
 
+- **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 - **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
     - Copy the custom settings from your current template to the new version of the same template.
     - Look into, copy and customize the `urls.list` file if that's of interest.
@@ -28,8 +29,6 @@ ___
 - **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
 - **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
 - **v0.4.6**: Compatibility changes to timeout, due to busybox.
-- **v0.4.5**: Bugfixes, compatibility changes to timeout and arrays.
-- **v0.4.3**: Added timeout option to skip container if registry check takes too long (10s default).
 ___
 
 
@@ -75,7 +74,7 @@ Containers with updates available:
 Choose what containers to update:
 Enter number(s) separated by comma, [a] for all - [q] to quit:
 ```
-Then it proceedes to run `pull` and `up -d` on every container with updates.  
+Then it proceeds to run `pull` and `up -d` on every container with updates.  
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
 
 ___
