@@ -14,6 +14,7 @@
 <h2 align="center">Now with simple notification integrations!</h2>
 <h4 align="center">With features like excluding specific containers, custom container labels, auto-prune when done and more.</h4>
 <h4 align="center">Also see the fresh Podman fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
+
 ___
 ## :bell: Changelog
 
@@ -79,7 +80,7 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 ___
 
 ## :nut_and_bolt: Dependencies
-- Running docker (duh) and compose, either standalone or plugin.  
+- Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
 - Bash shell or compatible shell of at least v4.3
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
