@@ -220,27 +220,15 @@ fi
 # Final check if binary is correct
 $jqbin --version &> /dev/null  || { printf "%s\n" "jq is not working - try to remove it and re-download it, exiting."; exit 1; }
 
-# Check if required binary exists in PATH or directory
+# Dependency check for regctl in PATH or directory
 if [[ $(command -v regctl) ]]; then regbin="regctl" ;
 elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
-  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
-  if [[ "$GetDep" =~ [yY] ]] ; then
-    # Check architecture
-    case "$(uname --machine)" in
-      x86_64|amd64) architecture="amd64" ;;
-      arm64|aarch64) architecture="arm64";;
-      *) echo "Architecture not supported, exiting." ; exit 1;;
-    esac
-    RegUrl="https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture"
-    if [[ $(command -v curl) ]]; then curl -L $RegUrl > "$ScriptWorkDir/regctl" ; chmod +x "$ScriptWorkDir/regctl" ; regbin="$ScriptWorkDir/regctl" ;
-    elif [[ $(command -v wget) ]]; then wget $RegUrl -O "$ScriptWorkDir/regctl" ; chmod +x "$ScriptWorkDir/regctl" ; regbin="$ScriptWorkDir/regctl" ;
-    else
-      printf "%s\n" "curl/wget not available - get regctl manually from the repo link, quitting."
-    fi
-  else
-    printf "%s\n" "Dependency missing, quitting."
-    exit 1
+  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
+  if [[ "$GetRegctl" =~ [yY] ]] ; then
+    binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+    [[ -f "$ScriptWorkDir/regctl" ]] && jqbin="$ScriptWorkDir/regctl" 
+  else printf "%s\n" "Dependency missing, quitting." ; exit 1 ;
   fi
 fi
 # Final check if binary is correct
