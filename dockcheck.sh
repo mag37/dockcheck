@@ -180,7 +180,7 @@ binary_downloader() {
   case "$(uname --machine)" in
     x86_64|amd64) architecture="amd64" ;;
     arm64|aarch64) architecture="arm64";;
-    *) echo "Architecture not supported, exiting." ; exit 1;;
+    *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset" ; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
   if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ; 
@@ -195,7 +195,7 @@ distro_checker() {
   elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="dnf install"
   elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="zypper install"
   elif [[ -f /etc/debian_version ]] ; then PkgInstaller="apt-get install"
-  else PkgInstaller="ERROR" ; printf "%s\n" "No distribution could be determined, falling back to static binary."
+  else PkgInstaller="ERROR" ; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
 }
 
@@ -210,13 +210,13 @@ else
     [[ "$GetJq" =~ [yY] ]] && distro_checker
     if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
       (sudo $PkgInstaller jq) ; PkgExitcode="$?"
-      [[ "$PkgExitcode" != 0 ]] && printf "%s\n" "Packagemanager install failed, falling back to static binary."
+      [[ "$PkgExitcode" != 0 ]] && printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
     fi
     if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
         binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
         [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
     fi
-  else printf "%s\n" "Dependency missing, quitting." ; exit 1 ;
+  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
 fi
 # Final check if binary is correct
@@ -230,7 +230,7 @@ else
   if [[ "$GetRegctl" =~ [yY] ]] ; then
     binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
     [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
-  else printf "%s\n" "Dependency missing, quitting." ; exit 1 ;
+  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
 fi
 # Final check if binary is correct
