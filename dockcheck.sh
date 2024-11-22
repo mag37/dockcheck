@@ -173,6 +173,53 @@ SearchName="$1"
 # Create array of excludes
 IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
+# Static binary downloader for dependencies
+binary_downloader() {
+  BinaryName="$1"
+  BinaryUrl="$2"
+  case "$(uname --machine)" in
+    x86_64|amd64) architecture="amd64" ;;
+    arm64|aarch64) architecture="arm64";;
+    *) echo "Architecture not supported, exiting." ; exit 1;;
+  esac
+  GetUrl="${BinaryUrl/TEMP/"$architecture"}"
+  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ; 
+  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName" ; 
+  else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
+  fi
+  [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
+}
+
+distro_checker() {
+  if [[ -f /etc/arch-release ]] ; then PkgInstaller="pacman -S"
+  elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="dnf install"
+  elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="zypper install"
+  elif [[ -f /etc/debian_version ]] ; then PkgInstaller="apt-get install"
+  else PkgInstaller="ERROR"
+  fi
+}
+
+# Dependency check for jq in PATH or directory
+if [[ $(command -v jq) ]]; then jqbin="jq" ;
+elif [[ -f "$ScriptWorkDir/jq" ]]; then jqbin="$ScriptWorkDir/jq" ;
+else
+  printf "%s\n" "Required dependency 'jq' missing, do you want to install it?"
+  read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetJq
+  GetJq=${GetJq:-no} # set default to no if nothing is given
+  if [[ "$GetJq" =~ [yYsS] ]] ; then
+    [[ "$GetJq" =~ [yY] ]] && distro_checker
+    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
+      (sudo $PkgInstaller jq) # is this the best way? Rewrite so that if it fails it goes to static
+    else
+        binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
+        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
+    fi
+  else printf "%s\n" "Dependency missing, quitting." ; exit 1 ;
+  fi
+fi
+# Final check if binary is correct
+$jqbin --version &> /dev/null  || { printf "%s\n" "jq is not working - try to remove it and re-download it, exiting."; exit 1; }
+
 # Check if required binary exists in PATH or directory
 if [[ $(command -v regctl) ]]; then regbin="regctl" ;
 elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
