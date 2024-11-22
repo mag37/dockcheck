@@ -229,7 +229,7 @@ else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
   if [[ "$GetRegctl" =~ [yY] ]] ; then
     binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-    [[ -f "$ScriptWorkDir/regctl" ]] && jqbin="$ScriptWorkDir/regctl" 
+    [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
   else printf "%s\n" "Dependency missing, quitting." ; exit 1 ;
   fi
 fi
@@ -244,12 +244,6 @@ elif docker -v &> /dev/null; then
   printf "%s\n" "'docker run' will ONLY update images, not the container itself."
 else
   printf "%s\n" "No docker binaries available, exiting."
-  exit 1
-fi
-
-# Check for jq binary
-if [[ ! $(command -v jq) ]] ; then
-  printf "%s\n" "No jq binary, please install jq and try again, exiting."
   exit 1
 fi
 
@@ -352,17 +346,17 @@ if [ -n "$GotUpdates" ] ; then
       # Extract labels and metadata
       ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-      ContPath=$(jq -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      ContPath=$(jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       [ "$ContPath" == "null" ] && ContPath=""
-      ContConfigFile=$(jq -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+      ContConfigFile=$(jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
       [ "$ContConfigFile" == "null" ] && ContConfigFile=""
-      ContName=$(jq -r '."com.docker.compose.service"' <<< "$ContLabels")
+      ContName=$(jqbin -r '."com.docker.compose.service"' <<< "$ContLabels")
       [ "$ContName" == "null" ] && ContName=""
-      ContEnv=$(jq -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+      ContEnv=$(jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
       [ "$ContEnv" == "null" ] && ContEnv=""
-      ContUpdateLabel=$(jq -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      ContUpdateLabel=$(jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
       [ "$ContUpdateLabel" == "null" ] && ContUpdateLabel=""
-      ContRestartStack=$(jq -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
+      ContRestartStack=$(jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [ "$ContRestartStack" == "null" ] && ContRestartStack=""
 
       # Checking if compose-values are empty - hence started with docker run
