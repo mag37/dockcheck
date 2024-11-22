@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.5.1"
-# ChangeNotes: DEPENDENCY WARNING: now requires jq. And upstreaming changes from sudo-kraken/podcheck
+### ChangeNotes: DEPENDENCY WARNING: now requires jq. And upstreaming changes from sudo-kraken/podcheck
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
