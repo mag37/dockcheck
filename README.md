@@ -18,6 +18,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.5.2**: Rewrite of dependency downloads, now jq can be auto-downloaded with package manager or static binary.
 - **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 - **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
     - Copy the custom settings from your current template to the new version of the same template.
@@ -27,8 +28,6 @@ ___
         - Verbosity changed of `regctl`.
 - **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
 - **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
-- **v0.4.7**: Notification Template changes to gotify(new!), DSM(improved), SMTP(deprecation alternative).
-- **v0.4.6**: Compatibility changes to timeout, due to busybox.
 ___
 
 
@@ -57,7 +56,6 @@ Options:"
 -v     Prints current version.
 ```
 
-
 ### Basic example:
 ```
 $ ./dockcheck.sh
@@ -82,6 +80,8 @@ ___
 ## :nut_and_bolt: Dependencies
 - Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
 - Bash shell or compatible shell of at least v4.3
+- [jq](https://github.com/jqlang/jq) 
+  - User will be prompted to install with package manager or download static binary.
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
