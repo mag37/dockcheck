@@ -195,7 +195,7 @@ distro_checker() {
   elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="dnf install"
   elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="zypper install"
   elif [[ -f /etc/debian_version ]] ; then PkgInstaller="apt-get install"
-  else PkgInstaller="ERROR"
+  else PkgInstaller="ERROR" ; printf "%s\n" "No distribution could be determined, falling back to static binary."
   fi
 }
 
@@ -209,8 +209,10 @@ else
   if [[ "$GetJq" =~ [yYsS] ]] ; then
     [[ "$GetJq" =~ [yY] ]] && distro_checker
     if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
-      (sudo $PkgInstaller jq) # is this the best way? Rewrite so that if it fails it goes to static
-    else
+      (sudo $PkgInstaller jq) ; PkgExitcode="$?"
+      [[ "$PkgExitcode" != 0 ]] && printf "%s\n" "Packagemanager install failed, falling back to static binary."
+    fi
+    if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
         binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
         [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
     fi
