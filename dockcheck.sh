@@ -346,17 +346,17 @@ if [ -n "$GotUpdates" ] ; then
       # Extract labels and metadata
       ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-      ContPath=$(jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       [ "$ContPath" == "null" ] && ContPath=""
-      ContConfigFile=$(jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+      ContConfigFile=$($jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
       [ "$ContConfigFile" == "null" ] && ContConfigFile=""
-      ContName=$(jqbin -r '."com.docker.compose.service"' <<< "$ContLabels")
+      ContName=$($jqbin -r '."com.docker.compose.service"' <<< "$ContLabels")
       [ "$ContName" == "null" ] && ContName=""
-      ContEnv=$(jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+      ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
       [ "$ContEnv" == "null" ] && ContEnv=""
-      ContUpdateLabel=$(jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
       [ "$ContUpdateLabel" == "null" ] && ContUpdateLabel=""
-      ContRestartStack=$(jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
+      ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [ "$ContRestartStack" == "null" ] && ContRestartStack=""
 
       # Checking if compose-values are empty - hence started with docker run
