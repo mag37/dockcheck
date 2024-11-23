@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.5.2"
-# ChangeNotes: DEPENDENCY WARNING: now requires jq. And upstreaming changes from sudo-kraken/podcheck
+# ChangeNotes: DEPENDENCY REMINDER: now requires jq. UPDATE: Rewrite of dependency installer.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -210,7 +210,7 @@ else
     [[ "$GetJq" =~ [yY] ]] && distro_checker
     if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
       (sudo $PkgInstaller jq) ; PkgExitcode="$?"
-      [[ "$PkgExitcode" != 0 ]] && printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+      [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
     fi
     if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
         binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
