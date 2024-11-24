@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.5.2.1"
-# ChangeNotes: DEPENDENCY REMINDER: now requires jq. UPDATE: Rewrite of dependency installer.
+### ChangeNotes: DEPENDENCY REMINDER: now requires jq. UPDATE: Rewrite of dependency installer.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
