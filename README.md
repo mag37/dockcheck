@@ -80,7 +80,7 @@ ___
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
-- jq: Used for parsing JSON output from podman inspect.
+- [jq](https://github.com/jqlang/jq): Used for parsing JSON output from podman inspect. User will be prompted to install.
 - timeout: Optional but recommended for setting timeouts on registry checks.
 
 ## :tent: Install Instructions
