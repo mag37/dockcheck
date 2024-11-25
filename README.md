@@ -14,6 +14,7 @@
 
 ___
 ## :bell: Changelog
+- **v0.5.7**: Rewrite of dependency downloads, now jq can be installed with package manager or static binary.
 - **v0.5.6**: Directly checking for systemd units matching container names.
     - Improved Quadlet detection by checking for systemd units named after the container.
     - Ensures better compatibility with Quadlet-managed containers.
