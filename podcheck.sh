@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.5.X.X"
+VERSION="v0.5.7"
 # ChangeNotes: Rewrite of dependency installer. jq can now be installed via package manager or static binary.
 Github="https://github.com/sudo-kraken/podcheck"
 RawUrl="https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh"
