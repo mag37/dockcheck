@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.6.1"
-# ChangeNotes: Directly checking for systemd units matching container names.
+VERSION="v0.5.X.X"
+# ChangeNotes: Rewrite of dependency installer. jq can now be installed via package manager or static binary.
 Github="https://github.com/sudo-kraken/podcheck"
 RawUrl="https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh"
 
@@ -148,6 +148,32 @@ progress_bar() {
   [[ "$QueTotal" == "$QueCurrent" ]] && printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
 }
 
+# Static binary downloader for dependencies
+binary_downloader() {
+  BinaryName="$1"
+  BinaryUrl="$2"
+  case "$(uname --machine)" in
+    x86_64|amd64) architecture="amd64" ;;
+    arm64|aarch64) architecture="arm64";;
+    *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset" ; exit 1;;
+  esac
+  GetUrl="${BinaryUrl/TEMP/"$architecture"}"
+  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ; 
+  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName" ; 
+  else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
+  fi
+  [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
+}
+
+distro_checker() {
+  if [[ -f /etc/arch-release ]] ; then PkgInstaller="pacman -S"
+  elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="dnf install"
+  elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="zypper install"
+  elif [[ -f /etc/debian_version ]] ; then PkgInstaller="apt-get install"
+  else PkgInstaller="ERROR" ; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+  fi
+}
+
 # Version check & initiate self update
 if [[ "$VERSION" != "$LatestRelease" ]] && [[ -n "$LatestRelease" ]]; then
   printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
@@ -162,27 +188,38 @@ SearchName="$1"
 # Create array of excludes
 IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 
-# Check if required binary exists in PATH or directory
+# Dependency check for jq in PATH or directory
+if [[ $(command -v jq) ]]; then jqbin="jq" ;
+elif [[ -f "$ScriptWorkDir/jq" ]]; then jqbin="$ScriptWorkDir/jq" ;
+else
+  printf "%s\n" "Required dependency 'jq' missing, do you want to install it?"
+  read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetJq
+  GetJq=${GetJq:-no} # set default to no if nothing is given
+  if [[ "$GetJq" =~ [yYsS] ]] ; then
+    [[ "$GetJq" =~ [yY] ]] && distro_checker
+    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
+      (sudo $PkgInstaller jq) ; PkgExitcode="$?"
+      [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+    fi
+    if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+        binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
+        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
+    fi
+  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
+  fi
+fi
+# Final check if binary is correct
+$jqbin --version &> /dev/null  || { printf "%s\n" "jq is not working - try to remove it and re-download it, exiting."; exit 1; }
+
+# Dependency check for regctl in PATH or directory
 if [[ $(command -v regctl) ]]; then regbin="regctl" ;
 elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
-  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetDep
-  if [[ "$GetDep" =~ [yY] ]] ; then
-    # Check architecture
-    case "$(uname --machine)" in
-      x86_64|amd64) architecture="amd64" ;;
-      arm64|aarch64) architecture="arm64";;
-      *) echo "Architecture not supported, exiting." ; exit 1;;
-    esac
-    RegUrl="https://github.com/regclient/regclient/releases/latest/download/regctl-linux-$architecture"
-    if [[ $(command -v curl) ]]; then curl -L $RegUrl > "$ScriptWorkDir/regctl" ; chmod +x "$ScriptWorkDir/regctl" ; regbin="$ScriptWorkDir/regctl" ;
-    elif [[ $(command -v wget) ]]; then wget $RegUrl -O "$ScriptWorkDir/regctl" ; chmod +x "$ScriptWorkDir/regctl" ; regbin="$ScriptWorkDir/regctl" ;
-    else
-      printf "%s\n" "curl/wget not available - get regctl manually from the repo link, quitting."
-    fi
-  else
-    printf "%s\n" "Dependency missing, quitting."
-    exit 1
+  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
+  if [[ "$GetRegctl" =~ [yY] ]] ; then
+    binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+    [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
+  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
 fi
 # Final check if binary is correct
@@ -195,12 +232,6 @@ elif podman version &> /dev/null; then
   printf "%s\n" "No podman-compose binary available, using plain podman"
 else
   printf "%s\n" "No podman binaries available, exiting."
-  exit 1
-fi
-
-# Check for jq binary
-if [[ ! $(command -v jq) ]] ; then
-  printf "%s\n" "No jq binary, please install jq and try again, exiting."
   exit 1
 fi
 
@@ -303,17 +334,17 @@ if [ -n "$GotUpdates" ] ; then
       # Extract labels and metadata
       ContLabels=$(podman inspect "$i" --format '{{json .Config.Labels}}')
       ContImage=$(podman inspect "$i" --format='{{.ImageName}}')
-      ContPath=$(jq -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       [ "$ContPath" == "null" ] && ContPath=""
-      ContConfigFile=$(jq -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+      ContConfigFile=$($jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
       [ "$ContConfigFile" == "null" ] && ContConfigFile=""
-      ContName=$(jq -r '."com.docker.compose.service"' <<< "$ContLabels")
+      ContName=$($jqbin -r '."com.docker.compose.service"' <<< "$ContLabels")
       [ "$ContName" == "null" ] && ContName=""
-      ContEnv=$(jq -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+      ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
       [ "$ContEnv" == "null" ] && ContEnv=""
-      ContUpdateLabel=$(jq -r '."sudo-kraken.podcheck.update"' <<< "$ContLabels")
+      ContUpdateLabel=$($jqbin -r '."sudo-kraken.podcheck.update"' <<< "$ContLabels")
       [ "$ContUpdateLabel" == "null" ] && ContUpdateLabel=""
-      ContRestartStack=$(jq -r '."sudo-kraken.podcheck.restart-stack"' <<< "$ContLabels")
+      ContRestartStack=$($jqbin -r '."sudo-kraken.podcheck.restart-stack"' <<< "$ContLabels")
       [ "$ContRestartStack" == "null" ] && ContRestartStack=""
       
       # Checking if compose-values are empty - possibly started with podman run or managed by Quadlet

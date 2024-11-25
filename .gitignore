@@ -3,3 +3,4 @@
 /urls.list
 # ignore the auto-installed regctl
 regctl
+jq
