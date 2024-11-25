@@ -18,7 +18,7 @@
 ___
 ## :bell: Changelog
 
-- **v0.5.2.1**: Rewrite of dependency downloads, now jq can be auto-downloaded with package manager or static binary.
+- **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
 - **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 - **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
     - Copy the custom settings from your current template to the new version of the same template.
