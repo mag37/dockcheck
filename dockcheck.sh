@@ -20,6 +20,7 @@ Help() {
   echo
   echo "Options:"
   echo "-a|y   Automatic updates, without interaction."
+  echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
@@ -47,9 +48,11 @@ c_reset="\033[0m"
 
 Timeout=10
 Stopped=""
-while getopts "aynpfrhlisvme:d:t:" options; do
+while getopts "aynpfrhlisvmc:e:d:t:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
+    c)   CollectorTextFileDirectory="${OPTARG}"
+         if ! [[ -d  $CollectorTextFileDirectory ]] ; then { printf "The directory (%s) does not exist.\n" "${CollectorTextFileDirectory}"  ; exit 2; } fi ;;
     n)   AutoUp="no" ;;
     r)   DRunUp="yes" ;;
     p)   AutoPrune="yes" ;;
@@ -308,6 +311,35 @@ IFS=$'\n'
 NoUpdates=($(sort <<<"${NoUpdates[*]}"))
 GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 unset IFS
+
+if [ -n "$CollectorTextFileDirectory" ] ; then
+  checkedImages=$((${#NoUpdates[@]} + ${#GotUpdates[@]} + ${#GotErrors[@]}))
+  checkTimestamp=$(date +%s)
+  
+  promFileContent=()
+  promFileContent+=("# HELP dockcheck_images_analyzed Docker images that have been analyzed")
+  promFileContent+=("# TYPE dockcheck_images_analyzed gauge")
+  promFileContent+=("dockcheck_images_analyzed $checkedImages")
+  
+  promFileContent+=("# HELP dockcheck_images_outdated Docker images that are outdated")
+  promFileContent+=("# TYPE dockcheck_images_outdated gauge")
+  promFileContent+=("dockcheck_images_outdated ${#GotUpdates[@]}")
+
+  promFileContent+=("# HELP dockcheck_images_latest Docker images that are outdated")
+  promFileContent+=("# TYPE dockcheck_images_latest gauge")
+  promFileContent+=("dockcheck_images_latest ${#NoUpdates[@]}")
+  
+  promFileContent+=("# HELP dockcheck_images_error Docker images with analysis errors")
+  promFileContent+=("# TYPE dockcheck_images_error gauge")
+  promFileContent+=("dockcheck_images_error ${#GotErrors[@]}")
+  
+  promFileContent+=("# HELP dockcheck_images_analyze_timestamp_seconds Last dockercheck run time")
+  promFileContent+=("# TYPE dockcheck_images_analyze_timestamp_seconds gauge")
+  promFileContent+=("dockcheck_images_analyze_timestamp_seconds $checkTimestamp")
+  
+  printf "%s\n" "${promFileContent[@]}" > "$CollectorTextFileDirectory/dockcheck_info.prom\$\$"
+  mv -f "$CollectorTextFileDirectory/dockcheck_info.prom\$\$" "$CollectorTextFileDirectory/dockcheck_info.prom"
+fi
 
 # Define how many updates are available
 UpdCount="${#GotUpdates[@]}"
