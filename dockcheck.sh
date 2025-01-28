@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.2.1"
-### ChangeNotes: DEPENDENCY REMINDER: now requires jq. UPDATE: Rewrite of dependency installer.
+VERSION="v0.5.3"
+### ChangeNotes: Bugfixes - local image check changed, Gotify-template fixed
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -284,8 +284,9 @@ for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}')
   progress_bar "$RegCheckQue" "$ContCount"
   # Looping every item over the list of excluded names and skipping
   for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
+  ImageId=$(docker inspect "$i" --format='{{.Image}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
-  LocalHash=$(docker image inspect "$RepoUrl" --format '{{.RepoDigests}}')
+  LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
   # Checking for errors while setting the variable
   if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then

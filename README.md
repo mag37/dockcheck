@@ -18,6 +18,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.5.3**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
 - **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
 - **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 - **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
@@ -27,7 +28,6 @@ ___
         - Added Discord notify template.
         - Verbosity changed of `regctl`.
 - **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
-- **v0.4.8**: Rewrote prune logic to not prompt with options `-a|-y` or `-n`. Auto prune with `-p`.
 ___
 
 
