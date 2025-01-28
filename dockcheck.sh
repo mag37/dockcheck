@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.5.3"
+VERSION="v0.5.3.0"
 ### ChangeNotes: Bugfixes - local image check changed, Gotify-template fixed
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
