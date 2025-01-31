@@ -137,8 +137,8 @@ nginx  ->  https://github.com/docker-library/official-images/blob/master/library
 ```
 The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
 
-## [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter)
-Dockcheck can be used together with Prometheus and node_exporter to export metrics via the file collector, scheduled with cron or likely. 
+## :chart_with_upwards_trend: Prometheus and node_exporter
+Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely. 
 This is done with the `-c` option, like this: 
 ```
 dockcheck.sh -c /path/to/exporter/directory
