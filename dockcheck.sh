@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.3.0"
-### ChangeNotes: Bugfixes - local image check changed, Gotify-template fixed
+VERSION="v0.5.4.0"
+### ChangeNotes: Added support for a Prometheus+node_exporter metric collection through a file collector.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -313,33 +313,9 @@ NoUpdates=($(sort <<<"${NoUpdates[*]}"))
 GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 unset IFS
 
+# Run the prometheus exporter function
 if [ -n "$CollectorTextFileDirectory" ] ; then
-  checkedImages=$((${#NoUpdates[@]} + ${#GotUpdates[@]} + ${#GotErrors[@]}))
-  checkTimestamp=$(date +%s)
-  
-  promFileContent=()
-  promFileContent+=("# HELP dockcheck_images_analyzed Docker images that have been analyzed")
-  promFileContent+=("# TYPE dockcheck_images_analyzed gauge")
-  promFileContent+=("dockcheck_images_analyzed $checkedImages")
-  
-  promFileContent+=("# HELP dockcheck_images_outdated Docker images that are outdated")
-  promFileContent+=("# TYPE dockcheck_images_outdated gauge")
-  promFileContent+=("dockcheck_images_outdated ${#GotUpdates[@]}")
-
-  promFileContent+=("# HELP dockcheck_images_latest Docker images that are outdated")
-  promFileContent+=("# TYPE dockcheck_images_latest gauge")
-  promFileContent+=("dockcheck_images_latest ${#NoUpdates[@]}")
-  
-  promFileContent+=("# HELP dockcheck_images_error Docker images with analysis errors")
-  promFileContent+=("# TYPE dockcheck_images_error gauge")
-  promFileContent+=("dockcheck_images_error ${#GotErrors[@]}")
-  
-  promFileContent+=("# HELP dockcheck_images_analyze_timestamp_seconds Last dockercheck run time")
-  promFileContent+=("# TYPE dockcheck_images_analyze_timestamp_seconds gauge")
-  promFileContent+=("dockcheck_images_analyze_timestamp_seconds $checkTimestamp")
-  
-  printf "%s\n" "${promFileContent[@]}" > "$CollectorTextFileDirectory/dockcheck_info.prom\$\$"
-  mv -f "$CollectorTextFileDirectory/dockcheck_info.prom\$\$" "$CollectorTextFileDirectory/dockcheck_info.prom"
+  source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotError[@]}
 fi
 
 # Define how many updates are available
