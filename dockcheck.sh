@@ -152,7 +152,7 @@ progress_bar() {
 }
 
 # Function to add user-provided urls to releasenotes
-releasenotes() { 
+releasenotes() {
   for update in ${GotUpdates[@]}; do
     found=false
     while read -r container url; do
@@ -168,6 +168,8 @@ if [[ "$VERSION" != "$LatestRelease" ]] ; then
   if [[ -z "$AutoUp" ]] ; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  else
+    [[ -n "$Notify" ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n" ; }
   fi
 fi
 
@@ -186,8 +188,8 @@ binary_downloader() {
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset" ; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
-  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ; 
-  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName" ; 
+  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ;
+  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName" ;
   else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
   fi
   [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
@@ -211,13 +213,13 @@ else
   GetJq=${GetJq:-no} # set default to no if nothing is given
   if [[ "$GetJq" =~ [yYsS] ]] ; then
     [[ "$GetJq" =~ [yY] ]] && distro_checker
-    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
+    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
       (sudo $PkgInstaller jq) ; PkgExitcode="$?"
       [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
     fi
     if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
         binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
-        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
+        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq"
     fi
   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
@@ -232,7 +234,7 @@ else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
   if [[ "$GetRegctl" =~ [yY] ]] ; then
     binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-    [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
+    [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl"
   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
 fi

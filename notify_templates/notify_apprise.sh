@@ -4,18 +4,11 @@
 # Required receiving services must already be set up.
 # Modify to fit your setup - if API, set AppriseURL to your Apprise ip/domain.
 
-send_notification() {
-[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 FromHost=$(hostname)
 
-printf "\nSending Apprise notification\n"
+trigger_notification() {
 
-MessageTitle="$FromHost - updates available."
-# Setting the MessageBody variable here.
-printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
-
-# Modify to fit your setup:
+### Modify to fit your setup:
 apprise -vv -t "$MessageTitle" -b "$MessageBody" \
    mailto://myemail:mypass@gmail.com \
    mastodons://{token}@{host} \
@@ -26,5 +19,32 @@ apprise -vv -t "$MessageTitle" -b "$MessageBody" \
 ### Uncomment the AppriseURL and the curl-line below:
 # AppriseURL="http://apprise.mydomain.tld:1234/notify/apprise"
 # curl -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL
+
+}
+
+send_notification() {
+[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+
+printf "\nSending Apprise notification\n"
+
+MessageTitle="$FromHost - updates available."
+# Setting the MessageBody variable here.
+printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
+
+trigger_notification
+
+}
+
+### Remove or comment out the following function
+### to not send notifications when dockcheck itself has updates.
+dockcheck_notification() {
+printf "\nSending Apprise dockcheck notification\n"
+
+MessageTitle="$FromHost - New version of dockcheck available."
+# Setting the MessageBody variable here.
+printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+
+trigger_notification
 
 }

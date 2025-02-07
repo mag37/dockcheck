@@ -17,10 +17,9 @@ else
 	echo "No msmtp or ssmtp binary found in PATH: $PATH" ; exit 1
 fi
 
-send_notification() {
-[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 FromHost=$(hostname)
+
+trigger_notification() {
 CfgFile="/usr/syno/etc/synosmtp.conf"
 
 # User variables:
@@ -34,15 +33,11 @@ SenderName=$(grep 'smtp_from_name' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')
 SenderMail=$(grep 'smtp_from_mail' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')
 SenderMail=${SenderMail:-$(grep 'eventmail1' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')}
 
-printf "\nSending email notification.\n"
-
-printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
-
 $MailPkg $SendMailTo << __EOF
 From: "$SenderName" <$SenderMail>
 date:$(date -R)
 To: <$SendMailTo>
-Subject: $SubjectTag Updates available on $FromHost
+Subject: $SubjectTag $MessageTitle $FromHost
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -51,4 +46,31 @@ $MessageBody
 __EOF
 # This ensures DSM's container manager will also see the update
 /var/packages/ContainerManager/target/tool/image_upgradable_checker
+}
+
+send_notification() {
+[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+
+printf "\nSending email notification\n"
+
+MessageTitle="Updates available on"
+# Setting the MessageBody variable here.
+printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
+
+trigger_notification
+
+}
+
+### Remove or comment out the following function
+### to not send notifications when dockcheck itself has updates.
+dockcheck_notification() {
+printf "\nSending email dockcheck notification\n"
+
+MessageTitle="New version of dockcheck available on"
+# Setting the MessageBody variable here.
+printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+
+trigger_notification
+
 }
