@@ -145,7 +145,7 @@ This is done with the `-c` option, like this:
 dockcheck.sh -c /path/to/exporter/directory
 ```
 
-See the [README_prom.md](./addons/prometheus/README.md) for more detailed information on how to set it up!
+See the [README.md](./addons/prometheus/README.md) for more detailed information on how to set it up!
 
 <sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
 
