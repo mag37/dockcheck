@@ -1,6 +1,6 @@
 ## [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter)
-Dockcheck is capable to export metrics to prometheus via the text file collector provided by the node_exporter. 
-In order to do so the -c flag has to be specified followed by the file path that is configured in the text file collector of the node_exporter. 
+Dockcheck is capable to export metrics to prometheus via the text file collector provided by the node_exporter.
+In order to do so the -c flag has to be specified followed by the file path that is configured in the text file collector of the node_exporter.
 A simple cron job can be configured to export these metrics on a regular interval as shown in the sample below:
 
 ```
@@ -59,5 +59,3 @@ Once those metrics are exported they can be used to define alarms as shown below
 There is a reference Grafana dashboard in [grafana/grafana_dashboard.json](./grafana/grafana_dashboard.json).
 
 ![](./grafana/grafana_dashboard.png)
-
-
