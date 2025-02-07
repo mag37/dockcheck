@@ -10,21 +10,23 @@
   <a href="https://github.com/sponsors/mag37"><img src="https://img.shields.io/badge/-Sponsor-grey?style=flat-square&logo=github" alt="Github Sponsor"></a>
 </p>
 
-<h3 align="center">CLI tool to automate docker image updates. <br>No <b>pre-pull</b>, selective, optional notifications and prune when done.</h3>
-<h2 align="center">Now with simple notification integrations!</h2>
-<h4 align="center">With features like excluding specific containers, custom container labels, auto-prune when done and more.</h4>
-<h4 align="center">Also see the fresh Podman fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
+<h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
+<h3 align="center">Features:</h3>
+<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done and more.</h3>
+
+<h4 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
 ___
 ## :bell: Changelog
 
-- **v0.5.3**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
+- **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
+- **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
 - **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
 - **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 - **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
     - Copy the custom settings from your current template to the new version of the same template.
     - Look into, copy and customize the `urls.list` file if that's of interest.
-    - Other changes: 
+    - Other changes:
         - Added Discord notify template.
         - Verbosity changed of `regctl`.
 - **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
@@ -41,6 +43,7 @@ Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
 
 Options:"
 -a|y   Automatic updates, without interaction.
+-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
 -f     Force stack restart after update. Caution: restarts once for every updated container within stack.
@@ -80,7 +83,7 @@ ___
 ## :nut_and_bolt: Dependencies
 - Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
 - Bash shell or compatible shell of at least v4.3
-- [jq](https://github.com/jqlang/jq) 
+- [jq](https://github.com/jqlang/jq)
   - User will be prompted to install with package manager or download static binary.
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
@@ -123,8 +126,8 @@ Further additions are welcome - suggestions or PR!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
 ### :date: Release notes addon to Notifications
-There's a function to use a lookup-file to add release note URL's to the notification message.    
-Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.   
+There's a function to use a lookup-file to add release note URL's to the notification message.  
+Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.  
 The output of the notification will look something like this:
 ```
 Containers on hostname with updates available:
@@ -134,6 +137,17 @@ nginx  ->  https://github.com/docker-library/official-images/blob/master/library
 ...
 ```
 The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
+
+## :chart_with_upwards_trend: Prometheus and node_exporter
+Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely.
+This is done with the `-c` option, like this:
+```
+dockcheck.sh -c /path/to/exporter/directory
+```
+
+See the [README_prom.md](./addons/prometheus/README.md) for more detailed information on how to set it up!
+
+<sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
 
 ## :bookmark: Labels
 Optionally add labels to compose-files. Currently these are the usable labels:
@@ -186,7 +200,7 @@ function dchk {
 Containers need to be manually stopped, removed and created again to run on the new image.
 
 ## :wrench: Debugging
-If you hit issues, you could check the output of the `extras/errorCheck.sh` script for clues. 
+If you hit issues, you could check the output of the `extras/errorCheck.sh` script for clues.
 Another option is to run the main script with debugging in a subshell `bash -x dockcheck.sh` - if there's a particular container/image that's causing issues you can filter for just that through `bash -x dockcheck.sh nginx`.
 
 ## :scroll: License
@@ -199,4 +213,3 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 ___
 
 ### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
-
