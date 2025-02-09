@@ -59,7 +59,6 @@ MessageTitle="Updates available on"
 printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
 
 trigger_notification
-
 }
 
 ### Remove or comment out the following function
@@ -72,5 +71,4 @@ MessageTitle="New version of dockcheck available on"
 printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
 
 trigger_notification
-
 }
