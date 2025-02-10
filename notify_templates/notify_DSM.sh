@@ -49,26 +49,26 @@ __EOF
 }
 
 send_notification() {
-[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+		[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+		UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 
-printf "\nSending email notification\n"
+		printf "\nSending email notification.\n"
 
-MessageTitle="Updates available on"
-# Setting the MessageBody variable here.
-printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
+		MessageTitle="Updates available on"
+		# Setting the MessageBody variable here.
+		printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n\n$UpdToString"
 
-trigger_notification
+		trigger_notification
 }
 
 ### Remove or comment out the following function
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
-printf "\nSending email dockcheck notification\n"
+		printf "\nSending email dockcheck notification.\n"
 
-MessageTitle="New version of dockcheck available on"
-# Setting the MessageBody variable here.
-printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+		MessageTitle="New version of dockcheck available on"
+		# Setting the MessageBody variable here.
+		printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
 
-trigger_notification
+		trigger_notification
 }

@@ -5,18 +5,9 @@
 # Requires jq installed and in PATH.
 # Modify to fit your setup - set Url and Token.
 
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-    FromHost=$(hostname)
+FromHost=$(hostname)
 
-    # platform specific notification code would go here
-    printf "\nSending pushover notification\n"
-
-    MessageTitle="$FromHost - updates available."
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
-
+trigger_notification() {
     # Modify to fit your setup:
     PushoverUrl="https://api.pushover.net/1/messages.json"
     PushoverUserKey="Your Pushover User Key Here"
@@ -29,4 +20,30 @@ send_notification() {
         -F "title=$MessageTitle" \
         -F "message=$MessageBody" \
         $PushoverUrl
+}
+
+send_notification() {
+    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+
+    # platform specific notification code would go here
+    printf "\nSending pushover notification\n"
+
+    MessageTitle="$FromHost - updates available."
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
+
+    trigger_notification
+}
+
+### Remove or comment out the following function
+### to not send notifications when dockcheck itself has updates.
+dockcheck_notification() {
+    printf "\nSending Apprise dockcheck notification\n"
+ 
+    MessageTitle="$FromHost - New version of dockcheck available."
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+ 
+    trigger_notification
 }
