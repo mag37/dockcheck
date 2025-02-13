@@ -196,9 +196,10 @@ binary_downloader() {
 
 distro_checker() {
   if [[ -f /etc/arch-release ]] ; then PkgInstaller="pacman -S"
-  elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="dnf install"
-  elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="zypper install"
-  elif [[ -f /etc/debian_version ]] ; then PkgInstaller="apt-get install"
+  elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="sudo dnf install"
+  elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="sudo zypper install"
+  elif [[ -f /etc/debian_version ]] ; then PkgInstaller="sudo apt-get install"
+  elif [[ $(uname -s) == "Darwin" ]] ; then PkgInstaller="brew install"
   else PkgInstaller="ERROR" ; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
 }
@@ -213,10 +214,10 @@ else
   if [[ "$GetJq" =~ [yYsS] ]] ; then
     [[ "$GetJq" =~ [yY] ]] && distro_checker
     if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
-      (sudo $PkgInstaller jq) ; PkgExitcode="$?"
+      ($PkgInstaller jq) ; PkgExitcode="$?"
       [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
     fi
-    if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+    if [[ "$GetJq" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
         binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
         [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
     fi
@@ -232,8 +233,18 @@ elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
   if [[ "$GetRegctl" =~ [yY] ]] ; then
-    binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-    [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
+    if [[ $(uname -s) == "Darwin" ]]; then 
+      echo "Detected macOS, Installing regclient using Homebrew."
+      distro_checker
+      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
+        ($PkgInstaller regclient) ; PkgExitcode="$?"
+        [[ "$PkgExitcode" == 0 ]] && regbin="regclient" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+      fi
+    else
+      GetRegctl="S"
+    if [[ "$GetRegct" =~ [Ss] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+      binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+      [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
 fi
