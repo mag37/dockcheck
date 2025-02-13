@@ -131,7 +131,8 @@ choosecontainers() {
 
 datecheck() {
   ImageDate=$($regbin -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
-  ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) )/86400 ))
+  ImageEpoch=$(date -d "$ImageDate" +%s 2>/dev/null) || ImageEpoch=$(date -f "%Y-%m-%d" -j "$ImageDate" +%s)
+  ImageAge=$(( ( $(date +%s) - $ImageEpoch )/86400 ))
   if [ "$ImageAge" -gt "$DaysOld" ] ; then
     return 0
   else
@@ -180,7 +181,7 @@ IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 binary_downloader() {
   BinaryName="$1"
   BinaryUrl="$2"
-  case "$(uname --machine)" in
+  case "$(uname -m)" in
     x86_64|amd64) architecture="amd64" ;;
     arm64|aarch64) architecture="arm64";;
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset" ; exit 1;;
