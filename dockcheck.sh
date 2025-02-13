@@ -242,9 +242,11 @@ else
       fi
     else
       GetRegctl="S"
+    fi
     if [[ "$GetRegct" =~ [Ss] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
       binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
       [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
+    fi
   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
 fi
