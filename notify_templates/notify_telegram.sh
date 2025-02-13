@@ -15,6 +15,7 @@ trigger_notification() {
     TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false}"
 
     curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$TelegramData"
+}
 
 send_notification() {
     [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
