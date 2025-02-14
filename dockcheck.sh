@@ -153,7 +153,7 @@ progress_bar() {
 }
 
 # Function to add user-provided urls to releasenotes
-releasenotes() { 
+releasenotes() {
   for update in ${GotUpdates[@]}; do
     found=false
     while read -r container url; do
@@ -187,8 +187,8 @@ binary_downloader() {
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset" ; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
-  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ; 
-  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName" ; 
+  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName" ;
+  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName" ;
   else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
   fi
   [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
@@ -213,13 +213,13 @@ else
   GetJq=${GetJq:-no} # set default to no if nothing is given
   if [[ "$GetJq" =~ [yYsS] ]] ; then
     [[ "$GetJq" =~ [yY] ]] && distro_checker
-    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
+    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
       ($PkgInstaller jq) ; PkgExitcode="$?"
       [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
     fi
     if [[ "$GetJq" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
         binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
-        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq" 
+        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq"
     fi
   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
@@ -233,19 +233,19 @@ elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
 else
   read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
   if [[ "$GetRegctl" =~ [yY] ]] ; then
-    if [[ $(uname -s) == "Darwin" ]]; then 
+    if [[ $(uname -s) == "Darwin" ]]; then
       echo "Detected macOS, Installing regclient using Homebrew."
       distro_checker
-      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then 
+      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
         ($PkgInstaller regclient) ; PkgExitcode="$?"
         [[ "$PkgExitcode" == 0 ]] && regbin="regclient" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
       fi
     else
       GetRegctl="S"
     fi
-    if [[ "$GetRegct" =~ [Ss] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+    if [[ "$GetRegctl" =~ [Ss] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
       binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-      [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl" 
+      [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl"
     fi
   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
