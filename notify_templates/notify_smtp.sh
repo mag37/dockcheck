@@ -50,7 +50,7 @@ send_notification() {
 		trigger_notification
 }
 
-### Remove or comment out the following function
+### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
 		printf "\nSending email dockcheck notification.\n"
