@@ -90,7 +90,8 @@ ___
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
 ## :tent: Install Instructions
-Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.
+Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.   
+For OSX/macOS preferably use `/usr/local/bin`.
 ```sh
 # basic example with curl:
 curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o ~/.local/bin/dockcheck.sh
@@ -98,6 +99,9 @@ chmod +x ~/.local/bin/dockcheck.sh
 
 # or oneliner with wget:
 wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh" && chmod +x ~/.local/bin/dockcheck.sh
+
+# OSX or macOS version with curl:
+ curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o /usr/local/bin/dockcheck.sh && chmod +x /usr/local/bin/dockcheck.sh
 ```
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
