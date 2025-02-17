@@ -206,35 +206,35 @@ distro_checker() {
 
 # Dependency check + installer function
 dependency_check() {
- AppName="$1"
- AppVar="$2"
- AppUrl="$3"
- if [[ $(command -v $AppName) ]]; then export $AppVar="$AppName" ;
- elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export $AppVar="$ScriptWorkDir/$AppName" ;
- else
-   printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
-   read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
-   GetBin=${GetBin:-no} # set default to no if nothing is given
-   if [[ "$GetBin" =~ [yYsS] ]] ; then
-     [[ "$GetBin" =~ [yY] ]] && distro_checker
-     if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
-       [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName=regclient
-       ($PkgInstaller $AppName) ; PkgExitcode="$?"
-       if [[ "$PkgExitcode" == 0 ]] ; then { export $AppVar="$AppName" && printf "\n%b$AppName installed.%b\n" "$c_green" "$c_reset"; }  
-   else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
-       fi
-     fi
-     if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
-         binary_downloader "$AppName" "$AppUrl"
-         [[ -f "$ScriptWorkDir/$AppName" ]] && { export $AppVar="$ScriptWorkDir/$1" && printf "\n%b$AppName downloaded.%b\n" "$c_green" "$c_reset"; }
-     fi
-   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
-   fi
- fi
- # Final check if binary is correct
- [[ "$1" == "jq" ]] && VerFlag="--version"
- [[ "$1" == "regctl" ]] && VerFlag="version"
- ${!AppVar} $VerFlag &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
+  AppName="$1"
+  AppVar="$2"
+  AppUrl="$3"
+  if [[ $(command -v $AppName) ]]; then export $AppVar="$AppName" ;
+  elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export $AppVar="$ScriptWorkDir/$AppName" ;
+  else
+    printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
+    read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
+    GetBin=${GetBin:-no} # set default to no if nothing is given
+    if [[ "$GetBin" =~ [yYsS] ]] ; then
+      [[ "$GetBin" =~ [yY] ]] && distro_checker
+      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
+        [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName=regclient
+        ($PkgInstaller $AppName) ; PkgExitcode="$?"
+        if [[ "$PkgExitcode" == 0 ]] ; then { export $AppVar="$AppName" && printf "\n%b$AppName installed.%b\n" "$c_green" "$c_reset"; }
+    else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+        fi
+      fi
+      if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+          binary_downloader "$AppName" "$AppUrl"
+          [[ -f "$ScriptWorkDir/$AppName" ]] && { export $AppVar="$ScriptWorkDir/$1" && printf "\n%b$AppName downloaded.%b\n" "$c_green" "$c_reset"; }
+      fi
+    else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
+    fi
+  fi
+  # Final check if binary is correct
+  [[ "$1" == "jq" ]] && VerFlag="--version"
+  [[ "$1" == "regctl" ]] && VerFlag="version"
+  ${!AppVar} $VerFlag &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
 }
 
 dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
