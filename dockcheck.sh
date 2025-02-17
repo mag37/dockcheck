@@ -204,54 +204,41 @@ distro_checker() {
   fi
 }
 
-# Dependency check for jq in PATH or directory
-if [[ $(command -v jq) ]]; then jqbin="jq" ;
-elif [[ -f "$ScriptWorkDir/jq" ]]; then jqbin="$ScriptWorkDir/jq" ;
-else
-  printf "%s\n" "Required dependency 'jq' missing, do you want to install it?"
-  read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetJq
-  GetJq=${GetJq:-no} # set default to no if nothing is given
-  if [[ "$GetJq" =~ [yYsS] ]] ; then
-    [[ "$GetJq" =~ [yY] ]] && distro_checker
-    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
-      ($PkgInstaller jq) ; PkgExitcode="$?"
-      [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
-    fi
-    if [[ "$GetJq" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
-        binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
-        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq"
-    fi
-  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
-  fi
-fi
-# Final check if binary is correct
-$jqbin --version &> /dev/null  || { printf "%s\n" "jq is not working - try to remove it and re-download it, exiting."; exit 1; }
+# Dependency check + installer function
+dependency_check() {
+ AppName="$1"
+ AppVar="$2"
+ AppUrl="$3"
+ if [[ $(command -v $AppName) ]]; then export $AppVar="$AppName" ;
+ elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export $AppVar="$ScriptWorkDir/$AppName" ;
+ else
+   printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
+   read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
+   GetBin=${GetBin:-no} # set default to no if nothing is given
+   if [[ "$GetBin" =~ [yYsS] ]] ; then
+     [[ "$GetBin" =~ [yY] ]] && distro_checker
+     if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
+       [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName=regclient
+       ($PkgInstaller $AppName) ; PkgExitcode="$?"
+       if [[ "$PkgExitcode" == 0 ]] ; then { export $AppVar="$AppName" && printf "\n%b$AppName installed.%b\n" "$c_green" "$c_reset"; }  
+   else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+       fi
+     fi
+     if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+         binary_downloader "$AppName" "$AppUrl"
+         [[ -f "$ScriptWorkDir/$AppName" ]] && { export $AppVar="$ScriptWorkDir/$1" && printf "\n%b$AppName downloaded.%b\n" "$c_green" "$c_reset"; }
+     fi
+   else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
+   fi
+ fi
+ # Final check if binary is correct
+ [[ "$1" == "jq" ]] && VerFlag="--version"
+ [[ "$1" == "regctl" ]] && VerFlag="version"
+ ${!AppVar} $VerFlag &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
+}
 
-# Dependency check for regctl in PATH or directory
-if [[ $(command -v regctl) ]]; then regbin="regctl" ;
-elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
-else
-  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
-  if [[ "$GetRegctl" =~ [yY] ]] ; then
-    if [[ $(uname -s) == "Darwin" ]]; then
-      echo "Detected macOS, Installing regclient using Homebrew."
-      distro_checker
-      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
-        ($PkgInstaller regclient) ; PkgExitcode="$?"
-        [[ "$PkgExitcode" == 0 ]] && regbin="regclient" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
-      fi
-    else
-      GetRegctl="S"
-    fi
-    if [[ "$GetRegctl" =~ [Ss] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
-      binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-      [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl"
-    fi
-  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
-  fi
-fi
-# Final check if binary is correct
-$regbin version &> /dev/null  || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
+dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
 # Check docker compose binary
 if docker compose version &> /dev/null ; then DockerBin="docker compose" ;
