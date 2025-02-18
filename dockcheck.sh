@@ -218,7 +218,7 @@ dependency_check() {
     if [[ "$GetBin" =~ [yYsS] ]] ; then
       [[ "$GetBin" =~ [yY] ]] && distro_checker
       if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
-        [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName=regclient
+        [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
         ($PkgInstaller $AppName) ; PkgExitcode="$?"
         if [[ "$PkgExitcode" == 0 ]] ; then { export $AppVar="$AppName" && printf "\n%b$AppName installed.%b\n" "$c_green" "$c_reset"; }
         else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
