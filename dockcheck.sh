@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.4.0"
-### ChangeNotes: Added support for a Prometheus+node_exporter metric collection through a file collector.
+VERSION="v0.5.5.0"
+### ChangeNotes: osx and bsd compatibility changes + rewrite of dependency installer
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
