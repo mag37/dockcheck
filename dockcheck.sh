@@ -316,7 +316,7 @@ unset IFS
 
 # Run the prometheus exporter function
 if [ -n "$CollectorTextFileDirectory" ] ; then
-  source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotError[@]}
+  source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
 fi
 
 # Define how many updates are available
