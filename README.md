@@ -19,17 +19,11 @@
 ___
 ## :bell: Changelog
 
+- **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 - **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
 - **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
 - **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
 - **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
-- **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
-    - Copy the custom settings from your current template to the new version of the same template.
-    - Look into, copy and customize the `urls.list` file if that's of interest.
-    - Other changes:
-        - Added Discord notify template.
-        - Verbosity changed of `regctl`.
-- **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
 ___
 
 
@@ -90,7 +84,8 @@ ___
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
 ## :tent: Install Instructions
-Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.
+Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.   
+For OSX/macOS preferably use `/usr/local/bin`.
 ```sh
 # basic example with curl:
 curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o ~/.local/bin/dockcheck.sh
@@ -98,6 +93,9 @@ chmod +x ~/.local/bin/dockcheck.sh
 
 # or oneliner with wget:
 wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh" && chmod +x ~/.local/bin/dockcheck.sh
+
+# OSX or macOS version with curl:
+ curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o /usr/local/bin/dockcheck.sh && chmod +x /usr/local/bin/dockcheck.sh
 ```
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
