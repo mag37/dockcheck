@@ -361,11 +361,11 @@ else
       GotUpdates) GotUpdates+=("$item") ;;
       GotErrors) GotErrors+=("$item") ;;
       Skip) ;;
-      *) ;;
+      *) echo "Error: invalid result from subprocess! (${item})" ;;
     esac
   done < <( \
     docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
-    xargs -P 8 -I {} bash -c 'check_image "{}"' \
+    xargs -P 32 -I {} bash -c 'check_image "{}"' \
   )
 fi
 
