@@ -346,7 +346,7 @@ else
 
   export -f check_image datecheck
   export Excludes_string="${Excludes[@]}" # Can only export scalar variables
-  export t_out regbin RepoUrl
+  export t_out regbin RepoUrl DaysOld
 
   # Asynchronously check the image-hash of every running container VS the registry
   while read -r line; do
