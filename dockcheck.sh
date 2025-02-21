@@ -361,7 +361,7 @@ else
       GotUpdates) GotUpdates+=("$item") ;;
       GotErrors) GotErrors+=("$item") ;;
       Skip) ;;
-      *) echo "Error: invalid result from subprocess! (${item})" ;;
+      *) echo "Error! Unexpected output from subprocess: ${line}" ;;
     esac
   done < <( \
     docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
