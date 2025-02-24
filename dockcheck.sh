@@ -46,6 +46,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
+MaxAsync=32
 Timeout=10
 Stopped=""
 while getopts "aynpfrhlisvmc:e:d:t:" options; do
@@ -285,13 +286,12 @@ fi
 check_image() {
   i="$1"
   local Excludes=($Excludes_string)
-  local skip
-  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && skip=1 ; done
-
-  if [[ $skip -eq 1 ]]; then
-    echo Skip $i
-    return
-  fi
+  for e in "${Excludes[@]}" ; do 
+    if [[ "$i" == "$e" ]]; then
+      echo Skip $i
+      return
+    fi
+  done
 
   local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
@@ -320,6 +320,14 @@ export -f check_image datecheck
 export Excludes_string="${Excludes[@]}" # Can only export scalar variables
 export t_out regbin RepoUrl DaysOld
 
+# Check for POSIX xargs with -P option, fallback without async 
+if (echo "test" | xargs -P 10 >/dev/null 2>&1)  ; then
+  XargsAsync="-P $MaxAsync"
+else
+  XargsAsync=""
+  printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
+fi
+
 # Asynchronously check the image-hash of every running container VS the registry
 while read -r line; do
   ((RegCheckQue+=1))
@@ -337,7 +345,7 @@ while read -r line; do
   esac
 done < <( \
   docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
-  xargs -P 32 -I {} bash -c 'check_image "{}"' \
+  xargs ${XargsAsync} -I {} bash -c 'check_image "{}"' \
 )
 
 # Sort arrays alphabetically
