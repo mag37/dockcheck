@@ -16,14 +16,16 @@
 
 <h4 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
+<h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
+
 ___
 ## :bell: Changelog
 
+- **v0.5.6.0**: Heavily improved performance due to async checking for updates. 
 - **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 - **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
 - **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
 - **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
-- **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
 ___
 
 
@@ -77,6 +79,7 @@ ___
 ## :nut_and_bolt: Dependencies
 - Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
 - Bash shell or compatible shell of at least v4.3
+  - POSIX `xargs`, usually default but can be installed with the `findutils` package - to enable async.
 - [jq](https://github.com/jqlang/jq)
   - User will be prompted to install with package manager or download static binary.
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
@@ -177,7 +180,15 @@ chmod 755 regctl
 ```
 Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
-## :guardsman: Function to auth with docker hub before running
+## :whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls
+Due to recent changes in [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/)
+>Unauthenticated users: 10 pulls/hour   
+>Authenticated users with a free account: 100 pulls/hour
+
+This is not an issue for registry checks. But if you have a large stack and pull more than 10 updates at once consider updating more often or to create a free account.
+You could use/modify the login-wrapper function in the example below to automate the login prior to running `dockcheck.sh`.
+
+### :guardsman: Function to auth with docker hub before running
 **Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
 ```sh
 function dchk {
