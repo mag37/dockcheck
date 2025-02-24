@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.5.0"
-### ChangeNotes: osx and bsd compatibility changes + rewrite of dependency installer
+VERSION="v0.5.6.0"
+### ChangeNotes: Heavily improved performance due to asynchronous update checks. 
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
