@@ -46,6 +46,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
+MaxAsync=32
 Timeout=10
 Stopped=""
 while getopts "aynpfrhlisvmc:e:d:t:" options; do
@@ -282,31 +283,70 @@ if [[ $t_out ]]; then
 else t_out=""
 fi
 
-# Check the image-hash of every running container VS the registry
-for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
-  ((RegCheckQue+=1))
-  progress_bar "$RegCheckQue" "$ContCount"
-  # Looping every item over the list of excluded names and skipping
-  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
+check_image() {
+  i="$1"
+  local Excludes=($Excludes_string)
+  for e in "${Excludes[@]}" ; do 
+    if [[ "$i" == "$e" ]]; then
+      echo Skip $i
+      return
+    fi
+  done
+
+  local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
+
   # Checking for errors while setting the variable
   if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then
-      NoUpdates+=("$i")
+      echo NoUpdates "$i"
     else
       if [[ -n "$DaysOld" ]] && ! datecheck ; then
-        NoUpdates+=("+$i ${ImageAge}d")
+        echo NoUpdates "+$i ${ImageAge}d"
       else
-        GotUpdates+=("$i")
+        echo GotUpdates "$i"
       fi
     fi
   else
     # Here the RegHash is the result of an error code
-    GotErrors+=("$i - ${RegHash}")
+    echo GotErrors "$i - ${RegHash}"
   fi
-done
+}
+
+# Make required functions and variables available to subprocesses
+export -f check_image datecheck
+export Excludes_string="${Excludes[@]}" # Can only export scalar variables
+export t_out regbin RepoUrl DaysOld
+
+# Check for POSIX xargs with -P option, fallback without async 
+if (echo "test" | xargs -P 10 >/dev/null 2>&1)  ; then
+  XargsAsync="-P $MaxAsync"
+else
+  XargsAsync=""
+  printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
+fi
+
+# Asynchronously check the image-hash of every running container VS the registry
+while read -r line; do
+  ((RegCheckQue+=1))
+  progress_bar "$RegCheckQue" "$ContCount"
+
+  Got=${line%% *}  # Extracts the first word (NoUpdates, GotUpdates, GotErrors)
+  item=${line#* }
+
+  case "$Got" in
+    NoUpdates) NoUpdates+=("$item") ;;
+    GotUpdates) GotUpdates+=("$item") ;;
+    GotErrors) GotErrors+=("$item") ;;
+    Skip) ;;
+    *) echo "Error! Unexpected output from subprocess: ${line}" ;;
+  esac
+done < <( \
+  docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
+  xargs ${XargsAsync} -I {} bash -c 'check_image "{}"' \
+)
 
 # Sort arrays alphabetically
 IFS=$'\n'
