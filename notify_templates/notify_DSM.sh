@@ -49,4 +49,7 @@ Content-Transfer-Encoding: 7bit
 $MessageBody
  From $SenderName
 __EOF
+# This ensures DSM's container manager will also see the update
+/var/packages/ContainerManager/target/tool/image_upgradable_checker
+
 }

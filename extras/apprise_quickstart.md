@@ -1,9 +1,9 @@
 # A small guide on getting started with Apprise notifications.
 
 
-## Standalone docker container: [linuxserver/apprise-api](https://hub.docker.com/r/linuxserver/apprise-api)
+## Standalone podman container: [linuxserver/apprise-api](https://hub.docker.com/r/linuxserver/apprise-api)
 
-Set up the docker compose as preferred:
+Set up the podman compose as preferred:
 ```yaml
 ---
 version: "2.1"

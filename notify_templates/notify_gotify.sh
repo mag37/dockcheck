@@ -14,7 +14,7 @@ send_notification() {
 
     # Setting the MessageTitle and MessageBody variable here.
     MessageTitle="${FromHost} - updates available."
-    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
+    printf -v MessageBody "Containers on $FromHost with updates available:\n$UpdToString"
 
     # Modify to fit your setup:
     GotifyToken="Your Gotify token here"
@@ -24,6 +24,6 @@ send_notification() {
         -F "title=${MessageTitle}" \
         -F "message=${MessageBody}" \
         -F "priority=5" \
-        -X POST "${GotifyUrl}" &> /dev/null
+        -X POST "${GotifyUrl}" 1> /dev/null
 
 }
