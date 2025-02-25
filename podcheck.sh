@@ -14,7 +14,6 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 Github="https://github.com/sudo-kraken/podcheck"
 RawUrl="https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh"
 
-# Add near the beginning
 cleanup() {
     # Temporarily disable failglob for cleanup
     shopt -u failglob
@@ -78,7 +77,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-# Initialize variables first
+# Initialise variables first
 AutoUp="no"
 AutoPrune=""
 Stopped=""
@@ -219,11 +218,10 @@ progress_bar() {
   ((Left=50-Complete))
   BarComplete=$(printf "%${Complete}s" | tr " " "#")
   BarLeft=$(printf "%${Left}s" | tr " " "-")
-  if [[ "$QueTotal" != "$QueCurrent" ]]; then
-    printf "\r[%s%s] %s/%s " "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal"
-  else
-    printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
-  fi
+  # Remove the duplicate "Processing container" output
+  printf "\r[%s%s] %s/%s %bProcessing container: %s%b\n" \
+    "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal" \
+    "$c_blue" "$container" "$c_reset"
 }
 
 t_out=$(command -v timeout 2>/dev/null || echo "")
@@ -354,13 +352,12 @@ ContCount=$(podman ps $Stopped --filter "name=$SearchName" --format '{{.Names}}'
 RegCheckQue=0
 start_time=$(date +%s)
 
-echo "Starting container update check"
+printf "\n%bStarting container update check%b\n" "$c_blue" "$c_reset"
 
 process_container() {
   local container="$1"
   ((RegCheckQue++))
   progress_bar "$RegCheckQue" "$ContCount"
-  >&2 echo "Processing container: $container"
   
   for e in "${Excludes[@]}"; do 
     if [[ "$container" == "$e" ]]; then
@@ -478,70 +475,36 @@ if [[ -n "${GotUpdates[*]}" ]]; then
       ContRestartStack=$($jqbin -r '."sudo-kraken.podcheck.restart-stack"' <<< "$ContLabels")
       [ "$ContRestartStack" == "null" ] && ContRestartStack=""
       
+      # Add spacing and colors to systemd unit detection
       if [ -z "$ContPath" ]; then
-    echo "Checking systemd units for container: $i"
-    
-    # Get the PODMAN_SYSTEMD_UNIT label first
-    unit=$(podman inspect "$i" --format '{{.Config.Labels.PODMAN_SYSTEMD_UNIT}}')
-    if [ -n "$unit" ]; then
-        echo "Found systemd unit from container label: $unit"
-    else
-        # First check if we can find the quadlet service directly
-        all_services=$(systemctl --user list-units --type=service --all --no-legend | awk '{print $1}')
+        printf "\n%bChecking systemd units for container: %s%b\n\n" \
+          "$c_teal" "$i" "$c_reset"
         
-        # Look for both the container's quadlet file and service
-        while read -r service; do
-            # Get the actual container name from the service unit
-            if container_info=$(systemctl --user show "$service" -p ExecStart 2>/dev/null); then
-                # Check both container file name and container name in ExecStart
-                if [[ "$container_info" =~ $i ]] || \
-                   [[ "$container_info" =~ /containers/[^[:space:]]*/\.container ]]; then
-                    if container_path=$(echo "$container_info" | grep -o '/containers/[^"]*\.container' | head -n1); then
-                        container_name=$(basename "$container_path" .container)
-                        # Match either the container name or the service name
-                        if [[ "$container_name" == "$i" ]] || [[ "$service" =~ ^${i%.*}\.service$ ]]; then
-                            unit="$service"
-                            echo "Found matching quadlet service: $unit (container: $container_name)"
-                            break
-                        fi
-                    fi
-                fi
+        unit=$(podman inspect "$i" --format '{{.Config.Labels.PODMAN_SYSTEMD_UNIT}}')
+        if [ -n "$unit" ]; then
+            printf "%bDetected Quadlet-managed container: %s (unit: %s)%b\n\n" \
+              "$c_green" "$i" "$unit" "$c_reset"
+
+            printf "%bPulling new image...%b\n\n" "$c_teal" "$c_reset"
+
+            if podman pull "$ContImage"; then
+                printf "\n%bSuccessfully pulled new image%b\n\n" "$c_green" "$c_reset"
+            else
+                printf "\n%bFailed to pull image for %s%b\n\n" "$c_red" "$i" "$c_reset"
+                continue
             fi
-        done <<< "$all_services"
-        
-        # If still no match found, try the direct service name
-        if [ -z "${unit:-}" ]; then
-            if systemctl --user status "$i.service" &>/dev/null; then
-                unit="$i.service"
-                echo "Found direct unit match: $unit"
+            printf "%bAttempting to restart unit...%b\n\n" "$c_teal" "$c_reset"
+            
+            if timeout 60 systemctl --user restart "$unit"; then
+                printf "\n%bQuadlet container %s updated and restarted (user scope)%b\n\n" \
+                  "$c_green" "$i" "$c_reset"
+            else
+                printf "\n%bFailed to restart unit %s%b\n" "$c_red" "$unit" "$c_reset"
+                systemctl --user status "$unit"
             fi
         fi
-    fi
-
-    if [ -n "${unit:-}" ]; then
-        echo "Detected Quadlet-managed container: $i (matched unit: $unit)"
-        echo "Pulling new image..."
-
-        if podman pull "$ContImage"; then
-            echo "Successfully pulled new image"
-        else
-            echo "Failed to pull image for $i"
-            continue
-        fi
-        echo "Attempting to restart unit..."
-        
-        if timeout 60 systemctl --user restart "$unit"; then
-            echo "Quadlet container $i updated and restarted (user scope)"
-        else
-            echo "Failed to restart unit $unit"
-            systemctl --user status "$unit"
-        fi
-    else
-        printf "\n%b%s%b has no systemd unit found; %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
-    fi
-    
-    continue
-fi
+        continue
+      fi
       cd "$ContPath" || { echo "Path error - skipping $i"; continue; }
       if [[ $ContConfigFile = /* ]]; then
         CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
@@ -567,9 +530,11 @@ fi
     if [[ -z "$AutoPrune" ]] && [[ "$AutoUp" == "no" ]]; then
       read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune
     fi
+    
     if [[ "$AutoPrune" =~ [yY] ]] || [[ "$AutoUp" == "yes" ]]; then
-    echo "Cleaning up failed update images..."
-    podman image prune -f
+      printf "\n%bCleaning up failed update images...%b\n\n" "$c_teal" "$c_reset"
+      podman image prune -f
+      printf "\n"
     fi
   else
     printf "\nNo updates installed, exiting.\n"
