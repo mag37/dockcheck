@@ -21,7 +21,8 @@
 ___
 ## :bell: Changelog
 
-- **v0.5.6.0**: Heavily improved performance due to async checking for updates. Adjust the variable `MaxAsync=32` to something lower (or 1 ) if issues.
+- **v0.5.6.0**: Heavily improved performance due to async checking for updates.
+    - Adjust the variable `MaxAsync=32` to something lower (or 1 ) if issues.
 - **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 - **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
 - **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
