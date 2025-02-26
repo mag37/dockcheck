@@ -21,8 +21,15 @@
 ___
 ## :bell: Changelog
 
+Made MaxAsync=1 the default - edit to change.
+Added -x option to pass a MaxAsync value on runtime.
+Made it possible to disable xargs -P-flag by setting MaxAsync=0 or passing -x 0 option.
+
+- **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
+    - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
+    - Added `-x N` option to pass `MaxAsync` value at runtime.
+    - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
 - **v0.5.6.0**: Heavily improved performance due to async checking for updates.
-    - Adjust the variable `MaxAsync=32` to something lower (or 1 ) if issues.
 - **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 - **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
 - **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
