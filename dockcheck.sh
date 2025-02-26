@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.6.0"
-### ChangeNotes: Heavily improved performance due to asynchronous update checks. 
+VERSION="v0.5.6.1"
+### ChangeNotes: Async hotfix, 1 subprocess default, modify MaxAsync variable or pass -x N option to increase.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -12,6 +12,10 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 # Check if there's a new release of the script
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
+
+# User customizable defaults
+MaxAsync=1
+Timeout=10
 
 # Help Function
 Help() {
@@ -34,6 +38,7 @@ Help() {
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-v     Prints current version."
+  echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
   echo
   echo "Project source: $Github"
 }
@@ -46,10 +51,8 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-MaxAsync=32
-Timeout=10
 Stopped=""
-while getopts "aynpfrhlisvmc:e:d:t:" options; do
+while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     c)   CollectorTextFileDirectory="${OPTARG}"
@@ -65,6 +68,7 @@ while getopts "aynpfrhlisvmc:e:d:t:" options; do
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
     v)   printf "%s\n" "$VERSION" ; exit 0 ;;
+    x)   MaxAsync=${OPTARG} ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
     h|*) Help ; exit 2 ;;
@@ -321,11 +325,11 @@ export Excludes_string="${Excludes[@]}" # Can only export scalar variables
 export t_out regbin RepoUrl DaysOld
 
 # Check for POSIX xargs with -P option, fallback without async 
-if (echo "test" | xargs -P 10 >/dev/null 2>&1)  ; then
+if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
   XargsAsync="-P $MaxAsync"
 else
   XargsAsync=""
-  printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
+  [[ "$MaxAsync" != 0 ]] && printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
 fi
 
 # Asynchronously check the image-hash of every running container VS the registry
