@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.6.0"
-### ChangeNotes: Heavily improved performance due to asynchronous update checks. 
+VERSION="v0.5.6.1"
+### ChangeNotes: Async hotfix, 1 subprocess default, modify MaxAsync variable or pass -x N option to increase.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
