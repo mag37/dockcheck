@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.4.0"
-### ChangeNotes: Added support for a Prometheus+node_exporter metric collection through a file collector.
+VERSION="v0.5.6.1"
+### ChangeNotes: Async hotfix, 1 subprocess default, modify MaxAsync variable or pass -x N option to increase.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -12,6 +12,10 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 # Check if there's a new release of the script
 LatestRelease="$(curl -s -r 0-50 $RawUrl | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(curl -s -r 0-200 $RawUrl | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
+
+# User customizable defaults
+MaxAsync=1
+Timeout=10
 
 # Help Function
 Help() {
@@ -34,6 +38,7 @@ Help() {
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-v     Prints current version."
+  echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
   echo
   echo "Project source: $Github"
 }
@@ -46,9 +51,8 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-Timeout=10
 Stopped=""
-while getopts "aynpfrhlisvmc:e:d:t:" options; do
+while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoUp="yes" ;;
     c)   CollectorTextFileDirectory="${OPTARG}"
@@ -64,6 +68,7 @@ while getopts "aynpfrhlisvmc:e:d:t:" options; do
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
     v)   printf "%s\n" "$VERSION" ; exit 0 ;;
+    x)   MaxAsync=${OPTARG} ;;
     d)   DaysOld=${OPTARG}
          if ! [[ $DaysOld =~ ^[0-9]+$ ]] ; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}" ; exit 2 ; } ; fi ;;
     h|*) Help ; exit 2 ;;
@@ -131,7 +136,8 @@ choosecontainers() {
 
 datecheck() {
   ImageDate=$($regbin -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
-  ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) )/86400 ))
+  ImageEpoch=$(date -d "$ImageDate" +%s 2>/dev/null) || ImageEpoch=$(date -f "%Y-%m-%d" -j "$ImageDate" +%s)
+  ImageAge=$(( ( $(date +%s) - $ImageEpoch )/86400 ))
   if [ "$ImageAge" -gt "$DaysOld" ] ; then
     return 0
   else
@@ -169,7 +175,7 @@ if [[ "$VERSION" != "$LatestRelease" ]] ; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
   else
-    [[ -n "$Notify" ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" ; }
+    [[ -n "$Notify" ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n" ; }
   fi
 fi
 
@@ -182,7 +188,7 @@ IFS=',' read -r -a Excludes <<< "$Exclude" ; unset IFS
 binary_downloader() {
   BinaryName="$1"
   BinaryUrl="$2"
-  case "$(uname --machine)" in
+  case "$(uname -m)" in
     x86_64|amd64) architecture="amd64" ;;
     arm64|aarch64) architecture="arm64";;
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset" ; exit 1;;
@@ -197,49 +203,49 @@ binary_downloader() {
 
 distro_checker() {
   if [[ -f /etc/arch-release ]] ; then PkgInstaller="pacman -S"
-  elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="dnf install"
-  elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="zypper install"
-  elif [[ -f /etc/debian_version ]] ; then PkgInstaller="apt-get install"
+  elif [[ -f /etc/redhat-release ]] ; then PkgInstaller="sudo dnf install"
+  elif [[ -f /etc/SuSE-release ]] ; then PkgInstaller="sudo zypper install"
+  elif [[ -f /etc/debian_version ]] ; then PkgInstaller="sudo apt-get install"
+  elif [[ $(uname -s) == "Darwin" ]] ; then PkgInstaller="brew install"
   else PkgInstaller="ERROR" ; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
 }
 
-# Dependency check for jq in PATH or directory
-if [[ $(command -v jq) ]]; then jqbin="jq" ;
-elif [[ -f "$ScriptWorkDir/jq" ]]; then jqbin="$ScriptWorkDir/jq" ;
-else
-  printf "%s\n" "Required dependency 'jq' missing, do you want to install it?"
-  read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetJq
-  GetJq=${GetJq:-no} # set default to no if nothing is given
-  if [[ "$GetJq" =~ [yYsS] ]] ; then
-    [[ "$GetJq" =~ [yY] ]] && distro_checker
-    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
-      (sudo $PkgInstaller jq) ; PkgExitcode="$?"
-      [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+# Dependency check + installer function
+dependency_check() {
+  AppName="$1"
+  AppVar="$2"
+  AppUrl="$3"
+  if [[ $(command -v $AppName) ]]; then export $AppVar="$AppName" ;
+  elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export $AppVar="$ScriptWorkDir/$AppName" ;
+  else
+    printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
+    read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
+    GetBin=${GetBin:-no} # set default to no if nothing is given
+    if [[ "$GetBin" =~ [yYsS] ]] ; then
+      [[ "$GetBin" =~ [yY] ]] && distro_checker
+      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]] ; then
+        [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
+        ($PkgInstaller $AppName) ; PkgExitcode="$?" && AppName="$1"
+        if [[ "$PkgExitcode" == 0 ]] ; then { export $AppVar="$AppName" && printf "\n%b$AppName installed.%b\n" "$c_green" "$c_reset"; }
+        else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+        fi
+      fi
+      if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
+          binary_downloader "$AppName" "$AppUrl"
+          [[ -f "$ScriptWorkDir/$AppName" ]] && { export $AppVar="$ScriptWorkDir/$1" && printf "\n%b$AppName downloaded.%b\n" "$c_green" "$c_reset"; }
+      fi
+    else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
     fi
-    if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]] ; then
-        binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
-        [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq"
-    fi
-  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
   fi
-fi
-# Final check if binary is correct
-$jqbin --version &> /dev/null  || { printf "%s\n" "jq is not working - try to remove it and re-download it, exiting."; exit 1; }
+  # Final check if binary is correct
+  [[ "$1" == "jq" ]] && VerFlag="--version"
+  [[ "$1" == "regctl" ]] && VerFlag="version"
+  ${!AppVar} $VerFlag &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
+}
 
-# Dependency check for regctl in PATH or directory
-if [[ $(command -v regctl) ]]; then regbin="regctl" ;
-elif [[ -f "$ScriptWorkDir/regctl" ]]; then regbin="$ScriptWorkDir/regctl" ;
-else
-  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
-  if [[ "$GetRegctl" =~ [yY] ]] ; then
-    binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-    [[ -f "$ScriptWorkDir/regctl" ]] && regbin="$ScriptWorkDir/regctl"
-  else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset" ; exit 1 ;
-  fi
-fi
-# Final check if binary is correct
-$regbin version &> /dev/null  || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
+dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
 # Check docker compose binary
 if docker compose version &> /dev/null ; then DockerBin="docker compose" ;
@@ -283,31 +289,70 @@ if [[ $t_out ]]; then
 else t_out=""
 fi
 
-# Check the image-hash of every running container VS the registry
-for i in $(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}') ; do
-  ((RegCheckQue+=1))
-  progress_bar "$RegCheckQue" "$ContCount"
-  # Looping every item over the list of excluded names and skipping
-  for e in "${Excludes[@]}" ; do [[ "$i" == "$e" ]] && continue 2 ; done
+check_image() {
+  i="$1"
+  local Excludes=($Excludes_string)
+  for e in "${Excludes[@]}" ; do 
+    if [[ "$i" == "$e" ]]; then
+      echo Skip $i
+      return
+    fi
+  done
+
+  local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
+
   # Checking for errors while setting the variable
   if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1) ; then
     if [[ "$LocalHash" = *"$RegHash"* ]] ; then
-      NoUpdates+=("$i")
+      echo NoUpdates "$i"
     else
       if [[ -n "$DaysOld" ]] && ! datecheck ; then
-        NoUpdates+=("+$i ${ImageAge}d")
+        echo NoUpdates "+$i ${ImageAge}d"
       else
-        GotUpdates+=("$i")
+        echo GotUpdates "$i"
       fi
     fi
   else
     # Here the RegHash is the result of an error code
-    GotErrors+=("$i - ${RegHash}")
+    echo GotErrors "$i - ${RegHash}"
   fi
-done
+}
+
+# Make required functions and variables available to subprocesses
+export -f check_image datecheck
+export Excludes_string="${Excludes[@]}" # Can only export scalar variables
+export t_out regbin RepoUrl DaysOld
+
+# Check for POSIX xargs with -P option, fallback without async 
+if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
+  XargsAsync="-P $MaxAsync"
+else
+  XargsAsync=""
+  [[ "$MaxAsync" != 0 ]] && printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
+fi
+
+# Asynchronously check the image-hash of every running container VS the registry
+while read -r line; do
+  ((RegCheckQue+=1))
+  progress_bar "$RegCheckQue" "$ContCount"
+
+  Got=${line%% *}  # Extracts the first word (NoUpdates, GotUpdates, GotErrors)
+  item=${line#* }
+
+  case "$Got" in
+    NoUpdates) NoUpdates+=("$item") ;;
+    GotUpdates) GotUpdates+=("$item") ;;
+    GotErrors) GotErrors+=("$item") ;;
+    Skip) ;;
+    *) echo "Error! Unexpected output from subprocess: ${line}" ;;
+  esac
+done < <( \
+  docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
+  xargs ${XargsAsync} -I {} bash -c 'check_image "{}"' \
+)
 
 # Sort arrays alphabetically
 IFS=$'\n'
@@ -317,7 +362,7 @@ unset IFS
 
 # Run the prometheus exporter function
 if [ -n "$CollectorTextFileDirectory" ] ; then
-  source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotError[@]}
+  source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
 fi
 
 # Define how many updates are available
@@ -412,3 +457,4 @@ else
 fi
 
 exit 0
+

@@ -16,20 +16,24 @@
 
 <h4 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
+<h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
+
 ___
 ## :bell: Changelog
 
+Made MaxAsync=1 the default - edit to change.
+Added -x option to pass a MaxAsync value on runtime.
+Made it possible to disable xargs -P-flag by setting MaxAsync=0 or passing -x 0 option.
+
+- **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
+    - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
+    - Added `-x N` option to pass `MaxAsync` value at runtime.
+    - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
+- **v0.5.6.0**: Heavily improved performance due to async checking for updates.
+- **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 - **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
 - **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
 - **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
-- **v0.5.1**: DEPENDENCY WARNING: now requires **jq**. + Upstreaming changes from [sudo-kraken/podcheck](https://github.com/sudo-kraken/podcheck)
-- **v0.5.0**: Rewritten notify logic - all templates are adjusted and should be migrated!
-    - Copy the custom settings from your current template to the new version of the same template.
-    - Look into, copy and customize the `urls.list` file if that's of interest.
-    - Other changes:
-        - Added Discord notify template.
-        - Verbosity changed of `regctl`.
-- **v0.4.9**: Added a function to enrich the notify-message with release note URLs. See [Release notes addon](https://github.com/mag37/dockcheck#date-release-notes-addon-to-notifications)
 ___
 
 
@@ -83,6 +87,7 @@ ___
 ## :nut_and_bolt: Dependencies
 - Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
 - Bash shell or compatible shell of at least v4.3
+  - POSIX `xargs`, usually default but can be installed with the `findutils` package - to enable async.
 - [jq](https://github.com/jqlang/jq)
   - User will be prompted to install with package manager or download static binary.
 - [regclient/regctl](https://github.com/regclient/regclient) (Licensed under [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0))  
@@ -90,7 +95,8 @@ ___
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
 ## :tent: Install Instructions
-Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.
+Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.   
+For OSX/macOS preferably use `/usr/local/bin`.
 ```sh
 # basic example with curl:
 curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o ~/.local/bin/dockcheck.sh
@@ -98,6 +104,9 @@ chmod +x ~/.local/bin/dockcheck.sh
 
 # or oneliner with wget:
 wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh" && chmod +x ~/.local/bin/dockcheck.sh
+
+# OSX or macOS version with curl:
+ curl -L https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh -o /usr/local/bin/dockcheck.sh && chmod +x /usr/local/bin/dockcheck.sh
 ```
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
@@ -179,7 +188,15 @@ chmod 755 regctl
 ```
 Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
-## :guardsman: Function to auth with docker hub before running
+## :whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls
+Due to recent changes in [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/)
+>Unauthenticated users: 10 pulls/hour   
+>Authenticated users with a free account: 100 pulls/hour
+
+This is not an issue for registry checks. But if you have a large stack and pull more than 10 updates at once consider updating more often or to create a free account.
+You could use/modify the login-wrapper function in the example below to automate the login prior to running `dockcheck.sh`.
+
+### :guardsman: Function to auth with docker hub before running
 **Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
 ```sh
 function dchk {
