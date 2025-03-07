@@ -39,7 +39,7 @@ send_notification() {
 ### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
-    printf "\nSending Apprise dockcheck notification\n"
+    printf "\nSending pushover dockcheck notification\n"
  
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.

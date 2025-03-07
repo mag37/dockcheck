@@ -33,7 +33,7 @@ send_notification() {
 ### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
-    printf "\nSending Matrix dockcheck notification\n"
+    printf "\nSending Telegram dockcheck notification\n"
  
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.
