@@ -25,6 +25,8 @@ Made MaxAsync=1 the default - edit to change.
 Added -x option to pass a MaxAsync value on runtime.
 Made it possible to disable xargs -P-flag by setting MaxAsync=0 or passing -x 0 option.
 
+- **v0.5.7.0**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
+    - Manually migrate your current `notify.sh` settings to a new template.
 - **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
     - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
     - Added `-x N` option to pass `MaxAsync` value at runtime.
