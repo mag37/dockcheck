@@ -21,10 +21,6 @@
 ___
 ## :bell: Changelog
 
-Made MaxAsync=1 the default - edit to change.
-Added -x option to pass a MaxAsync value on runtime.
-Made it possible to disable xargs -P-flag by setting MaxAsync=0 or passing -x 0 option.
-
 - **v0.5.7.0**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
     - Manually migrate your current `notify.sh` settings to a new template for new functionality.
 - **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
@@ -117,6 +113,7 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
 Run it scheduled with `-ni` to only get notified when there's updates available!  
+Will also send a notification when `dockcheck.sh` itself has an update. 
 
 Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)  
 **Current templates:**
@@ -148,6 +145,11 @@ nginx  ->  https://github.com/docker-library/official-images/blob/master/library
 ...
 ```
 The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
+
+## :fast_forward: Asyncronous update checks with **xargs**; `-x N` option. (default=1)
+Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!   
+Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
+
 
 ## :chart_with_upwards_trend: Prometheus and node_exporter
 Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely.
