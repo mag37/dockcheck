@@ -26,7 +26,7 @@ Added -x option to pass a MaxAsync value on runtime.
 Made it possible to disable xargs -P-flag by setting MaxAsync=0 or passing -x 0 option.
 
 - **v0.5.7.0**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
-    - Manually migrate your current `notify.sh` settings to a new template.
+    - Manually migrate your current `notify.sh` settings to a new template for new functionality.
 - **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
     - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
     - Added `-x N` option to pass `MaxAsync` value at runtime.
@@ -97,7 +97,7 @@ ___
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
 ## :tent: Install Instructions
-Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.   
+Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.  
 For OSX/macOS preferably use `/usr/local/bin`.
 ```sh
 # basic example with curl:
@@ -192,7 +192,7 @@ Test it with `./regctl --help` and then either add the file to the same path as 
 
 ## :whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls
 Due to recent changes in [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/)
->Unauthenticated users: 10 pulls/hour   
+>Unauthenticated users: 10 pulls/hour  
 >Authenticated users with a free account: 100 pulls/hour
 
 This is not an issue for registry checks. But if you have a large stack and pull more than 10 updates at once consider updating more often or to create a free account.
