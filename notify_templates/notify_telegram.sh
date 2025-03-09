@@ -4,17 +4,9 @@
 # Required receiving services must already be set up.
 # Modify to fit your setup - set TelegramChatId and TelegramToken.
 
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-    FromHost=$(hostname)
+FromHost=$(hostname)
 
-    # platform specific notification code would go here
-    printf "\nSending Telegram notification\n"
-
-    # Setting the MessageBody variable here.
-    MessageBody="🐋 Containers on $FromHost with updates available: \n$UpdToString"
-
+trigger_notification() {
     # Modify to fit your setup:
     TelegramToken="Your Telegram token here"
     TelegramChatId="Your Telegram ChatId here"
@@ -23,5 +15,29 @@ send_notification() {
     TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false}"
 
     curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$TelegramData"
+}
 
+send_notification() {
+    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+
+    # platform specific notification code would go here
+    printf "\nSending Telegram notification\n"
+
+    # Setting the MessageBody variable here.
+    MessageBody="🐋 Containers on $FromHost with updates available: \n$UpdToString"
+
+    trigger_notification
+}
+
+### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
+### to not send notifications when dockcheck itself has updates.
+dockcheck_notification() {
+    printf "\nSending Telegram dockcheck notification\n"
+ 
+    MessageTitle="$FromHost - New version of dockcheck available."
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "$FromHost - New version of dockcheck available.\n\nInstalled version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+ 
+    trigger_notification
 }

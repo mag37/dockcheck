@@ -4,23 +4,39 @@
 # Setup app and subscription at https://ntfy.sh
 # Use your unique Topic Name in the URL below.
 
-send_notification() {
-[ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 FromHost=$(hostname)
 
-printf "\nSending ntfy.sh notification\n"
+trigger_notification() {
+    # Modify to fit your setup:
+    NtfyUrl="ntfy.sh/YourUniqueTopicName"
 
-MessageTitle="$FromHost - updates available."
-# Setting the MessageBody variable here.
-printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
+    curl -sS -o /dev/null --show-error --fail \
+      -H "Title: $MessageTitle" \
+      -d "$MessageBody" \
+      $NtfyUrl
+}
 
-# Modify to fit your setup:
-NtfyUrl="ntfy.sh/YourUniqueTopicName"
+send_notification() {
+    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
+    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
 
-curl -sS -o /dev/null --show-error --fail \
-  -H "Title: $MessageTitle" \
-  -d "$MessageBody" \
-  $NtfyUrl
+    printf "\nSending ntfy.sh notification\n"
 
+    MessageTitle="$FromHost - updates available."
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
+
+    trigger_notification
+}
+
+### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
+### to not send notifications when dockcheck itself has updates.
+dockcheck_notification() {
+    printf "\nSending ntfy.sh dockcheck notification\n"
+ 
+    MessageTitle="$FromHost - New version of dockcheck available."
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+ 
+    trigger_notification
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.6.1"
-### ChangeNotes: Async hotfix, 1 subprocess default, modify MaxAsync variable or pass -x N option to increase.
+VERSION="v0.5.7.0"
+### ChangeNotes: Rewritten templates - now with a function to notify when theres a new Dockcheck release.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -174,6 +174,8 @@ if [[ "$VERSION" != "$LatestRelease" ]] ; then
   if [[ -z "$AutoUp" ]] ; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  else
+    [[ -n "$Notify" ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n" ; }
   fi
 fi
 
@@ -455,3 +457,4 @@ else
 fi
 
 exit 0
+
