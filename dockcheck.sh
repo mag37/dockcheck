@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.7.0"
-### ChangeNotes: Rewritten templates - now with a function to notify when theres a new Dockcheck release.
+VERSION="v0.5.8.0"
+### ChangeNotes: Added version checks to all templates and a notification if a new template is released.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -292,7 +292,7 @@ fi
 check_image() {
   i="$1"
   local Excludes=($Excludes_string)
-  for e in "${Excludes[@]}" ; do 
+  for e in "${Excludes[@]}" ; do
     if [[ "$i" == "$e" ]]; then
       echo Skip $i
       return
@@ -326,7 +326,7 @@ export -f check_image datecheck
 export Excludes_string="${Excludes[@]}" # Can only export scalar variables
 export t_out regbin RepoUrl DaysOld
 
-# Check for POSIX xargs with -P option, fallback without async 
+# Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
   XargsAsync="-P $MaxAsync"
 else
@@ -457,4 +457,3 @@ else
 fi
 
 exit 0
-

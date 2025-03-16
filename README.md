@@ -21,6 +21,7 @@
 ___
 ## :bell: Changelog
 
+- **v0.5.8.0**: Added version checks to all templates and a notification if a new template is released.
 - **v0.5.7.0**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
     - Manually migrate your current `notify.sh` settings to a new template for new functionality.
 - **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
@@ -29,9 +30,6 @@ ___
     - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
 - **v0.5.6.0**: Heavily improved performance due to async checking for updates.
 - **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
-- **v0.5.4.0**: Added support for a Prometheus+node_exporter metric collection through a file collector.
-- **v0.5.3.0**: Local image check changed (use imageId instead of name) and Gotify-template fixed (whale icon removed).
-- **v0.5.2.1**: Rewrite of dependency downloads, jq can be installed with package manager or static binary.
 ___
 
 
@@ -113,7 +111,7 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
 Run it scheduled with `-ni` to only get notified when there's updates available!  
-Will also send a notification when `dockcheck.sh` itself has an update. 
+Will also send a notification when `dockcheck.sh` itself has an update.
 
 Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)  
 **Current templates:**
@@ -147,7 +145,7 @@ nginx  ->  https://github.com/docker-library/official-images/blob/master/library
 The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
 
 ## :fast_forward: Asyncronous update checks with **xargs**; `-x N` option. (default=1)
-Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!   
+Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!  
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
 
