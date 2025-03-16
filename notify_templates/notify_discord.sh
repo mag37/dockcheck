@@ -1,4 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+NOTIFY_DISCORD_VERSION="v0.1"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
@@ -30,6 +31,13 @@ send_notification() {
 dockcheck_notification() {
     printf "\nSending Discord dockcheck notification\n"
     MessageBody="$FromHost - New version of dockcheck available: \n Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+
+    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_discord.sh"
+    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_DISCORD_VERSION/s/NOTIFY_DISCORD_VERSION=//p" | tr -d '"')"
+    if [[ "$NOTIFY_DISCORD_VERSION" != "$LatestNotifyRelease" ]] ; then
+        printf -v NotifyUpdate "\n\nnotify_discord.sh update avialable:\n $NOTIFY_DISCORD_VERSION -> $LatestNotifyRelease\n"
+        MessageBody="${MessageBody}${NotifyUpdate}"
+    fi
 
     trigger_notification
 }

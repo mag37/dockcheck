@@ -1,4 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+NOTIFY_SMTP_VERSION="v0.1"
 # INFO: ssmtp is depcerated - consider to use msmtp instead.
 #
 # Copy/rename this file to notify.sh to enable the notification snipppet.
@@ -58,6 +59,13 @@ dockcheck_notification() {
 		MessageTitle="New version of dockcheck available on"
 		# Setting the MessageBody variable here.
 		printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+
+    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_smtp.sh"
+    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_SMTP_VERSION/s/NOTIFY_SMTP_VERSION=//p" | tr -d '"')"
+    if [[ "$NOTIFY_SMTP_VERSION" != "$LatestNotifyRelease" ]] ; then
+        printf -v NotifyUpdate "\n\nnotify_smtp.sh update avialable:\n $NOTIFY_SMTP_VERSION -> $LatestNotifyRelease\n"
+        MessageBody="${MessageBody}${NotifyUpdate}"
+    fi
 
 		trigger_notification
 }

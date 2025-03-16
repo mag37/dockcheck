@@ -1,4 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+NOTIFY_APPRISE_VERSION="v0.1"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
@@ -38,10 +39,17 @@ send_notification() {
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
     printf "\nSending Apprise dockcheck notification\n"
- 
+
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.
     printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
- 
+
+    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_apprise.sh"
+    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_APPRISE_VERSION/s/NOTIFY_APPRISE_VERSION=//p" | tr -d '"')"
+    if [[ "$NOTIFY_APPRISE_VERSION" != "$LatestNotifyRelease" ]] ; then
+        printf -v NotifyUpdate "\n\nnotify_apprise.sh update avialable:\n $NOTIFY_APPRISE_VERSION -> $LatestNotifyRelease\n"
+        MessageBody="${MessageBody}${NotifyUpdate}"
+    fi
+
     trigger_notification
 }
