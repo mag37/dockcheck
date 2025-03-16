@@ -1,4 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+NOTIFY_PUSHBULLET_VERSION="v0.1"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
@@ -38,6 +39,13 @@ dockcheck_notification() {
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.
     printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+
+    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_pushbullet.sh"
+    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_PUSHBULLET_VERSION/s/NOTIFY_PUSHBULLET_VERSION=//p" | tr -d '"')"
+    if [[ "$NOTIFY_PUSHBULLET_VERSION" != "$LatestNotifyRelease" ]] ; then
+        printf -v NotifyUpdate "\n\nnotify_pushbullet.sh update avialable:\n $NOTIFY_PUSHBULLET_VERSION -> $LatestNotifyRelease\n"
+        MessageBody="${MessageBody}${NotifyUpdate}"
+    fi
 
     trigger_notification
 }

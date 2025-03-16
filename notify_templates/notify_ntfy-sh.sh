@@ -1,4 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
+NOTIFY_NTFYSH_VERSION="v0.1"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Setup app and subscription at https://ntfy.sh
@@ -33,10 +34,17 @@ send_notification() {
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
     printf "\nSending ntfy.sh dockcheck notification\n"
- 
+
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.
     printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
- 
+
+    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_ntfy-sh.sh"
+    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_NTFYSH_VERSION/s/NOTIFY_NTFYSH_VERSION=//p" | tr -d '"')"
+    if [[ "$NOTIFY_NTFYSH_VERSION" != "$LatestNotifyRelease" ]] ; then
+        printf -v NotifyUpdate "\n\nnotify_ntfy-sh.sh update avialable:\n $NOTIFY_NTFYSH_VERSION -> $LatestNotifyRelease\n"
+        MessageBody="${MessageBody}${NotifyUpdate}"
+    fi
+
     trigger_notification
 }

@@ -71,12 +71,12 @@ dockcheck_notification() {
 		# Setting the MessageBody variable here.
 		printf -v MessageBody "Installed version: $1\nLatest version: $2\n\nChangenotes: $3\n"
 
-	  RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_DSM.sh"
-		LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_DSM_VERSION/s/NOTIFY_DSM_VERSION=//p" | tr -d '"')"
-		if [[ "$NOTIFY_DSM_VERSION" != "$LatestNotifyRelease" ]] ; then
-			printf -v NotifyUpdate "\n\nNOTIFY_DSM update avialable:\n $NOTIFY_DSM_VERSION -> $LatestNotifyRelease\n"
-			MessageBody="${MessageBody}${NotifyUpdate}"
-		fi
+    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_DSM.sh"
+    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_DSM_VERSION/s/NOTIFY_DSM_VERSION=//p" | tr -d '"')"
+    if [[ "$NOTIFY_DSM_VERSION" != "$LatestNotifyRelease" ]] ; then
+        printf -v NotifyUpdate "\n\nnotify_DSM.sh update avialable:\n $NOTIFY_DSM_VERSION -> $LatestNotifyRelease\n"
+        MessageBody="${MessageBody}${NotifyUpdate}"
+    fi
 
 		trigger_notification
 }
