@@ -57,6 +57,7 @@ Options:"
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t     Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -v     Prints current version.
+-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested.
 ```
 
 ### Basic example:
