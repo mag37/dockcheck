@@ -152,13 +152,17 @@ datecheck() {
 progress_bar() {
   QueCurrent="$1"
   QueTotal="$2"
+  BarWidth=${BarWidth:-50}
   ((Percent=100*QueCurrent/QueTotal))
-  ((Complete=50*Percent/100)) # Change first number for width (50)
-  ((Left=50-Complete)) # Change first number for width (50)
+  ((Complete=BarWidth*Percent/100)) # Change first number for width (50)
+  ((Left=BarWidth-Complete)) # Change first number for width (50)
   BarComplete=$(printf "%${Complete}s" | tr " " "#")
   BarLeft=$(printf "%${Left}s" | tr " " "-")
-  [[ "$QueTotal" == "$QueCurrent" ]] || printf "\r[%s%s] %s/%s " "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal"
-  [[ "$QueTotal" == "$QueCurrent" ]] && printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
+  if [[ "$QueTotal" != "$QueCurrent" ]]; then
+    printf "\r[%s%s] %s/%s " "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal"
+  else
+    printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
+  fi
 }
 
 # Function to add user-provided urls to releasenotes
