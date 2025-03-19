@@ -101,7 +101,7 @@ self_update_curl() {
 
 self_update() {
   cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n"; return; }
-  if command -v git &>/dev/null; && [[ "$(git ls-remote --get-url 2>/dev/null)" =~ .*"mag37/dockcheck".* ]]; then
+  if command -v git &>/dev/null && [[ "$(git ls-remote --get-url 2>/dev/null)" =~ .*"mag37/dockcheck".* ]]; then
     printf "\n%s\n" "Pulling the latest version."
     git pull --force || { printf "Git error, manually pull/clone.\n"; return; }
     printf "\n%s\n" "--- starting over with the updated version ---"
@@ -193,8 +193,8 @@ binary_downloader() {
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset"; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
-  if [[ $(command -v curl) ]]; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName";
-  elif [[ $(command -v wget) ]]; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName";
+  if command -v curl &>/dev/null; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName";
+  elif command -v wget &>/dev/null; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName";
   else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
   fi
   [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
