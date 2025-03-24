@@ -84,7 +84,7 @@ while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
     p)   AutoPrune=true ;;
     l)   OnlyLabel=true ;;
     f)   ForceRestartStacks=true ;;
-    i)   [[ -s "$ScriptWorkDir"/notify.sh ]] && { source "$ScriptWorkDir"/notify.sh; Notify=true; } ;;
+    i)   [[ -s "${ScriptWorkDir}/notify.sh" ]] && { source "${ScriptWorkDir}/notify.sh"; Notify=true; } ;;
     e)   Exclude=${OPTARG}; IFS=',' read -ra Excludes <<< "$Exclude" ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
@@ -196,17 +196,6 @@ releasenotes() {
   done
 }
 
-# Version check & initiate self update
-if [[ "$VERSION" != "$LatestRelease" ]]; then
-  printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
-  if [[ "$AutoMode" == false ]]; then
-    read -r -p "Would you like to update? y/[n]: " SelfUpdate
-    [[ "$SelfUpdate" =~ [yY] ]] && self_update
-  else
-    [[ "$Notify" == true ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
-  fi
-fi
-
 # Static binary downloader for dependencies
 binary_downloader() {
   BinaryName="$1"
@@ -267,6 +256,26 @@ dependency_check() {
   ${!AppVar} $VerFlag &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
 }
 
+# Numbered List function
+options() {
+  num=1
+  for i in "${GotUpdates[@]}"; do
+    echo "$num) $i"
+    ((num++))
+  done
+  }
+
+# Version check & initiate self update
+if [[ "$VERSION" != "$LatestRelease" ]]; then
+  printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+  if [[ "$AutoMode" == false ]]; then
+    read -r -p "Would you like to update? y/[n]: " SelfUpdate
+    [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  else
+    [[ "$Notify" == true ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
+  fi
+fi
+
 dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
@@ -280,15 +289,6 @@ else
   printf "%s\n" "No docker binaries available, exiting."
   exit 1
 fi
-
-# Numbered List function
-options() {
-  num=1
-  for i in "${GotUpdates[@]}"; do
-    echo "$num) $i"
-    ((num++))
-  done
-  }
 
 # Listing typed exclusions
 if [[ -n ${Excludes[*]} ]]; then
@@ -385,7 +385,7 @@ unset IFS
 
 # Run the prometheus exporter function
 if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
-  source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
+  source "${ScriptWorkDir}/addons/prometheus/prometheus_collector.sh" && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
 fi
 
 # Define how many updates are available
