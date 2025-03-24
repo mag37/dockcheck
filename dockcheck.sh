@@ -45,6 +45,8 @@ Help() {
 Timeout=${Timeout:=10}
 MaxAsync=${MaxAsync:=1}
 BarWidth=${BarWidth:=50}
+AutoMode=false
+DontUpdate=false
 
 # Colours
 c_red="\033[0;31m"
@@ -57,15 +59,15 @@ c_reset="\033[0m"
 Stopped=""
 while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
   case "${options}" in
-    a|y) AutoUp="yes" ;;
+    a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}"
          if ! [[ -d  $CollectorTextFileDirectory ]]; then { printf "The directory (%s) does not exist.\n" "${CollectorTextFileDirectory}"; exit 2; } fi ;;
-    n)   AutoUp="no" ;;
-    r)   DRunUp="yes" ;;
-    p)   AutoPrune="yes" ;;
+    n)   DontUpdate=true; AutoMode=true;;
+    r)   DRunUp=true ;;
+    p)   AutoPrune=true ;;
     l)   OnlyLabel=true ;;
     f)   ForceRestartStacks=true ;;
-    i)   [[ -s "$ScriptWorkDir"/notify.sh ]] && { source "$ScriptWorkDir"/notify.sh; Notify="yes"; } ;;
+    i)   [[ -s "$ScriptWorkDir"/notify.sh ]] && { source "$ScriptWorkDir"/notify.sh; Notify=true; } ;;
     e)   Exclude=${OPTARG}; IFS=',' read -ra Excludes <<< "$Exclude" ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
@@ -182,11 +184,11 @@ releasenotes() {
 # Version check & initiate self update
 if [[ "$VERSION" != "$LatestRelease" ]]; then
   printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
-  if [[ -z "$AutoUp" ]]; then
+  if [[ "$AutoMode" == false ]]; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
   else
-    [[ -n "$Notify" ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
+    [[ "$Notify" == true ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
   fi
 fi
 
@@ -386,19 +388,19 @@ if [[ -n ${GotErrors[*]} ]]; then
 fi
 if [[ -n ${GotUpdates[*]} ]]; then
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
-   [[ -z "$AutoUp" ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ -n "$Notify" ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
+   [[ "$AutoMode" == false ]] && options || printf "%s\n" "${GotUpdates[@]}"
+   [[ "$Notify" == true ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any
 if [[ -n "$GotUpdates" ]]; then
-  if [[ -z "$AutoUp" ]]; then
+  if [[ "$AutoMode" == false ]]; then
     printf "\n%bChoose what containers to update.%b\n" "$c_teal" "$c_reset"
     choosecontainers
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [[ "$AutoUp" == "${AutoUp#[Nn]}" ]]; then
+  if [[ "$DontUpdate" == false ]]; then
     NumberofUpdates="${#SelectedUpdates[@]}"
     CurrentQue=0
     for i in "${SelectedUpdates[@]}"
@@ -423,7 +425,7 @@ if [[ -n "$GotUpdates" ]]; then
 
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
-        if [[ "$DRunUp" == "yes" ]]; then
+        if [[ "$DRunUp" == true ]]; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
@@ -453,8 +455,8 @@ if [[ -n "$GotUpdates" ]]; then
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
-    if [[ -z "$AutoPrune" ]] && [[ -z "$AutoUp" ]]; then read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
-    [[ "$AutoPrune" =~ [yY] ]] && docker image prune -f
+    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
+    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then docker image prune -f; fi
   else
     printf "\nNo updates installed, exiting.\n"
   fi
