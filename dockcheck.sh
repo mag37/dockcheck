@@ -14,9 +14,7 @@ LatestRelease="$(curl -s -r 0-50 "$RawUrl" | sed -n "/VERSION/s/VERSION=//p" | t
 LatestChanges="$(curl -s -r 0-200 "$RawUrl" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
 
 # User customizable defaults
-MaxAsync=1
-Timeout=10
-BarWidth=50
+[[ -s "${ScriptWorkDir}/uservars.config" ]] && source "${ScriptWorkDir}/uservars.config"
 
 # Help Function
 Help() {
@@ -43,6 +41,10 @@ Help() {
   echo
   echo "Project source: $Github"
 }
+
+Timeout=${Timeout:=10}
+MaxAsync=${MaxAsync:=1}
+BarWidth=${BarWidth:=50}
 
 # Colours
 c_red="\033[0;31m"
