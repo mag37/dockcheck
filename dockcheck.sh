@@ -332,7 +332,7 @@ check_image() {
     if [[ "$LocalHash" = *"$RegHash"* ]]; then
       echo NoUpdates "$i"
     else
-      if [[ -n "$DaysOld" ]] && ! datecheck; then
+      if [[ -n "${DaysOld:-}" ]] && ! datecheck; then
         echo NoUpdates "+$i ${ImageAge}d"
       else
         echo GotUpdates "$i"
@@ -408,7 +408,7 @@ if [[ -n ${GotUpdates[*]} ]]; then
 fi
 
 # Optionally get updates if there's any
-if [[ -n "$GotUpdates" ]]; then
+if [[ -n "${GotUpdates:-}" ]]; then
   if [[ "$AutoMode" == false ]]; then
     printf "\n%bChoose what containers to update.%b\n" "$c_teal" "$c_reset"
     choosecontainers
