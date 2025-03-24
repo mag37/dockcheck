@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.5.8.0"
-### ChangeNotes: Added version checks to all templates and a notification if a new template is released.
+VERSION="v0.6.0"
+### ChangeNotes: uservars file added. Lots of code refactoring, please report any bugs.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -64,7 +64,6 @@ NoUpdates=()
 GotErrors=()
 SelectedUpdates=()
 regbin=""
-
 
 # Colours
 c_red="\033[0;31m"

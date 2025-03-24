@@ -21,15 +21,15 @@
 ___
 ## :bell: Changelog
 
-- **v0.5.8.0**: Added version checks to all templates and a notification if a new template is released.
-- **v0.5.7.0**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
+- **v0.6.0**: Added a vars.conf for user settings. Refactored and cleaned a lot of logic and syntax.
+- **v0.5.8**: Added version checks to all templates and a notification if a new template is released.
+- **v0.5.7**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
     - Manually migrate your current `notify.sh` settings to a new template for new functionality.
 - **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
     - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
     - Added `-x N` option to pass `MaxAsync` value at runtime.
     - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
 - **v0.5.6.0**: Heavily improved performance due to async checking for updates.
-- **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 ___
 
 
@@ -108,9 +108,9 @@ wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockc
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
-## :: Configuration
+## :handbag: Configuration
 To modify settings and have them persist through updates - copy/move the `vars.config` to `uservars.config` and edit it.  
-Alternatively create an alias where specific flags and values are set. Example `alias dc=dockcheck.sh -x 10 -t 3`.
+Alternatively create an alias where specific flags and values are set. Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
