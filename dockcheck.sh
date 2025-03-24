@@ -16,6 +16,7 @@ LatestChanges="$(curl -s -r 0-200 "$RawUrl" | sed -n "/ChangeNotes/s/# ChangeNot
 # User customizable defaults
 MaxAsync=1
 Timeout=10
+BarWidth=50
 
 # Help Function
 Help() {
@@ -154,8 +155,8 @@ progress_bar() {
   QueTotal="$2"
   BarWidth=${BarWidth:-50}
   ((Percent=100*QueCurrent/QueTotal))
-  ((Complete=BarWidth*Percent/100)) # Change first number for width (50)
-  ((Left=BarWidth-Complete)) # Change first number for width (50)
+  ((Complete=BarWidth*Percent/100))
+  ((Left=BarWidth-Complete)) || true # to not throw error when result is 0
   BarComplete=$(printf "%${Complete}s" | tr " " "#")
   BarLeft=$(printf "%${Left}s" | tr " " "-")
   if [[ "$QueTotal" != "$QueCurrent" ]]; then
