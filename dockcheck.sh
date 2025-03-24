@@ -4,6 +4,10 @@ VERSION="v0.5.8.0"
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
+set -euo pipefail
+shopt -s nullglob
+shopt -s failglob
+
 # Variables for self updating
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
@@ -42,11 +46,25 @@ Help() {
   echo "Project source: $Github"
 }
 
+# Initialise variables
 Timeout=${Timeout:=10}
 MaxAsync=${MaxAsync:=1}
 BarWidth=${BarWidth:=50}
-AutoMode=false
-DontUpdate=false
+AutoMode=${AutoMode:=false}
+DontUpdate=${DontUpdate:=false}
+AutoPrune=${AutoPrune:=false}
+OnlyLabel=${OnlyLabel:=false}
+Notify=${Notify:=false}
+ForceRestartStacks=${ForceRestartStacks:=false}
+DRunUp=${DRunUp:=false}
+Stopped=${Stopped:=""}
+Excludes=()
+GotUpdates=()
+NoUpdates=()
+GotErrors=()
+SelectedUpdates=()
+regbin=""
+
 
 # Colours
 c_red="\033[0;31m"
@@ -56,7 +74,6 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-Stopped=""
 while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
@@ -81,10 +98,8 @@ while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
 done
 shift "$((OPTIND-1))"
 
-
 # Set $1 to a variable for name filtering later
 SearchName="${1:-}"
-
 
 # Self-update function
 self_update_curl() {
@@ -287,7 +302,7 @@ ContCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}'
 RegCheckQue=0
 
 # Testing and setting timeout binary
-t_out=$(command -v timeout)
+t_out=$(command -v timeout || echo "")
 if [[ $t_out ]]; then
   t_out=$(realpath $t_out 2>/dev/null || readlink -f $t_out)
   if [[ $t_out =~ "busybox" ]]; then
@@ -369,7 +384,7 @@ GotUpdates=($(sort <<<"${GotUpdates[*]}"))
 unset IFS
 
 # Run the prometheus exporter function
-if [[ -n "$CollectorTextFileDirectory" ]]; then
+if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
   source "$ScriptWorkDir"/addons/prometheus/prometheus_collector.sh && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
 fi
 
@@ -446,6 +461,7 @@ if [[ -n "$GotUpdates" ]]; then
       [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
       docker pull "$ContImage"
       # Check if the container got an environment file set and reformat it
+      ContEnvs=""
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
