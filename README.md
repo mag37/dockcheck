@@ -55,7 +55,7 @@ Options:"
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
--t     Set a timeout (in seconds) per container for registry checkups, 10 is default.
+-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -v     Prints current version.
 -x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested.
 ```
@@ -108,6 +108,9 @@ wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockc
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
+## :: Configuration
+To modify settings and have them persist through updates - copy/move the `vars.config` to `uservars.config` and edit it.  
+Alternatively create an alias where specific flags and values are set. Example `alias dc=dockcheck.sh -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
