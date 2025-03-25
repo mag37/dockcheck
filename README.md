@@ -21,7 +21,7 @@
 ___
 ## :bell: Changelog
 
-- **v0.6.0**: Added a vars.conf for user settings. Refactored and cleaned a lot of logic and syntax.
+- **v0.6.0**: Added a `default.conf` for user settings. Refactored and cleaned a lot of logic and syntax.
 - **v0.5.8**: Added version checks to all templates and a notification if a new template is released.
 - **v0.5.7**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
     - Manually migrate your current `notify.sh` settings to a new template for new functionality.
@@ -41,7 +41,7 @@ $ ./dockcheck.sh -h
 Syntax:     dockcheck.sh [OPTION] [part of name to filter]
 Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
 
-Options:"
+Options:
 -a|y   Automatic updates, without interaction.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
