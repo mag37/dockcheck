@@ -18,7 +18,11 @@ LatestRelease="$(curl -s -r 0-50 "$RawUrl" | sed -n "/VERSION/s/VERSION=//p" | t
 LatestChanges="$(curl -s -r 0-200 "$RawUrl" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
 
 # User customizable defaults
-[[ -s "${ScriptWorkDir}/uservars.config" ]] && source "${ScriptWorkDir}/uservars.config"
+if [[ -s "${HOME}/.config/dockcheck.config" ]]; then
+  source "${HOME}/.config/dockcheck.config"
+elif [[ -s "${ScriptWorkDir}/dockcheck.config" ]]; then
+  source "${ScriptWorkDir}/dockcheck.config"
+fi
 
 # Help Function
 Help() {

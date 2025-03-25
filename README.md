@@ -109,7 +109,7 @@ Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
 ## :handbag: Configuration
-To modify settings and have them persist through updates - copy/move the `vars.config` to `uservars.config` and edit it.  
+To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/`.  
 Alternatively create an alias where specific flags and values are set. Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications

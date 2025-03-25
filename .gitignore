@@ -2,6 +2,6 @@
 /notify.sh
 /urls.list
 # ignore user config
-/uservars.config
+/dockcheck.config
 # ignore the auto-installed regctl
 regctl
