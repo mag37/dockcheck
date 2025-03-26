@@ -88,7 +88,7 @@ while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
     l)   OnlyLabel=true ;;
     f)   ForceRestartStacks=true ;;
     i)   [[ -s "${ScriptWorkDir}/notify.sh" ]] && { source "${ScriptWorkDir}/notify.sh"; Notify=true; } ;;
-    e)   Exclude=${OPTARG}; IFS=',' read -ra Excludes <<< "$Exclude" ;;
+    e)   Exclude=${OPTARG}; IFS=',' read -ra Excludes <<< "$Exclude"; unset IFS ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
