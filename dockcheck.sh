@@ -39,7 +39,7 @@ Help() {
   echo "-i     Inform - send a preconfigured notification."
   echo "-l     Only update if label is set. See readme."
   echo "-m     Monochrome mode, no printf colour codes."
-  echo "-n     No updates; only checking availability."
+  echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
   echo "-r     Allow updating images for docker run; won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
@@ -62,6 +62,9 @@ Notify=${Notify:=false}
 ForceRestartStacks=${ForceRestartStacks:=false}
 DRunUp=${DRunUp:=false}
 Stopped=${Stopped:=""}
+CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
+Exclude=${Exclude:-}
+DaysOld=${DaysOld:-}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
@@ -81,22 +84,20 @@ c_reset="\033[0m"
 while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
-    c)   CollectorTextFileDirectory="${OPTARG}"
-         if ! [[ -d  $CollectorTextFileDirectory ]]; then { printf "The directory (%s) does not exist.\n" "${CollectorTextFileDirectory}"; exit 2; } fi ;;
+    c)   CollectorTextFileDirectory="${OPTARG}" ;;
     n)   DontUpdate=true; AutoMode=true;;
     r)   DRunUp=true ;;
     p)   AutoPrune=true ;;
     l)   OnlyLabel=true ;;
     f)   ForceRestartStacks=true ;;
-    i)   [[ -s "${ScriptWorkDir}/notify.sh" ]] && { source "${ScriptWorkDir}/notify.sh"; Notify=true; } ;;
-    e)   Exclude=${OPTARG}; IFS=',' read -ra Excludes <<< "$Exclude"; unset IFS ;;
+    i)   Notify=true ;;
+    e)   Exclude=${OPTARG} ;;
     m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
     v)   printf "%s\n" "$VERSION"; exit 0 ;;
     x)   MaxAsync=${OPTARG} ;;
-    d)   DaysOld=${OPTARG}
-         if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then { printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}"; exit 2; }; fi ;;
+    d)   DaysOld=${OPTARG} ;;
     h|*) Help; exit 2 ;;
   esac
 done
@@ -104,6 +105,21 @@ shift "$((OPTIND-1))"
 
 # Set $1 to a variable for name filtering later
 SearchName="${1:-}"
+
+# Setting up options
+if [[ -n "$CollectorTextFileDirectory" ]]; then
+  if ! [[ -d  $CollectorTextFileDirectory ]]; then { printf "The directory (%s) does not exist.\n" "$CollectorTextFileDirectory"; exit 2; } fi
+fi
+if [[ "$Notify" == true ]]; then
+  if [[ -s "${ScriptWorkDir}/notify.sh" ]]; then source "${ScriptWorkDir}/notify.sh"; else Notify=false; fi
+fi
+if [[ -n "$Exclude" ]]; then
+  IFS=',' read -ra Excludes <<< "$Exclude"; unset IFS
+fi
+if [[ -n "$DaysOld" ]]; then
+  if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then { printf "Days -d argument given (%s) is not a number.\n" "$DaysOld"; exit 2; }; fi
+fi
+if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
 
 # Self-update function
 self_update_curl() {
