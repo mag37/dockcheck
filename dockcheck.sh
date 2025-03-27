@@ -318,7 +318,7 @@ if [[ -n ${Excludes[*]} ]]; then
 fi
 
 # Variables for progress_bar function
-ContCount=$(docker ps "$Stopped" --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
+ContCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
 RegCheckQue=0
 
 # Testing and setting timeout binary
@@ -348,7 +348,7 @@ check_image() {
   LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
 
   # Checking for errors while setting the variable
-  if RegHash=$("$t_out" "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
+  if RegHash=$($t_out "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
     if [[ "$LocalHash" = *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
     else
@@ -392,7 +392,7 @@ while read -r line; do
     *) echo "Error! Unexpected output from subprocess: ${line}" ;;
   esac
 done < <( \
-  docker ps "$Stopped" --filter "name=$SearchName" --format '{{.Names}}' | \
+  docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
   xargs "$XargsAsync" -I {} bash -c 'check_image "{}"' \
 )
 
