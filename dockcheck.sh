@@ -68,6 +68,7 @@ NoUpdates=()
 GotErrors=()
 SelectedUpdates=()
 regbin=""
+jqbin=""
 
 # Colours
 c_red="\033[0;31m"
@@ -162,9 +163,9 @@ choosecontainers() {
 }
 
 datecheck() {
-  ImageDate=$($regbin -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1 )
+  ImageDate=$("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1)
   ImageEpoch=$(date -d "$ImageDate" +%s 2>/dev/null) || ImageEpoch=$(date -f "%Y-%m-%d" -j "$ImageDate" +%s)
-  ImageAge=$(( ( $(date +%s) - $ImageEpoch )/86400 ))
+  ImageAge=$(( ( $(date +%s) - ImageEpoch )/86400 ))
   if [[ "$ImageAge" -gt "$DaysOld" ]]; then
     return 0
   else
@@ -190,12 +191,12 @@ progress_bar() {
 
 # Function to add user-provided urls to releasenotes
 releasenotes() {
-  for update in ${GotUpdates[@]}; do
+  for update in "${GotUpdates[@]}"; do
     found=false
     while read -r container url; do
-      [[ $update == $container ]] && Updates+=("$update  ->  $url") && found=true
-    done < "$ScriptWorkDir"/urls.list
-    [[ $found == false ]] && Updates+=("$update  ->  url missing") || continue
+      if [[ "$update" == "$container" ]]; then Updates+=("$update  ->  $url"); found=true; fi
+    done < "${ScriptWorkDir}/urls.list"
+    if [[ "$found" == false ]]; then Updates+=("$update  ->  url missing"); else continue; fi
   done
 }
 
@@ -209,8 +210,8 @@ binary_downloader() {
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset"; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
-  if command -v curl &>/dev/null; then curl -L $GetUrl > "$ScriptWorkDir/$BinaryName";
-  elif command -v wget &>/dev/null; then wget $GetUrl -O "$ScriptWorkDir/$BinaryName";
+  if command -v curl &>/dev/null; then curl -L "$GetUrl" > "$ScriptWorkDir/$BinaryName";
+  elif command -v wget &>/dev/null; then wget "$GetUrl" -O "$ScriptWorkDir/$BinaryName";
   else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
   fi
   [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
@@ -231,8 +232,8 @@ dependency_check() {
   AppName="$1"
   AppVar="$2"
   AppUrl="$3"
-  if command -v $AppName &>/dev/null; then export $AppVar="$AppName";
-  elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export $AppVar="$ScriptWorkDir/$AppName";
+  if command -v "$AppName" &>/dev/null; then export "$AppVar"="$AppName";
+  elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export "$AppVar"="$ScriptWorkDir/$AppName";
   else
     printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
     read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
@@ -241,14 +242,14 @@ dependency_check() {
       [[ "$GetBin" =~ [yY] ]] && distro_checker
       if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]]; then
         [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
-        ($PkgInstaller $AppName); PkgExitcode="$?" && AppName="$1"
-        if [[ "$PkgExitcode" == 0 ]]; then { export $AppVar="$AppName" && printf "\n%b$AppName installed.%b\n" "$c_green" "$c_reset"; }
+        ("$PkgInstaller" "$AppName"); PkgExitcode="$?" && AppName="$1"
+        if [[ "$PkgExitcode" == 0 ]]; then { export "$AppVar"="$AppName" && printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"; }
         else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
         fi
       fi
       if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]]; then
           binary_downloader "$AppName" "$AppUrl"
-          [[ -f "$ScriptWorkDir/$AppName" ]] && { export $AppVar="$ScriptWorkDir/$1" && printf "\n%b$AppName downloaded.%b\n" "$c_green" "$c_reset"; }
+          [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%b downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
     else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"; exit 1;
     fi
@@ -256,7 +257,7 @@ dependency_check() {
   # Final check if binary is correct
   [[ "$1" == "jq" ]] && VerFlag="--version"
   [[ "$1" == "regctl" ]] && VerFlag="version"
-  ${!AppVar} $VerFlag &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
+  ${!AppVar} "$VerFlag" &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
 }
 
 # Numbered List function
@@ -301,13 +302,13 @@ if [[ -n ${Excludes[*]} ]]; then
 fi
 
 # Variables for progress_bar function
-ContCount=$(docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
+ContCount=$(docker ps "$Stopped" --filter "name=$SearchName" --format '{{.Names}}' | wc -l)
 RegCheckQue=0
 
 # Testing and setting timeout binary
 t_out=$(command -v timeout || echo "")
 if [[ $t_out ]]; then
-  t_out=$(realpath $t_out 2>/dev/null || readlink -f $t_out)
+  t_out=$(realpath "$t_out" 2>/dev/null || readlink -f "$t_out")
   if [[ $t_out =~ "busybox" ]]; then
     t_out="timeout ${Timeout}"
   else t_out="timeout --foreground ${Timeout}"
@@ -320,7 +321,7 @@ check_image() {
   local Excludes=($Excludes_string)
   for e in "${Excludes[@]}"; do
     if [[ "$i" == "$e" ]]; then
-      echo Skip $i
+      printf "%s\n" "Skip $i"
       return
     fi
   done
@@ -331,25 +332,24 @@ check_image() {
   LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
 
   # Checking for errors while setting the variable
-  if RegHash=$(${t_out} $regbin -v error image digest --list "$RepoUrl" 2>&1); then
+  if RegHash=$("$t_out" "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
     if [[ "$LocalHash" = *"$RegHash"* ]]; then
-      echo NoUpdates "$i"
+      printf "%s\n" "NoUpdates $i"
     else
       if [[ -n "${DaysOld:-}" ]] && ! datecheck; then
-        echo NoUpdates "+$i ${ImageAge}d"
+        printf "%s\n" "NoUpdates +$i ${ImageAge}d"
       else
-        echo GotUpdates "$i"
+        printf "%s\n" "GotUpdates $i"
       fi
     fi
   else
-    # Here the RegHash is the result of an error code
-    echo GotErrors "$i - ${RegHash}"
+    printf "%s\n" "GotErrors $i - ${RegHash}"  # Reghash contains an error code here
   fi
 }
 
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
-export Excludes_string="${Excludes[@]}" # Can only export scalar variables
+export Excludes_string="${Excludes[*]}" # Can only export scalar variables
 export t_out regbin RepoUrl DaysOld
 
 # Check for POSIX xargs with -P option, fallback without async
@@ -376,8 +376,8 @@ while read -r line; do
     *) echo "Error! Unexpected output from subprocess: ${line}" ;;
   esac
 done < <( \
-  docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
-  xargs ${XargsAsync} -I {} bash -c 'check_image "{}"' \
+  docker ps "$Stopped" --filter "name=$SearchName" --format '{{.Names}}' | \
+  xargs "$XargsAsync" -I {} bash -c 'check_image "{}"' \
 )
 
 # Sort arrays alphabetically
