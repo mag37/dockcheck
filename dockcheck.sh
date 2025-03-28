@@ -492,7 +492,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Checking if Label Only -option is set, and if container got the label
       [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
-      docker pull "$ContImage"
+      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       # Check if the container got an environment file set and reformat it
       ContEnvs=""
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi

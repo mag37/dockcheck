@@ -110,7 +110,8 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 
 ## :handbag: Configuration
 To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/`.  
-Alternatively create an alias where specific flags and values are set. Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
+Alternatively create an alias where specific flags and values are set.  
+Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
@@ -232,6 +233,7 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 ## :heartpulse: Sponsorlist
 
 - [avegy](https://github.com/avegy)
+- [eichhorn](https://github.com/eichhorn)
 
 ___
 
