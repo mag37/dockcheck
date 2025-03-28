@@ -106,22 +106,33 @@ shift "$((OPTIND-1))"
 # Set $1 to a variable for name filtering later
 SearchName="${1:-}"
 
-# Setting up options
-if [[ -n "$CollectorTextFileDirectory" ]]; then
-  if ! [[ -d  $CollectorTextFileDirectory ]]; then { printf "The directory (%s) does not exist.\n" "$CollectorTextFileDirectory"; exit 2; } fi
-fi
+# Setting up options and sourcing functions
+if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
 if [[ "$Notify" == true ]]; then
-  if [[ -s "${ScriptWorkDir}/notify.sh" ]]; then source "${ScriptWorkDir}/notify.sh"; else Notify=false; fi
+  if [[ -s "${ScriptWorkDir}/notify.sh" ]]; then
+    source "${ScriptWorkDir}/notify.sh"
+  else Notify=false
+  fi
 fi
 if [[ -n "$Exclude" ]]; then
-  IFS=',' read -ra Excludes <<< "$Exclude"; unset IFS
+  IFS=',' read -ra Excludes <<< "$Exclude"
+  unset IFS
 fi
 if [[ -n "$DaysOld" ]]; then
-  if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then { printf "Days -d argument given (%s) is not a number.\n" "$DaysOld"; exit 2; }; fi
+  if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
+    printf "Days -d argument given (%s) is not a number.\n" "$DaysOld"
+    exit 2
+  fi
 fi
-if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
+if [[ -n "$CollectorTextFileDirectory" ]]; then
+  if ! [[ -d  $CollectorTextFileDirectory ]]; then
+    printf "The directory (%s) does not exist.\n" "$CollectorTextFileDirectory"
+    exit 2
+  else
+    source "${ScriptWorkDir}/addons/prometheus/prometheus_collector.sh"
+  fi
+fi
 
-# Self-update function
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if command -v curl &>/dev/null; then
@@ -133,7 +144,7 @@ self_update_curl() {
     wget $RawUrl -O "$ScriptPath"; chmod +x "$ScriptPath"
     printf "\n%s\n" "--- starting over with the updated version ---"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
-    exit 1 # Exit the old instance
+    exit 0 # exit the old instance
   else
     printf "curl/wget not available - download the update manually: %s \n" "$Github"
   fi
@@ -147,7 +158,7 @@ self_update() {
     printf "\n%s\n" "--- starting over with the updated version ---"
     cd - || { printf "Path error.\n"; return; }
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
-    exit 1 # exit the old instance
+    exit 0 # exit the old instance
   else
     cd - || { printf "Path error.\n"; return; }
     self_update_curl
@@ -404,7 +415,10 @@ unset IFS
 
 # Run the prometheus exporter function
 if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
-  source "${ScriptWorkDir}/addons/prometheus/prometheus_collector.sh" && prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
+  if type -t send_notification &>/dev/null; then
+    prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
+  else
+    printf "Could not source prometheus exporter function.\n"; }
 fi
 
 # Define how many updates are available
@@ -423,7 +437,7 @@ fi
 if [[ -n ${GotUpdates[*]} ]]; then
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ "$AutoMode" == false ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ "$Notify" == true ]] && { [[ $(type -t send_notification) == function ]] && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
+   [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any
@@ -484,9 +498,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-        $DockerBin ${CompleteConfs} stop; $DockerBin ${CompleteConfs} ${ContEnvs} up -d
+        "$DockerBin" ${CompleteConfs} stop; "$DockerBin" ${CompleteConfs} ${ContEnvs} up -d
       else
-        $DockerBin ${CompleteConfs} ${ContEnvs} up -d ${ContName}
+        "$DockerBin" ${CompleteConfs} ${ContEnvs} up -d ${ContName}
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
