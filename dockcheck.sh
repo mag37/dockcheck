@@ -404,7 +404,7 @@ while read -r line; do
   esac
 done < <( \
   docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
-  xargs "$XargsAsync" -I {} bash -c 'check_image "{}"' \
+  xargs $XargsAsync -I {} bash -c 'check_image "{}"' \
 )
 
 # Sort arrays alphabetically
