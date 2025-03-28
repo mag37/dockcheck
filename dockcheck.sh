@@ -418,7 +418,8 @@ if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
   if type -t send_notification &>/dev/null; then
     prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
   else
-    printf "Could not source prometheus exporter function.\n"; }
+    printf "%s\n" "Could not source prometheus exporter function."
+  fi
 fi
 
 # Define how many updates are available
