@@ -21,7 +21,10 @@
 ___
 ## :bell: Changelog
 
-- **v0.6.0**: Added a `default.conf` for user settings. Refactored and cleaned a lot of logic and syntax.
+- **v0.6.0**: Refactored a lot of code, cleaner logic and syntax, safer variables.
+    - Safer bash options with `set -euo pipefail`, `shopt -s nullglob` and `failglob`.
+    - Added a `default.conf` for user settings - persistent through updates.
+    - Added `notify_slack.sh` template for slack curl api.
 - **v0.5.8**: Added version checks to all templates and a notification if a new template is released.
 - **v0.5.7**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
     - Manually migrate your current `notify.sh` settings to a new template for new functionality.
@@ -132,6 +135,7 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
 - [Pushover](https://pushover.net/) - Simple Notifications (to your phone, wearables, desktops)
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
+- [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
