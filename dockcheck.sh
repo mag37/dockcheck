@@ -499,9 +499,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-        "$DockerBin" ${CompleteConfs} stop; "$DockerBin" ${CompleteConfs} ${ContEnvs} up -d
+        ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d
       else
-        "$DockerBin" ${CompleteConfs} ${ContEnvs} up -d ${ContName}
+        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName}
       fi
     done
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
