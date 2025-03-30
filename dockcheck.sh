@@ -267,7 +267,7 @@ dependency_check() {
     GetBin=${GetBin:-no} # set default to no if nothing is given
     if [[ "$GetBin" =~ [yYsS] ]]; then
       [[ "$GetBin" =~ [yY] ]] && distro_checker
-      if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]]; then
+      if [[ -n "${PkgInstaller:-}" && "${PkgInstaller:-}" != "ERROR" ]]; then
         [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
         ("$PkgInstaller" "$AppName"); PkgExitcode="$?" && AppName="$1"
         if [[ "$PkgExitcode" == 0 ]]; then { export "$AppVar"="$AppName" && printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"; }
