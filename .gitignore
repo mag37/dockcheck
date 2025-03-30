@@ -1,5 +1,7 @@
 # ignore users custom notify.sh
 /notify.sh
 /urls.list
+# ignore user config
+/dockcheck.config
 # ignore the auto-installed regctl
 regctl

@@ -21,15 +21,18 @@
 ___
 ## :bell: Changelog
 
-- **v0.5.8.0**: Added version checks to all templates and a notification if a new template is released.
-- **v0.5.7.0**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
+- **v0.6.0**: Refactored a lot of code, cleaner logic and syntax, safer variables.
+    - Safer bash options with `set -euo pipefail`, `shopt -s nullglob` and `failglob`.
+    - Added a `default.conf` for user settings - persistent through updates.
+    - Added `notify_slack.sh` template for slack curl api.
+- **v0.5.8**: Added version checks to all templates and a notification if a new template is released.
+- **v0.5.7**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
     - Manually migrate your current `notify.sh` settings to a new template for new functionality.
 - **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
     - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
     - Added `-x N` option to pass `MaxAsync` value at runtime.
     - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
 - **v0.5.6.0**: Heavily improved performance due to async checking for updates.
-- **v0.5.5.0**: osx and bsd compatibility changes + rewrite of dependency installer
 ___
 
 
@@ -41,7 +44,7 @@ $ ./dockcheck.sh -h
 Syntax:     dockcheck.sh [OPTION] [part of name to filter]
 Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
 
-Options:"
+Options:
 -a|y   Automatic updates, without interaction.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
@@ -55,7 +58,7 @@ Options:"
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
--t     Set a timeout (in seconds) per container for registry checkups, 10 is default.
+-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -v     Prints current version.
 -x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested.
 ```
@@ -108,6 +111,10 @@ wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockc
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
+## :handbag: Configuration
+To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/`.  
+Alternatively create an alias where specific flags and values are set.  
+Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
 Trigger with the `-i` flag.  
@@ -128,6 +135,7 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
 - [Pushover](https://pushover.net/) - Simple Notifications (to your phone, wearables, desktops)
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
+- [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
@@ -229,6 +237,7 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 ## :heartpulse: Sponsorlist
 
 - [avegy](https://github.com/avegy)
+- [eichhorn](https://github.com/eichhorn)
 
 ___
 
