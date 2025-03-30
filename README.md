@@ -21,6 +21,10 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.1**: Hotfixes: (try removing set+shopt+shopt if debugging more errors)
+    - xargs/pipefail, removed `-set -e` bash option for now.
+    - unbound variables fixed (hopefully)
+    - dependency installer from pkgmanager rewritten
 - **v0.6.0**: Refactored a lot of code, cleaner logic and syntax, safer variables.
     - Safer bash options with `set -euo pipefail`, `shopt -s nullglob` and `failglob`.
     - Added a `default.conf` for user settings - persistent through updates.

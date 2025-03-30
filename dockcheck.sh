@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-VERSION="v0.6.0"
-### ChangeNotes: uservars file added. Lots of code refactoring, please report any bugs.
+VERSION="v0.6.1"
+### ChangeNotes: Hotfix - bug with xargs pipefail, pkgmanager logic, unbound variables
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
-set -euo pipefail
+set -uo pipefail
 shopt -s nullglob
 shopt -s failglob
 
@@ -326,7 +326,7 @@ else
 fi
 
 # Listing typed exclusions
-if [[ -n ${Excludes[*]} ]]; then
+if [[ -n ${Excludes[*]:-} ]]; then
   printf "\n%bExcluding these names:%b\n" "$c_blue" "$c_reset"
   printf "%s\n" "${Excludes[@]}"
   printf "\n"
