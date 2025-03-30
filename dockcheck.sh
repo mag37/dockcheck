@@ -269,12 +269,16 @@ dependency_check() {
       [[ "$GetBin" =~ [yY] ]] && distro_checker
       if [[ -n "${PkgInstaller:-}" && "${PkgInstaller:-}" != "ERROR" ]]; then
         [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
-        ("$PkgInstaller" "$AppName"); PkgExitcode="$?" && AppName="$1"
-        if [[ "$PkgExitcode" == 0 ]]; then { export "$AppVar"="$AppName" && printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"; }
-        else printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+        if $PkgInstaller "$AppName"; then
+          AppName="$1"
+          export "$AppVar"="$AppName" 
+          printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"
+        else 
+          PkgExitcode="ERROR"
+          printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
         fi
       fi
-      if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]]; then
+      if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" ]]; then
           binary_downloader "$AppName" "$AppUrl"
           [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%b downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
