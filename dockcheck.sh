@@ -413,14 +413,14 @@ done < <( \
 
 # Sort arrays alphabetically
 IFS=$'\n'
-NoUpdates=($(sort <<<"${NoUpdates[*]}"))
-GotUpdates=($(sort <<<"${GotUpdates[*]}"))
+NoUpdates=($(sort <<<"${NoUpdates[*]:-}"))
+GotUpdates=($(sort <<<"${GotUpdates[*]:-}"))
 unset IFS
 
 # Run the prometheus exporter function
 if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
   if type -t send_notification &>/dev/null; then
-    prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
+    prometheus_exporter ${#NoUpdates[@]:-} ${#GotUpdates[@]:-} ${#GotErrors[@]:-}
   else
     printf "%s\n" "Could not source prometheus exporter function."
   fi
@@ -430,16 +430,16 @@ fi
 UpdCount="${#GotUpdates[@]}"
 
 # List what containers got updates or not
-if [[ -n ${NoUpdates[*]} ]]; then
+if [[ -n ${NoUpdates[*]:-} ]]; then
   printf "\n%bContainers on latest version:%b\n" "$c_green" "$c_reset"
   printf "%s\n" "${NoUpdates[@]}"
 fi
-if [[ -n ${GotErrors[*]} ]]; then
+if [[ -n ${GotErrors[*]:-} ]]; then
   printf "\n%bContainers with errors, won't get updated:%b\n" "$c_red" "$c_reset"
   printf "%s\n" "${GotErrors[@]}"
   printf "%binfo:%b 'unauthorized' often means not found in a public registry.\n" "$c_blue" "$c_reset"
 fi
-if [[ -n ${GotUpdates[*]} ]]; then
+if [[ -n ${GotUpdates[*]:-} ]]; then
    printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
    [[ "$AutoMode" == false ]] && options || printf "%s\n" "${GotUpdates[@]}"
    [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
