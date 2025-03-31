@@ -271,9 +271,9 @@ dependency_check() {
         [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
         if $PkgInstaller "$AppName"; then
           AppName="$1"
-          export "$AppVar"="$AppName" 
+          export "$AppVar"="$AppName"
           printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"
-        else 
+        else
           PkgExitcode="ERROR"
           printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
         fi
@@ -380,7 +380,7 @@ check_image() {
 
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
-export Excludes_string="${Excludes[*]}" # Can only export scalar variables
+export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
 export t_out regbin RepoUrl DaysOld
 
 # Check for POSIX xargs with -P option, fallback without async
