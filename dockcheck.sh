@@ -137,30 +137,30 @@ self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if command -v curl &>/dev/null; then
     curl -L $RawUrl > "$ScriptPath"; chmod +x "$ScriptPath"
-    printf "\n%s\n" "--- starting over with the updated version ---"
+    printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # Exit the old instance
   elif command -v wget &>/dev/null; then
     wget $RawUrl -O "$ScriptPath"; chmod +x "$ScriptPath"
-    printf "\n%s\n" "--- starting over with the updated version ---"
+    printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
   else
-    printf "curl/wget not available - download the update manually: %s \n" "$Github"
+    printf "\n%bcurl/wget not available %b- download the update manually: %b%s %b\n" "$c_red" "$c_reset" "$c_teal" "$Github" "$c_reset"
   fi
 }
 
 self_update() {
-  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n"; return; }
+  cd "$ScriptWorkDir" || { printf "%bPath error,%b skipping update.\n" "$c_red" "$c_reset"; return; }
   if command -v git &>/dev/null && [[ "$(git ls-remote --get-url 2>/dev/null)" =~ .*"mag37/dockcheck".* ]]; then
     printf "\n%s\n" "Pulling the latest version."
-    git pull --force || { printf "Git error, manually pull/clone.\n"; return; }
+    git pull --force || { printf "%bGit error,%b manually pull/clone.\n" "$c_red" "$c_reset"; return; }
     printf "\n%s\n" "--- starting over with the updated version ---"
-    cd - || { printf "Path error.\n"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
   else
-    cd - || { printf "Path error.\n"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
     self_update_curl
   fi
 }
@@ -184,7 +184,7 @@ choosecontainers() {
       done
     fi
   done
-  printf "\nUpdating containers:\n"
+  printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
   printf "%s\n" "${SelectedUpdates[@]}"
   printf "\n"
 }
@@ -487,7 +487,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         continue
       fi
       # cd to the compose-file directory to account for people who use relative volumes
-      cd "$ContPath" || { echo "Path error - skipping $i"; continue; }
+      cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
       ## Reformatting path + multi compose
       if [[ $ContConfigFile = '/'* ]]; then
         CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
