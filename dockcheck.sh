@@ -38,7 +38,7 @@ Help() {
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-l     Only update if label is set. See readme."
-  echo "-m     Monochrome mode, no printf colour codes."
+  echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
   echo "-r     Allow updating images for docker run; won't update the container."
@@ -61,6 +61,7 @@ OnlyLabel=${OnlyLabel:=false}
 Notify=${Notify:=false}
 ForceRestartStacks=${ForceRestartStacks:=false}
 DRunUp=${DRunUp:=false}
+MonoMode=${MonoMode:=false}
 Stopped=${Stopped:=""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
@@ -92,7 +93,7 @@ while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
     f)   ForceRestartStacks=true ;;
     i)   Notify=true ;;
     e)   Exclude=${OPTARG} ;;
-    m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
+    m)   MonoMode=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
     v)   printf "%s\n" "$VERSION"; exit 0 ;;
@@ -108,6 +109,7 @@ SearchName="${1:-}"
 
 # Setting up options and sourcing functions
 if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
+if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi
 if [[ "$Notify" == true ]]; then
   if [[ -s "${ScriptWorkDir}/notify.sh" ]]; then
     source "${ScriptWorkDir}/notify.sh"
@@ -394,7 +396,7 @@ fi
 # Asynchronously check the image-hash of every running container VS the registry
 while read -r line; do
   ((RegCheckQue+=1))
-  progress_bar "$RegCheckQue" "$ContCount"
+  if [[ "$MonoMode" == false ]]; then progress_bar "$RegCheckQue" "$ContCount"; fi
 
   Got=${line%% *}  # Extracts the first word (NoUpdates, GotUpdates, GotErrors)
   item=${line#* }
