@@ -44,6 +44,7 @@ Help() {
   echo "-r     Allow updating images for docker run; won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
+  echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it." 
   echo "-v     Prints current version."
   echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
   echo
@@ -57,6 +58,7 @@ BarWidth=${BarWidth:=50}
 AutoMode=${AutoMode:=false}
 DontUpdate=${DontUpdate:=false}
 AutoPrune=${AutoPrune:=false}
+AutoSelfUpdate=${AutoSelfUpdate:=false}
 OnlyLabel=${OnlyLabel:=false}
 Notify=${Notify:=false}
 ForceRestartStacks=${ForceRestartStacks:=false}
@@ -308,6 +310,7 @@ if [[ "$VERSION" != "$LatestRelease" ]]; then
   if [[ "$AutoMode" == false ]]; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]]; then self_update;
   else
     [[ "$Notify" == true ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
   fi
