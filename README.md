@@ -144,8 +144,8 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
-### :date: Release notes addon to Notifications
-There's a function to use a lookup-file to add release note URL's to the notification message.  
+### :date: Release notes addon
+There's a function to use a lookup-file to add release note URL's to the notification message and the cli updated container options.  
 Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.  
 The output of the notification will look something like this:
 ```

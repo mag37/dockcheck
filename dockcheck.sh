@@ -292,13 +292,15 @@ dependency_check() {
 }
 
 # Numbered List function
+# if urls.list exists add release note url per line
 options() {
   num=1
-  for i in "${GotUpdates[@]}"; do
-    echo "$num) $i"
+  [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("${GotUpdates[@]}")
+  for update in "${Updates[@]}"; do
+    echo "$num) $update"
     ((num++))
   done
-  }
+}
 
 # Version check & initiate self update
 if [[ "$VERSION" != "$LatestRelease" ]]; then
