@@ -84,23 +84,24 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
+while getopts "ayfhilmnprsuvc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
-    n)   DontUpdate=true; AutoMode=true;;
-    r)   DRunUp=true ;;
-    p)   AutoPrune=true ;;
-    l)   OnlyLabel=true ;;
+    d)   DaysOld=${OPTARG} ;;
+    e)   Exclude=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
     i)   Notify=true ;;
-    e)   Exclude=${OPTARG} ;;
+    l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
+    n)   DontUpdate=true; AutoMode=true;;
+    p)   AutoPrune=true ;;
+    r)   DRunUp=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
+    u)   AutoSelfUpdate=true ;;
     v)   printf "%s\n" "$VERSION"; exit 0 ;;
     x)   MaxAsync=${OPTARG} ;;
-    d)   DaysOld=${OPTARG} ;;
     h|*) Help; exit 2 ;;
   esac
 done
