@@ -250,10 +250,11 @@ binary_downloader() {
 }
 
 distro_checker() {
-  if [[ -f /etc/arch-release ]]; then PkgInstaller="pacman -S"
+  if [[ -f /etc/arch-release ]]; then PkgInstaller="sudo pacman -S"
   elif [[ -f /etc/redhat-release ]]; then PkgInstaller="sudo dnf install"
   elif [[ -f /etc/SuSE-release ]]; then PkgInstaller="sudo zypper install"
   elif [[ -f /etc/debian_version ]]; then PkgInstaller="sudo apt-get install"
+  elif [[ -f /etc/alpine-release ]] ; then PkgInstaller="doas apk add"
   elif [[ $(uname -s) == "Darwin" ]]; then PkgInstaller="brew install"
   else PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
@@ -514,9 +515,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName}
       fi
     done
-    printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
-    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
+    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then read -rep "\nWould you like to prune dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then docker image prune -f; fi
+    printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
     printf "\nNo updates installed, exiting.\n"
   fi
