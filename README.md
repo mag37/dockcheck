@@ -11,8 +11,7 @@
 </p>
 
 <h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
-<h3 align="center">Features:</h3>
-<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done and more.</h3>
+<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done etc.</h3>
 
 <h4 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
@@ -121,9 +120,9 @@ Alternatively create an alias where specific flags and values are set.
 Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
-Trigger with the `-i` flag.  
+Trigger with the `-i` flag if `notify.sh` is present and configured.  
+Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.  
 Run it scheduled with `-ni` to only get notified when there's updates available!  
-Will also send a notification when `dockcheck.sh` itself has an update.
 
 Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)  
 **Current templates:**
@@ -162,16 +161,30 @@ Pass `-x N` where N is number of subprocesses allowed, experiment in your enviro
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
 
-## :chart_with_upwards_trend: Prometheus and node_exporter
+## :chart_with_upwards_trend: Extra plugins and tools:
+
+### :small_orange_diamond: Prometheus and node_exporter
 Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely.
 This is done with the `-c` option, like this:
 ```
 dockcheck.sh -c /path/to/exporter/directory
 ```
 
-See the [README.md](./addons/prometheus/README.md) for more detailed information on how to set it up!
-
+See the [README.md](./addons/prometheus/README.md) for more detailed information on how to set it up!  
 <sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
+
+### :small_orange_diamond: Zabbix config to monitor docker image updates
+If you already use Zabbix - this config will Shows number of available docker image updates on host.   
+Example: *2 Docker Image updates on host-xyz*  
+See project: [thetorminal/zabbix-docker-image-updates](https://github.com/thetorminal/zabbix-docker-image-updates)
+
+### :small_orange_diamond: Serve REST API to list all available updates
+A custom python script to serve a REST API to get pulled into other monitoring tools like [homepage](https://github.com/gethomepage/homepage).  
+See [discussion here](https://github.com/mag37/dockcheck/discussions/146).
+
+### :small_orange_diamond: Wrapper Script for Unraid's User Scripts
+A custom bash wrapper script to allow the usage of dockcheck as a Unraid User Script plugin.  
+See [discussion here](https://github.com/mag37/dockcheck/discussions/145).
 
 ## :bookmark: Labels
 Optionally add labels to compose-files. Currently these are the usable labels:
