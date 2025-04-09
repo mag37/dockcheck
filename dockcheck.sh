@@ -37,6 +37,7 @@ Help() {
   echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
+  echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."
   echo "-l     Only update if label is set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-n     No updates; only checking availability without interaction."
@@ -64,6 +65,7 @@ Notify=${Notify:=false}
 ForceRestartStacks=${ForceRestartStacks:=false}
 DRunUp=${DRunUp:=false}
 MonoMode=${MonoMode:=false}
+PrintReleaseURL=${PrintReleaseURL:=false}
 Stopped=${Stopped:=""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
@@ -84,7 +86,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "ayfhilmnprsuvc:e:d:t:x:" options; do
+while getopts "ayfhiIlmnprsuvc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
@@ -92,6 +94,7 @@ while getopts "ayfhilmnprsuvc:e:d:t:x:" options; do
     e)   Exclude=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
     i)   Notify=true ;;
+    I)   PrintReleaseURL=true ;;
     l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
     n)   DontUpdate=true; AutoMode=true;;
@@ -301,7 +304,7 @@ dependency_check() {
 # if urls.list exists add release note url per line
 options() {
   num=1
-  [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("${GotUpdates[@]}")
+  if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   for update in "${Updates[@]}"; do
     echo "$num) $update"
     ((num++))
