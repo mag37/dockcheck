@@ -45,7 +45,7 @@ Help() {
   echo "-r     Allow updating images for docker run; won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
-  echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it." 
+  echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
   echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
   echo
@@ -431,8 +431,8 @@ unset IFS
 
 # Run the prometheus exporter function
 if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
-  if type -t send_notification &>/dev/null; then
-    prometheus_exporter ${#NoUpdates[@]:-} ${#GotUpdates[@]:-} ${#GotErrors[@]:-}
+  if type -t prometheus_exporter &>/dev/null; then
+    prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
   else
     printf "%s\n" "Could not source prometheus exporter function."
   fi

@@ -144,8 +144,11 @@ Further additions are welcome - suggestions or PR!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
 ### :date: Release notes addon
-There's a function to use a lookup-file to add release note URL's to the notification message and the cli updated container options.  
-Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.  
+There's a function to use a lookup-file to add release note URL's to the notification message.  
+Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
+Modify it as necessary, the names of interest in the left column needs to match your container names.  
+To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.  
+
 The output of the notification will look something like this:
 ```
 Containers on hostname with updates available:
@@ -174,7 +177,7 @@ See the [README.md](./addons/prometheus/README.md) for more detailed information
 <sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
 
 ### :small_orange_diamond: Zabbix config to monitor docker image updates
-If you already use Zabbix - this config will Shows number of available docker image updates on host.   
+If you already use Zabbix - this config will Shows number of available docker image updates on host.  
 Example: *2 Docker Image updates on host-xyz*  
 See project: [thetorminal/zabbix-docker-image-updates](https://github.com/thetorminal/zabbix-docker-image-updates)
 
