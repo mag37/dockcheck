@@ -419,8 +419,8 @@ unset IFS
 
 # Run the prometheus exporter function
 if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
-  if type -t send_notification &>/dev/null; then
-    prometheus_exporter ${#NoUpdates[@]:-} ${#GotUpdates[@]:-} ${#GotErrors[@]:-}
+  if type -t prometheus_exporter &>/dev/null; then
+    prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
   else
     printf "%s\n" "Could not source prometheus exporter function."
   fi
