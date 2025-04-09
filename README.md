@@ -20,6 +20,10 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.2**: Style and colour changes, prometheus hotfix, new options:
+    - `-u`, Allow auto self update of dockcheck.sh
+    - `-I`, Print container release URLs in the CLI "choose update" list.
+    - Extras: `-m`, Monochrome mode now hides the progress bar.
 - **v0.6.1**: Hotfixes: (try removing set+shopt+shopt if debugging more errors)
     - xargs/pipefail, removed `-set -e` bash option for now.
     - unbound variables fixed (hopefully)
@@ -55,13 +59,15 @@ Options:
 -f     Force stack restart after update. Caution: restarts once for every updated container within stack.
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
+-I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
 -l     Only update if label is set. See readme.
--m     Monochrome mode, no printf color codes.
+-m     Monochrome mode, no printf colour codes and hides progress bar.
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
+-u     Allow automatic self updates - caution as this will pull new code and autorun it.
 -v     Prints current version.
 -x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested.
 ```

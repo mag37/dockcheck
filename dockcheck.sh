@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.1"
-### ChangeNotes: Hotfix - bug with xargs pipefail, pkgmanager logic, unbound variables
+VERSION="v0.6.2"
+### ChangeNotes: Added options: -u; auto self update. -I; print release URL, +style and colour fixes.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
