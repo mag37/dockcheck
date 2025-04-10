@@ -283,11 +283,11 @@ dependency_check() {
           export "$AppVar"="$AppName"
           printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"
         else
-          PkgExitcode="ERROR"
+          PkgInstaller="ERROR"
           printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
         fi
       fi
-      if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" ]]; then
+      if [[ "$GetBin" =~ [sS] ]] || [[ "$PkgInstaller" == "ERROR" ]]; then
           binary_downloader "$AppName" "$AppUrl"
           [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%b downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
