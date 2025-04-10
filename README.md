@@ -13,16 +13,16 @@
 <h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
 <h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done etc.</h3>
 
-<h4 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
-
 <h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
+
+<h5 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
 ___
 ## :bell: Changelog
 
 - **v0.6.2**: Style and colour changes, prometheus hotfix, new options:
     - `-u`, Allow auto self update of dockcheck.sh
-    - `-I`, Print container release URLs in the CLI "choose update" list.
+    - `-I`, Print container release URLs in the CLI "choose update" list. (please contribute to `urls.list`)
     - Extras: `-m`, Monochrome mode now hides the progress bar.
 - **v0.6.1**: Hotfixes: (try removing set+shopt+shopt if debugging more errors)
     - xargs/pipefail, removed `-set -e` bash option for now.
@@ -32,14 +32,7 @@ ___
     - Safer bash options with `set -euo pipefail`, `shopt -s nullglob` and `failglob`.
     - Added a `default.conf` for user settings - persistent through updates.
     - Added `notify_slack.sh` template for slack curl api.
-- **v0.5.8**: Added version checks to all templates and a notification if a new template is released.
-- **v0.5.7**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
-    - Manually migrate your current `notify.sh` settings to a new template for new functionality.
-- **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
-    - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
-    - Added `-x N` option to pass `MaxAsync` value at runtime.
-    - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
-- **v0.5.6.0**: Heavily improved performance due to async checking for updates.
+
 ___
 
 
