@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.1"
-### ChangeNotes: Hotfix - bug with xargs pipefail, pkgmanager logic, unbound variables
+VERSION="v0.6.2"
+### ChangeNotes: Added options: -u; auto self update. -I; print release URL, +style and colour fixes.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -37,13 +37,15 @@ Help() {
   echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
+  echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."
   echo "-l     Only update if label is set. See readme."
-  echo "-m     Monochrome mode, no printf colour codes."
+  echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
   echo "-r     Allow updating images for docker run; won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
+  echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
   echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
   echo
@@ -57,10 +59,13 @@ BarWidth=${BarWidth:=50}
 AutoMode=${AutoMode:=false}
 DontUpdate=${DontUpdate:=false}
 AutoPrune=${AutoPrune:=false}
+AutoSelfUpdate=${AutoSelfUpdate:=false}
 OnlyLabel=${OnlyLabel:=false}
 Notify=${Notify:=false}
 ForceRestartStacks=${ForceRestartStacks:=false}
 DRunUp=${DRunUp:=false}
+MonoMode=${MonoMode:=false}
+PrintReleaseURL=${PrintReleaseURL:=false}
 Stopped=${Stopped:=""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
@@ -81,23 +86,25 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "aynpfrhlisvmc:e:d:t:x:" options; do
+while getopts "ayfhiIlmnprsuvc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
-    n)   DontUpdate=true; AutoMode=true;;
-    r)   DRunUp=true ;;
-    p)   AutoPrune=true ;;
-    l)   OnlyLabel=true ;;
+    d)   DaysOld=${OPTARG} ;;
+    e)   Exclude=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
     i)   Notify=true ;;
-    e)   Exclude=${OPTARG} ;;
-    m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
+    I)   PrintReleaseURL=true ;;
+    l)   OnlyLabel=true ;;
+    m)   MonoMode=true ;;
+    n)   DontUpdate=true; AutoMode=true;;
+    p)   AutoPrune=true ;;
+    r)   DRunUp=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
+    u)   AutoSelfUpdate=true ;;
     v)   printf "%s\n" "$VERSION"; exit 0 ;;
     x)   MaxAsync=${OPTARG} ;;
-    d)   DaysOld=${OPTARG} ;;
     h|*) Help; exit 2 ;;
   esac
 done
@@ -108,6 +115,7 @@ SearchName="${1:-}"
 
 # Setting up options and sourcing functions
 if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
+if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi
 if [[ "$Notify" == true ]]; then
   if [[ -s "${ScriptWorkDir}/notify.sh" ]]; then
     source "${ScriptWorkDir}/notify.sh"
@@ -137,30 +145,30 @@ self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if command -v curl &>/dev/null; then
     curl -L $RawUrl > "$ScriptPath"; chmod +x "$ScriptPath"
-    printf "\n%s\n" "--- starting over with the updated version ---"
+    printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # Exit the old instance
   elif command -v wget &>/dev/null; then
     wget $RawUrl -O "$ScriptPath"; chmod +x "$ScriptPath"
-    printf "\n%s\n" "--- starting over with the updated version ---"
+    printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
   else
-    printf "curl/wget not available - download the update manually: %s \n" "$Github"
+    printf "\n%bcurl/wget not available %b- download the update manually: %b%s %b\n" "$c_red" "$c_reset" "$c_teal" "$Github" "$c_reset"
   fi
 }
 
 self_update() {
-  cd "$ScriptWorkDir" || { printf "Path error, skipping update.\n"; return; }
+  cd "$ScriptWorkDir" || { printf "%bPath error,%b skipping update.\n" "$c_red" "$c_reset"; return; }
   if command -v git &>/dev/null && [[ "$(git ls-remote --get-url 2>/dev/null)" =~ .*"mag37/dockcheck".* ]]; then
     printf "\n%s\n" "Pulling the latest version."
-    git pull --force || { printf "Git error, manually pull/clone.\n"; return; }
+    git pull --force || { printf "%bGit error,%b manually pull/clone.\n" "$c_red" "$c_reset"; return; }
     printf "\n%s\n" "--- starting over with the updated version ---"
-    cd - || { printf "Path error.\n"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
   else
-    cd - || { printf "Path error.\n"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
     self_update_curl
   fi
 }
@@ -184,7 +192,7 @@ choosecontainers() {
       done
     fi
   done
-  printf "\nUpdating containers:\n"
+  printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
   printf "%s\n" "${SelectedUpdates[@]}"
   printf "\n"
 }
@@ -245,10 +253,11 @@ binary_downloader() {
 }
 
 distro_checker() {
-  if [[ -f /etc/arch-release ]]; then PkgInstaller="pacman -S"
+  if [[ -f /etc/arch-release ]]; then PkgInstaller="sudo pacman -S"
   elif [[ -f /etc/redhat-release ]]; then PkgInstaller="sudo dnf install"
   elif [[ -f /etc/SuSE-release ]]; then PkgInstaller="sudo zypper install"
   elif [[ -f /etc/debian_version ]]; then PkgInstaller="sudo apt-get install"
+  elif [[ -f /etc/alpine-release ]] ; then PkgInstaller="doas apk add"
   elif [[ $(uname -s) == "Darwin" ]]; then PkgInstaller="brew install"
   else PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
@@ -274,11 +283,11 @@ dependency_check() {
           export "$AppVar"="$AppName"
           printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"
         else
-          PkgExitcode="ERROR"
+          PkgInstaller="ERROR"
           printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
         fi
       fi
-      if [[ "$GetBin" =~ [sS] || "$PkgInstaller" == "ERROR" ]]; then
+      if [[ "$GetBin" =~ [sS] ]] || [[ "$PkgInstaller" == "ERROR" ]]; then
           binary_downloader "$AppName" "$AppUrl"
           [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%b downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
@@ -292,13 +301,15 @@ dependency_check() {
 }
 
 # Numbered List function
+# if urls.list exists add release note url per line
 options() {
   num=1
-  for i in "${GotUpdates[@]}"; do
-    echo "$num) $i"
+  if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
+  for update in "${Updates[@]}"; do
+    echo "$num) $update"
     ((num++))
   done
-  }
+}
 
 # Version check & initiate self update
 if [[ "$VERSION" != "$LatestRelease" ]]; then
@@ -306,6 +317,7 @@ if [[ "$VERSION" != "$LatestRelease" ]]; then
   if [[ "$AutoMode" == false ]]; then
     read -r -p "Would you like to update? y/[n]: " SelfUpdate
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
+  elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]]; then self_update;
   else
     [[ "$Notify" == true ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
   fi
@@ -394,7 +406,7 @@ fi
 # Asynchronously check the image-hash of every running container VS the registry
 while read -r line; do
   ((RegCheckQue+=1))
-  progress_bar "$RegCheckQue" "$ContCount"
+  if [[ "$MonoMode" == false ]]; then progress_bar "$RegCheckQue" "$ContCount"; fi
 
   Got=${line%% *}  # Extracts the first word (NoUpdates, GotUpdates, GotErrors)
   item=${line#* }
@@ -487,7 +499,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         continue
       fi
       # cd to the compose-file directory to account for people who use relative volumes
-      cd "$ContPath" || { echo "Path error - skipping $i"; continue; }
+      cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
       ## Reformatting path + multi compose
       if [[ $ContConfigFile = '/'* ]]; then
         CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
@@ -508,9 +520,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName}
       fi
     done
-    printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
-    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then read -r -p "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
+    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then read -rep "\nWould you like to prune dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then docker image prune -f; fi
+    printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
     printf "\nNo updates installed, exiting.\n"
   fi

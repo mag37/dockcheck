@@ -11,16 +11,19 @@
 </p>
 
 <h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
-<h3 align="center">Features:</h3>
-<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done and more.</h3>
-
-<h4 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
+<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done etc.</h3>
 
 <h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
+
+<h5 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
 ___
 ## :bell: Changelog
 
+- **v0.6.2**: Style and colour changes, prometheus hotfix, new options:
+    - `-u`, Allow auto self update of dockcheck.sh
+    - `-I`, Print container release URLs in the CLI "choose update" list. (please contribute to `urls.list`)
+    - Extras: `-m`, Monochrome mode now hides the progress bar.
 - **v0.6.1**: Hotfixes: (try removing set+shopt+shopt if debugging more errors)
     - xargs/pipefail, removed `-set -e` bash option for now.
     - unbound variables fixed (hopefully)
@@ -29,14 +32,7 @@ ___
     - Safer bash options with `set -euo pipefail`, `shopt -s nullglob` and `failglob`.
     - Added a `default.conf` for user settings - persistent through updates.
     - Added `notify_slack.sh` template for slack curl api.
-- **v0.5.8**: Added version checks to all templates and a notification if a new template is released.
-- **v0.5.7**: Rewritten templates - now with a function to notify when there's a new Dockcheck release.
-    - Manually migrate your current `notify.sh` settings to a new template for new functionality.
-- **v0.5.6.1**: Async xargs hotfix - due to errors `failed to request manifest head ... context canceled`
-    - Defaulted subprocess to 1 with `MaxAsync=1`, increase to find a stable value in your environment.
-    - Added `-x N` option to pass `MaxAsync` value at runtime.
-    - To disable xargs `-P` flag (max processes) all together, set `MaxAsync` to 0.
-- **v0.5.6.0**: Heavily improved performance due to async checking for updates.
+
 ___
 
 
@@ -56,13 +52,15 @@ Options:
 -f     Force stack restart after update. Caution: restarts once for every updated container within stack.
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
+-I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
 -l     Only update if label is set. See readme.
--m     Monochrome mode, no printf color codes.
+-m     Monochrome mode, no printf colour codes and hides progress bar.
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
+-u     Allow automatic self updates - caution as this will pull new code and autorun it.
 -v     Prints current version.
 -x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested.
 ```
@@ -121,9 +119,9 @@ Alternatively create an alias where specific flags and values are set.
 Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
-Trigger with the `-i` flag.  
+Trigger with the `-i` flag if `notify.sh` is present and configured.  
+Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.  
 Run it scheduled with `-ni` to only get notified when there's updates available!  
-Will also send a notification when `dockcheck.sh` itself has an update.
 
 Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)  
 **Current templates:**
@@ -144,9 +142,12 @@ Use a `notify_X.sh` template file from the **notify_templates** directory, copy 
 Further additions are welcome - suggestions or PR!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
-### :date: Release notes addon to Notifications
+### :date: Release notes addon
 There's a function to use a lookup-file to add release note URL's to the notification message.  
-Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.   Modify it as necessary, the names of interest in the left column needs to match your container names.  
+Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
+Modify it as necessary, the names of interest in the left column needs to match your container names.  
+To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.  
+
 The output of the notification will look something like this:
 ```
 Containers on hostname with updates available:
@@ -162,16 +163,30 @@ Pass `-x N` where N is number of subprocesses allowed, experiment in your enviro
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
 
-## :chart_with_upwards_trend: Prometheus and node_exporter
+## :chart_with_upwards_trend: Extra plugins and tools:
+
+### :small_orange_diamond: Prometheus and node_exporter
 Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely.
 This is done with the `-c` option, like this:
 ```
 dockcheck.sh -c /path/to/exporter/directory
 ```
 
-See the [README.md](./addons/prometheus/README.md) for more detailed information on how to set it up!
-
+See the [README.md](./addons/prometheus/README.md) for more detailed information on how to set it up!  
 <sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
+
+### :small_orange_diamond: Zabbix config to monitor docker image updates
+If you already use Zabbix - this config will Shows number of available docker image updates on host.  
+Example: *2 Docker Image updates on host-xyz*  
+See project: [thetorminal/zabbix-docker-image-updates](https://github.com/thetorminal/zabbix-docker-image-updates)
+
+### :small_orange_diamond: Serve REST API to list all available updates
+A custom python script to serve a REST API to get pulled into other monitoring tools like [homepage](https://github.com/gethomepage/homepage).  
+See [discussion here](https://github.com/mag37/dockcheck/discussions/146).
+
+### :small_orange_diamond: Wrapper Script for Unraid's User Scripts
+A custom bash wrapper script to allow the usage of dockcheck as a Unraid User Script plugin.  
+See [discussion here](https://github.com/mag37/dockcheck/discussions/145).
 
 ## :bookmark: Labels
 Optionally add labels to compose-files. Currently these are the usable labels:
