@@ -11,6 +11,7 @@ actual_server https://actualbudget.org/blog
 gotify https://github.com/gotify/server/releases
 traefik https://github.com/traefik/traefik/releases
 caddy https://github.com/caddyserver/caddy/releases
+homarr https://github.com/homarr-labs/homarr/releases
 
 calibre https://github.com/linuxserver/docker-calibre/releases
 calibre-web https://github.com/linuxserver/docker-calibre-web/releases
@@ -29,7 +30,14 @@ radarr https://github.com/linuxserver/docker-radarr/releases
 lidarr https://github.com/linuxserver/docker-lidarr/releases
 jellyseerr https://github.com/Fallenbagel/jellyseerr/releases
 jellyfin https://github.com/jellyfin/jellyfin/releases
+tautulli https://github.com/Tautulli/Tautulli/releases
+cleanuperr https://github.com/flmorg/cleanuperr/releases
+slskd https://github.com/slskd/slskd/releases
 
 home-assistant https://github.com/home-assistant/docker/releases
 zigbee2mqtt https://github.com/Koenkk/zigbee2mqtt/releases
 mqtt https://github.com/eclipse/mosquitto/tags
+
+bookstack https://github.com/BookStackApp/BookStack/releases
+lubelogger https://github.com/hargata/lubelog/releases
+mealie https://github.com/mealie-recipes/mealie/releases
