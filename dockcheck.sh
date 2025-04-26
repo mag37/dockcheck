@@ -253,11 +253,18 @@ binary_downloader() {
 }
 
 distro_checker() {
-  if [[ -f /etc/arch-release ]]; then PkgInstaller="sudo pacman -S"
-  elif [[ -f /etc/redhat-release ]]; then PkgInstaller="sudo dnf install"
-  elif [[ -f /etc/SuSE-release ]]; then PkgInstaller="sudo zypper install"
-  elif [[ -f /etc/debian_version ]]; then PkgInstaller="sudo apt-get install"
-  elif [[ -f /etc/alpine-release ]] ; then PkgInstaller="doas apk add"
+  isRoot=false
+  [[ ${EUID:-} == 0 ]] && isRoot=true
+  if [[ -f /etc/alpine-release ]] ; then 
+    [[ isRoot == true ]] && PkgInstaller="apk add" || PkgInstaller="doas apk add"
+  elif [[ -f /etc/arch-release ]]; then 
+    [[ isRoot == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
+  elif [[ -f /etc/debian_version ]]; then 
+    [[ isRoot == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
+  elif [[ -f /etc/redhat-release ]]; then 
+    [[ isRoot == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
+  elif [[ -f /etc/SuSE-release ]]; then 
+    [[ isRoot == true ]] && PkgInstaller="zypper install" || PkgInstaller="sudo zypper install"
   elif [[ $(uname -s) == "Darwin" ]]; then PkgInstaller="brew install"
   else PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
