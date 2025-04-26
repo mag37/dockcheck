@@ -278,7 +278,7 @@ dependency_check() {
   if command -v "$AppName" &>/dev/null; then export "$AppVar"="$AppName";
   elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export "$AppVar"="$ScriptWorkDir/$AppName";
   else
-    printf "%s\n" "Required dependency %b'%s'%b missing, do you want to install it?" "$c_teal" "$AppName" "$c_reset"
+    printf "%s\n" "Required dependency %b'%s'%b missing, do you want to install it?\n" "$c_teal" "$AppName" "$c_reset"
     read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
     GetBin=${GetBin:-no} # set default to no if nothing is given
     if [[ "$GetBin" =~ [yYsS] ]]; then
