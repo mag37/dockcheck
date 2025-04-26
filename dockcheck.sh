@@ -256,15 +256,15 @@ distro_checker() {
   isRoot=false
   [[ ${EUID:-} == 0 ]] && isRoot=true
   if [[ -f /etc/alpine-release ]] ; then 
-    [[ isRoot == true ]] && PkgInstaller="apk add" || PkgInstaller="doas apk add"
+    [[ "$isRoot" == true ]] && PkgInstaller="apk add" || PkgInstaller="doas apk add"
   elif [[ -f /etc/arch-release ]]; then 
-    [[ isRoot == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
+    [[ "$isRoot" == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
   elif [[ -f /etc/debian_version ]]; then 
-    [[ isRoot == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
+    [[ "" == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
   elif [[ -f /etc/redhat-release ]]; then 
-    [[ isRoot == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
+    [[ "$isRoot" == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
   elif [[ -f /etc/SuSE-release ]]; then 
-    [[ isRoot == true ]] && PkgInstaller="zypper install" || PkgInstaller="sudo zypper install"
+    [[ "$isRoot" == true ]] && PkgInstaller="zypper install" || PkgInstaller="sudo zypper install"
   elif [[ $(uname -s) == "Darwin" ]]; then PkgInstaller="brew install"
   else PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
@@ -278,7 +278,7 @@ dependency_check() {
   if command -v "$AppName" &>/dev/null; then export "$AppVar"="$AppName";
   elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export "$AppVar"="$ScriptWorkDir/$AppName";
   else
-    printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
+    printf "%s\n" "Required dependency %b'%s'%b missing, do you want to install it?" "$c_teal" "$AppName" "$c_reset"
     read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
     GetBin=${GetBin:-no} # set default to no if nothing is given
     if [[ "$GetBin" =~ [yYsS] ]]; then
@@ -296,7 +296,7 @@ dependency_check() {
       fi
       if [[ "$GetBin" =~ [sS] ]] || [[ "$PkgInstaller" == "ERROR" ]]; then
           binary_downloader "$AppName" "$AppUrl"
-          [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%b downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
+          [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%s downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
     else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"; exit 1;
     fi
@@ -408,7 +408,7 @@ if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
   XargsAsync="-P $MaxAsync"
 else
   XargsAsync=""
-  [[ "$MaxAsync" != 0 ]] && printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
+  [[ "$MaxAsync" != 0 ]] && printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_yellow" "$c_reset"
 fi
 
 # Asynchronously check the image-hash of every running container VS the registry
