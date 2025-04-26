@@ -327,6 +327,7 @@ dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/relea
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
 # Check docker compose binary
+docker info &>/dev/null || { printf "\n%bYour current user does not have permissions to the docker socket - may require root / docker group. Exiting.%b\n" "$c_red" "$c_reset"; exit 1; }
 if docker compose version &>/dev/null; then DockerBin="docker compose" ;
 elif docker-compose -v &>/dev/null; then DockerBin="docker-compose" ;
 elif docker -v &>/dev/null; then
