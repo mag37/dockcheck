@@ -165,6 +165,11 @@ Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`.
 
 ## :chart_with_upwards_trend: Extra plugins and tools:
 
+### :small_orange_diamond: Using dockcheck.sh with the Synology DSM
+If you run your container through the *Container Manager GUI* - only notifications are supported.  
+While if running manual, vanilla docker compose CLI will allow you to use the update function too.  
+Some extra setup to tie together with Synology DSM - check out the [addons/DSM/README.md](./addons/DSM/README.md).
+
 ### :small_orange_diamond: Prometheus and node_exporter
 Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely.
 This is done with the `-c` option, like this:
