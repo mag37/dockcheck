@@ -236,7 +236,10 @@ releasenotes() {
       elif [[ "$update" == "$container" ]]; then Updates+=("$update  ->  $url"); found=true;
       fi
     done < "${ScriptWorkDir}/urls.list"
-    if [[ "$found" == false ]]; then Updates+=("$update  ->  url missing"); else continue; fi
+    if [[ "$found" == false ]] && [[ "$PrintMarkdownURL" == true ]]; then Updates+=("- $update  ->  url missing");
+    elif [[ "$found" == false ]]; then Updates+=("$update  ->  url missing");
+    else continue;
+    fi
   done
 }
 
