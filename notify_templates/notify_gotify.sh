@@ -24,7 +24,7 @@ trigger_notification() {
                   --arg type "$ContentType" \
                   '{message: $body, title: $title, priority: 5, extras: {"client::display": {"contentType": $type}}}' )
 
-    curl -s -S --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}"
+    curl -s -S --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
 }
 
 send_notification() {
