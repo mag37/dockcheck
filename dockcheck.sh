@@ -229,7 +229,9 @@ releasenotes() {
   for update in "${GotUpdates[@]}"; do
     found=false
     while read -r container url; do
-      if [[ "$update" == "$container" ]]; then Updates+=("$update  ->  $url"); found=true; fi
+      if [[ "$update" == "$container" ]] && [[ "$PrintMarkdownURL" == true ]]; then Updates+=("- [$update]($url)"); found=true;
+      elif [[ "$update" == "$container" ]]; then Updates+=("$update  ->  $url"); found=true;
+      fi
     done < "${ScriptWorkDir}/urls.list"
     if [[ "$found" == false ]]; then Updates+=("$update  ->  url missing"); else continue; fi
   done
