@@ -517,7 +517,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
         ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d
       else
-        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName}
+        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
