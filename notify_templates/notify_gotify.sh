@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_GOTIFY_VERSION="v0.1"
+NOTIFY_GOTIFY_VERSION="v0.2"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
