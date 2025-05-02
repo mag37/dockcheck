@@ -229,6 +229,7 @@ progress_bar() {
 
 # Function to add user-provided urls to releasenotes
 releasenotes() {
+  unset Updates
   for update in "${GotUpdates[@]}"; do
     found=false
     while read -r container url; do
@@ -261,11 +262,18 @@ binary_downloader() {
 }
 
 distro_checker() {
-  if [[ -f /etc/arch-release ]]; then PkgInstaller="sudo pacman -S"
-  elif [[ -f /etc/redhat-release ]]; then PkgInstaller="sudo dnf install"
-  elif [[ -f /etc/SuSE-release ]]; then PkgInstaller="sudo zypper install"
-  elif [[ -f /etc/debian_version ]]; then PkgInstaller="sudo apt-get install"
-  elif [[ -f /etc/alpine-release ]] ; then PkgInstaller="doas apk add"
+  isRoot=false
+  [[ ${EUID:-} == 0 ]] && isRoot=true
+  if [[ -f /etc/alpine-release ]] ; then
+    [[ "$isRoot" == true ]] && PkgInstaller="apk add" || PkgInstaller="doas apk add"
+  elif [[ -f /etc/arch-release ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
+  elif [[ -f /etc/debian_version ]]; then
+    [[ "" == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
+  elif [[ -f /etc/redhat-release ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
+  elif [[ -f /etc/SuSE-release ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="zypper install" || PkgInstaller="sudo zypper install"
   elif [[ $(uname -s) == "Darwin" ]]; then PkgInstaller="brew install"
   else PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
@@ -279,7 +287,7 @@ dependency_check() {
   if command -v "$AppName" &>/dev/null; then export "$AppVar"="$AppName";
   elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export "$AppVar"="$ScriptWorkDir/$AppName";
   else
-    printf "%s\n" "Required dependency '$AppName' missing, do you want to install it?"
+    printf "%s\n" "Required dependency %b'%s'%b missing, do you want to install it?\n" "$c_teal" "$AppName" "$c_reset"
     read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
     GetBin=${GetBin:-no} # set default to no if nothing is given
     if [[ "$GetBin" =~ [yYsS] ]]; then
@@ -297,7 +305,7 @@ dependency_check() {
       fi
       if [[ "$GetBin" =~ [sS] ]] || [[ "$PkgInstaller" == "ERROR" ]]; then
           binary_downloader "$AppName" "$AppUrl"
-          [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%b downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
+          [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%s downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
     else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"; exit 1;
     fi
@@ -310,9 +318,8 @@ dependency_check() {
 
 # Numbered List function
 # if urls.list exists add release note url per line
-options() {
+list_options() {
   num=1
-  if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   for update in "${Updates[@]}"; do
     echo "$num) $update"
     ((num++))
@@ -335,6 +342,7 @@ dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/relea
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
 # Check docker compose binary
+docker info &>/dev/null || { printf "\n%bYour current user does not have permissions to the docker socket - may require root / docker group. Exiting.%b\n" "$c_red" "$c_reset"; exit 1; }
 if docker compose version &>/dev/null; then DockerBin="docker compose" ;
 elif docker-compose -v &>/dev/null; then DockerBin="docker-compose" ;
 elif docker -v &>/dev/null; then
@@ -408,7 +416,7 @@ if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
   XargsAsync="-P $MaxAsync"
 else
   XargsAsync=""
-  [[ "$MaxAsync" != 0 ]] && printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_red" "$c_reset"
+  [[ "$MaxAsync" != 0 ]] && printf "%bMissing POSIX xargs, consider installing 'findutils' for asynchronous lookups.%b\n" "$c_yellow" "$c_reset"
 fi
 
 # Asynchronously check the image-hash of every running container VS the registry
@@ -460,9 +468,10 @@ if [[ -n ${GotErrors[*]:-} ]]; then
   printf "%binfo:%b 'unauthorized' often means not found in a public registry.\n" "$c_blue" "$c_reset"
 fi
 if [[ -n ${GotUpdates[*]:-} ]]; then
-   printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
-   [[ "$AutoMode" == false ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
+  printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
+  if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
+  [[ "$AutoMode" == false ]] && list_options || printf "%s\n" "${Updates[@]}"
+  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any
@@ -525,7 +534,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
         ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d
       else
-        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
