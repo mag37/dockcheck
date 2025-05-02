@@ -55,6 +55,7 @@ Options:
 -I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
 -l     Only update if label is set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
+-M     Prints custom releasenote urls as markdown.
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
@@ -147,6 +148,7 @@ There's a function to use a lookup-file to add release note URL's to the notific
 Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
 Modify it as necessary, the names of interest in the left column needs to match your container names.  
 To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.  
+For Markdown formatting - also add the `-M` option.  
 
 The output of the notification will look something like this:
 ```
