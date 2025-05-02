@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_TELEGRAM_VERSION="v0.2"
+NOTIFY_TELEGRAM_VERSION="v0.1"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
@@ -20,7 +20,7 @@ trigger_notification() {
     TelegramChatId="Your Telegram ChatId here"
     TelegramUrl="https://api.telegram.org/bot$TelegramToken"
     TelegramTopicID=12345678 ## Set to 0 if not using specific topic within chat
-    TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false,\"parse_mode\": \"$ParseMode\",\"disable_web_page_preview\": true}"
+    TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false}"
 
     curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$TelegramData"
 }
