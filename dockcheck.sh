@@ -229,6 +229,7 @@ progress_bar() {
 
 # Function to add user-provided urls to releasenotes
 releasenotes() {
+  unset Updates
   for update in "${GotUpdates[@]}"; do
     found=false
     while read -r container url; do
@@ -317,9 +318,8 @@ dependency_check() {
 
 # Numbered List function
 # if urls.list exists add release note url per line
-options() {
+list_options() {
   num=1
-  if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   for update in "${Updates[@]}"; do
     echo "$num) $update"
     ((num++))
@@ -468,9 +468,10 @@ if [[ -n ${GotErrors[*]:-} ]]; then
   printf "%binfo:%b 'unauthorized' often means not found in a public registry.\n" "$c_blue" "$c_reset"
 fi
 if [[ -n ${GotUpdates[*]:-} ]]; then
-   printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
-   [[ "$AutoMode" == false ]] && options || printf "%s\n" "${GotUpdates[@]}"
-   [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
+  printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
+  if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
+  [[ "$AutoMode" == false ]] && list_options || printf "%s\n" "${Updates[@]}"
+  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any
