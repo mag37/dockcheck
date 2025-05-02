@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_GOTIFY_VERSION="v0.1"
+NOTIFY_GOTIFY_VERSION="v0.2"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
@@ -12,11 +12,19 @@ trigger_notification() {
     GotifyToken="Your Gotify token here"
     GotifyUrl="https://api.gotify/message?token=${GotifyToken}"
 
-    curl \
-        -F "title=${MessageTitle}" \
-        -F "message=${MessageBody}" \
-        -F "priority=5" \
-        -X POST "${GotifyUrl}" 1> /dev/null
+    if [[ "$PrintMarkdownURL" == true ]]; then
+        ContentType="text/markdown"
+    else
+        ContentType="text/plain"
+    fi
+
+    JsonData=$( jq -n \
+                  --arg body "$MessageBody" \
+                  --arg title "$MessageTitle" \
+                  --arg type "$ContentType" \
+                  '{message: $body, title: $title, priority: 5, extras: {"client::display": {"contentType": $type}}}' )
+
+    curl -s -S --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
 }
 
 send_notification() {
