@@ -263,15 +263,15 @@ binary_downloader() {
 distro_checker() {
   isRoot=false
   [[ ${EUID:-} == 0 ]] && isRoot=true
-  if [[ -f /etc/alpine-release ]] ; then 
+  if [[ -f /etc/alpine-release ]] ; then
     [[ "$isRoot" == true ]] && PkgInstaller="apk add" || PkgInstaller="doas apk add"
-  elif [[ -f /etc/arch-release ]]; then 
+  elif [[ -f /etc/arch-release ]]; then
     [[ "$isRoot" == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
-  elif [[ -f /etc/debian_version ]]; then 
+  elif [[ -f /etc/debian_version ]]; then
     [[ "" == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
-  elif [[ -f /etc/redhat-release ]]; then 
+  elif [[ -f /etc/redhat-release ]]; then
     [[ "$isRoot" == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
-  elif [[ -f /etc/SuSE-release ]]; then 
+  elif [[ -f /etc/SuSE-release ]]; then
     [[ "$isRoot" == true ]] && PkgInstaller="zypper install" || PkgInstaller="sudo zypper install"
   elif [[ $(uname -s) == "Darwin" ]]; then PkgInstaller="brew install"
   else PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
@@ -533,7 +533,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
         ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d
       else
-        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${ContName} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
