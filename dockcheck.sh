@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.2"
-### ChangeNotes: Added options: -u; auto self update. -I; print release URL, +style and colour fixes.
+VERSION="v0.6.3"
+### ChangeNotes: Permission checks, now compose up on whole stack, -M markdown option added.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -27,7 +27,7 @@ fi
 # Help Function
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]"
-  echo "Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall"
+  echo "Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
   echo "-a|y   Automatic updates, without interaction."
@@ -40,7 +40,7 @@ Help() {
   echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."
   echo "-l     Only update if label is set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
-  echo "-M     Prints custom releasenote urls as markdown."
+  echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
   echo "-r     Allow updating images for docker run; won't update the container."
