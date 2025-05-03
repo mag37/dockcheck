@@ -20,6 +20,11 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.3**: Some fixes and changes:
+    - Stops when a container recreation (compose up -d) fails, also `up`s the whole stack now.
+    - `-M`, Markdown format url-releasenotes in notification (requires template rework, look at gotify!)
+    - Added [addons/DSM/README.md](./addons/DSM/README.md) added for more info Synology DSM info.
+    - Permission checks - graceful exit if no docker permissions + checking if root for pkg-manager.
 - **v0.6.2**: Style and colour changes, prometheus hotfix, new options:
     - `-u`, Allow auto self update of dockcheck.sh
     - `-I`, Print container release URLs in the CLI "choose update" list. (please contribute to `urls.list`)
@@ -42,7 +47,7 @@ ___
 ```
 $ ./dockcheck.sh -h
 Syntax:     dockcheck.sh [OPTION] [part of name to filter]
-Example:    dockcheck.sh -y -d 10 -e nextcloud,heimdall
+Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall
 
 Options:
 -a|y   Automatic updates, without interaction.
@@ -55,7 +60,7 @@ Options:
 -I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
 -l     Only update if label is set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
--M     Prints custom releasenote urls as markdown.
+-M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
 -r     Allow updating images for docker run, wont update the container.
@@ -148,7 +153,7 @@ There's a function to use a lookup-file to add release note URL's to the notific
 Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
 Modify it as necessary, the names of interest in the left column needs to match your container names.  
 To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.  
-For Markdown formatting - also add the `-M` option.  
+For Markdown formatting also add the `-M` option. (**this requires the template to be compatible - see gotify for example**)  
 
 The output of the notification will look something like this:
 ```
