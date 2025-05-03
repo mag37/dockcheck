@@ -12,6 +12,11 @@ gotify https://github.com/gotify/server/releases
 traefik https://github.com/traefik/traefik/releases
 caddy https://github.com/caddyserver/caddy/releases
 homarr https://github.com/homarr-labs/homarr/releases
+dozzle https://github.com/amir20/dozzle/releases
+beszel https://github.com/henrygd/beszel/releases
+forgejo https://codeberg.org/forgejo/forgejo/releases
+dockge https://github.com/louislam/dockge/releases
+cup https://github.com/sergi0g/cup/releases
 
 calibre https://github.com/linuxserver/docker-calibre/releases
 calibre-web https://github.com/linuxserver/docker-calibre-web/releases
@@ -41,3 +46,4 @@ mqtt https://github.com/eclipse/mosquitto/tags
 bookstack https://github.com/BookStackApp/BookStack/releases
 lubelogger https://github.com/hargata/lubelog/releases
 mealie https://github.com/mealie-recipes/mealie/releases
+flatnotes https://github.com/dullage/flatnotes/releases
