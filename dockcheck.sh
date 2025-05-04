@@ -195,9 +195,6 @@ choosecontainers() {
       done
     fi
   done
-  printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
-  printf "%s\n" "${SelectedUpdates[@]}"
-  printf "\n"
 }
 
 datecheck() {
@@ -483,6 +480,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [[ "$DontUpdate" == false ]]; then
+    printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
+    printf "%s\n" "${SelectedUpdates[@]}"
+
     NumberofUpdates="${#SelectedUpdates[@]}"
 
     CurrentQue=0
@@ -511,7 +511,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
       docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
-    printf "\n%bDone pulling updates. %bNow recreating containers.%b" "$c_green" "$c_teal" "$c_reset"
+    printf "\n%bDone pulling updates. %bRecreating updated containers.%b\n" "$c_green" "$c_blue" "$c_reset"
 
     CurrentQue=0
     for i in "${SelectedUpdates[@]}"; do
@@ -557,7 +557,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
-    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then docker image prune -f; fi
+    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\n Auto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
     printf "\nNo updates installed, exiting.\n"
