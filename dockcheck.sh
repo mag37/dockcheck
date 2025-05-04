@@ -484,9 +484,37 @@ if [[ -n "${GotUpdates:-}" ]]; then
   fi
   if [[ "$DontUpdate" == false ]]; then
     NumberofUpdates="${#SelectedUpdates[@]}"
+
     CurrentQue=0
-    for i in "${SelectedUpdates[@]}"
-    do
+    for i in "${SelectedUpdates[@]}"; do
+      ((CurrentQue+=1))
+      printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
+      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      [[ "$ContPath" == "null" ]] && ContPath=""
+      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
+      # Checking if Label Only -option is set, and if container got the label
+      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
+
+      # Checking if compose-values are empty - hence started with docker run
+      if [[ -z "$ContPath" ]]; then
+        if [[ "$DRunUp" == true ]]; then
+          docker pull "$ContImage"
+          printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
+        else
+          printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
+        fi
+        continue
+      fi
+
+      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+    done
+    printf "\n%bDone pulling updates. %bNow recreating containers.%b" "$c_green" "$c_teal" "$c_reset"
+
+    CurrentQue=0
+    for i in "${SelectedUpdates[@]}"; do
       ((CurrentQue+=1))
       unset CompleteConfs
       # Extract labels and metadata
@@ -506,15 +534,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
 
       # Checking if compose-values are empty - hence started with docker run
-      if [[ -z "$ContPath" ]]; then
-        if [[ "$DRunUp" == true ]]; then
-          docker pull "$ContImage"
-          printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
-        else
-          printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
-        fi
-        continue
-      fi
+      [[ -z "$ContPath" ]] && continue
+
       # cd to the compose-file directory to account for people who use relative volumes
       cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
       ## Reformatting path + multi compose
@@ -523,16 +544,14 @@ if [[ -n "${GotUpdates:-}" ]]; then
       else
         CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s/%s " "$ContPath" "$conf"; done)
       fi
-      printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-      # Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
-      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       # Check if the container got an environment file set and reformat it
       ContEnvs=""
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
+
+      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-        ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d
+        ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       else
         ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
