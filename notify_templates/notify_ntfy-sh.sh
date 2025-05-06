@@ -11,10 +11,17 @@ trigger_notification() {
     # Modify to fit your setup:
     NtfyUrl="ntfy.sh/YourUniqueTopicName"
 
+    if [[ "$PrintMarkdownURL" == true ]]; then
+        ContentType="Markdown: yes"
+    else
+        ContentType="Markdown: no" #text/plain
+    fi
+
     curl -sS -o /dev/null --show-error --fail \
       -H "Title: $MessageTitle" \
+      -H "$ContentType"      \
       -d "$MessageBody" \
-      $NtfyUrl
+      "$NtfyUrl"
 }
 
 send_notification() {
