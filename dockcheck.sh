@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.3"
-### ChangeNotes: Permission checks, now compose up on whole stack, -M markdown option added.
+VERSION="v0.6.4"
+### ChangeNotes: Restructured update process - first pulls all images, then recreates all containers. Added -F option.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -34,7 +34,8 @@ Help() {
   echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
-  echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
+  echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
+  echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."
@@ -72,6 +73,8 @@ Stopped=${Stopped:=""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
+OnlySpecific=false
+SpecificContainer=${SpecificContainer:=""}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
@@ -88,13 +91,14 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "ayfhiIlmMnprsuvc:e:d:t:x:" options; do
+while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
+    F)   OnlySpecific=true ;;
     i)   Notify=true ;;
     I)   PrintReleaseURL=true ;;
     l)   OnlyLabel=true ;;
@@ -195,9 +199,6 @@ choosecontainers() {
       done
     fi
   done
-  printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
-  printf "%s\n" "${SelectedUpdates[@]}"
-  printf "\n"
 }
 
 datecheck() {
@@ -385,6 +386,15 @@ check_image() {
     fi
   done
 
+  # Skipping non-compose containers unless option is set
+  ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
+  ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+  [[ "$ContPath" == "null" ]] && ContPath=""
+  if [[ -z "$ContPath" ]] && [[ "$DRunUp" == false ]]; then
+    printf "%s\n" "NoUpdates !$i - not checked, no compose file"
+    return
+  fi
+
   local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
@@ -409,7 +419,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld
+export t_out regbin RepoUrl DaysOld DRunUp jqbin
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
@@ -483,10 +493,41 @@ if [[ -n "${GotUpdates:-}" ]]; then
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [[ "$DontUpdate" == false ]]; then
+    printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
+    printf "%s\n" "${SelectedUpdates[@]}"
+
     NumberofUpdates="${#SelectedUpdates[@]}"
+
     CurrentQue=0
-    for i in "${SelectedUpdates[@]}"
-    do
+    for i in "${SelectedUpdates[@]}"; do
+      ((CurrentQue+=1))
+      printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
+      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      [[ "$ContPath" == "null" ]] && ContPath=""
+      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
+      # Checking if Label Only -option is set, and if container got the label
+      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
+
+      # Checking if compose-values are empty - hence started with docker run
+      if [[ -z "$ContPath" ]]; then
+        if [[ "$DRunUp" == true ]]; then
+          docker pull "$ContImage"
+          printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
+        else
+          printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
+        fi
+        continue
+      fi
+
+      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+    done
+    printf "\n%bDone pulling updates. %bRecreating updated containers.%b\n" "$c_green" "$c_blue" "$c_reset"
+
+    CurrentQue=0
+    for i in "${SelectedUpdates[@]}"; do
       ((CurrentQue+=1))
       unset CompleteConfs
       # Extract labels and metadata
@@ -504,17 +545,12 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
       ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
+      ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
+      [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
 
       # Checking if compose-values are empty - hence started with docker run
-      if [[ -z "$ContPath" ]]; then
-        if [[ "$DRunUp" == true ]]; then
-          docker pull "$ContImage"
-          printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
-        else
-          printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
-        fi
-        continue
-      fi
+      [[ -z "$ContPath" ]] && continue
+
       # cd to the compose-file directory to account for people who use relative volumes
       cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
       ## Reformatting path + multi compose
@@ -523,22 +559,22 @@ if [[ -n "${GotUpdates:-}" ]]; then
       else
         CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s/%s " "$ContPath" "$conf"; done)
       fi
-      printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-      # Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
-      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       # Check if the container got an environment file set and reformat it
       ContEnvs=""
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
+      # Set variable when compose up should only target the specific container, not the stack
+      if [[ $OnlySpecific == true ]] || [[ $ContOnlySpecific == true ]]; then SpecificContainer="$ContName"; fi
+
+      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-        ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d
+        ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       else
-        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
-    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then docker image prune -f; fi
+    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\n Auto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
     printf "\nNo updates installed, exiting.\n"
