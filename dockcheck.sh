@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.3"
-### ChangeNotes: Permission checks, now compose up on whole stack, -M markdown option added.
+VERSION="v0.6.4"
+### ChangeNotes: Restructured update process - first pulls all images, then recreates all containers. Added -F option.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -35,7 +35,7 @@ Help() {
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
-  echo "-F     Only compose up the specific container, not the whole compose. (useful for master-compose structure)."
+  echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."

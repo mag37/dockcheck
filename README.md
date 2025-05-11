@@ -20,10 +20,15 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.4**: Restructured the update process - first pulls all updates, then recreates all containers.
+    - Added logic to skip update check on non-compose containers (unless `-r` option).
+    - Added option `-F` to revert to `compose up -d <ContainerName>` targeting specific container and not the stack.
+        - Also added corresponding label and config-option.
+    - Added markdown formatting to `notify_ntfy-sh.sh` template.
 - **v0.6.3**: Some fixes and changes:
     - Stops when a container recreation (compose up -d) fails, also `up`s the whole stack now.
     - `-M`, Markdown format url-releasenotes in notification (requires template rework, look at gotify!)
-    - Added [addons/DSM/README.md](./addons/DSM/README.md) added for more info Synology DSM info.
+    - Added [addons/DSM/README.md](./addons/DSM/README.md) for more info Synology DSM info.
     - Permission checks - graceful exit if no docker permissions + checking if root for pkg-manager.
 - **v0.6.2**: Style and colour changes, prometheus hotfix, new options:
     - `-u`, Allow auto self update of dockcheck.sh
@@ -33,11 +38,6 @@ ___
     - xargs/pipefail, removed `-set -e` bash option for now.
     - unbound variables fixed (hopefully)
     - dependency installer from pkgmanager rewritten
-- **v0.6.0**: Refactored a lot of code, cleaner logic and syntax, safer variables.
-    - Safer bash options with `set -euo pipefail`, `shopt -s nullglob` and `failglob`.
-    - Added a `default.conf` for user settings - persistent through updates.
-    - Added `notify_slack.sh` template for slack curl api.
-
 ___
 
 
@@ -55,7 +55,7 @@ Options:
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
 -f     Force stop+start stack after update. Caution: restarts once for every updated container within stack.
--F     Only compose up the specific container, not the whole compose. (useful for master-compose structure).
+-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure).
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
 -I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
