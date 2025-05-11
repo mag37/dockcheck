@@ -34,7 +34,8 @@ Help() {
   echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
-  echo "-f     Force stack restart after update. Caution: restarts once for every updated container within stack."
+  echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
+  echo "-F     Only compose up the specific container, not the whole compose. (useful for master-compose structure)."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."
@@ -72,6 +73,8 @@ Stopped=${Stopped:=""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
+OnlySpecific=false
+SpecificContainer=${SpecificContainer:=""}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
@@ -88,13 +91,14 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "ayfhiIlmMnprsuvc:e:d:t:x:" options; do
+while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
+    F)   OnlySpecific=true ;;
     i)   Notify=true ;;
     I)   PrintReleaseURL=true ;;
     l)   OnlyLabel=true ;;
@@ -532,6 +536,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
       ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
+      ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
+      [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
 
       # Checking if compose-values are empty - hence started with docker run
       [[ -z "$ContPath" ]] && continue
@@ -547,13 +553,15 @@ if [[ -n "${GotUpdates:-}" ]]; then
       # Check if the container got an environment file set and reformat it
       ContEnvs=""
       if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
+      # Set variable when compose up should only target the specific container, not the stack
+      if [[ $OnlySpecific == true ]] || [[ $ContOnlySpecific == true ]]; then SpecificContainer="$ContName"; fi
 
       printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
         ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       else
-        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi

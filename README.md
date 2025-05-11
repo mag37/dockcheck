@@ -54,7 +54,8 @@ Options:
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
--f     Force stack restart after update. Caution: restarts once for every updated container within stack.
+-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack.
+-F     Only compose up the specific container, not the whole compose. (useful for master-compose structure).
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
 -I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
@@ -204,11 +205,13 @@ See [discussion here](https://github.com/mag37/dockcheck/discussions/145).
 Optionally add labels to compose-files. Currently these are the usable labels:
 ```
     labels:
-      mag37.dockcheck.restart-stack: true
       mag37.dockcheck.update: true
+      mag37.dockcheck.only-specific-container: true
+      mag37.dockcheck.restart-stack: true
 ```
-- `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
 - `mag37.dockcheck.update: true` will when used with the `-l` option only update containers with this label and skip the rest. Will still list updates as usual.
+- `mag37.dockcheck.only-specific-container: true` works instead of the `-F` option, specifying the updated container when doing compose up, like `docker compose up -d homer`.
+- `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
 
 ## :roller_coaster: Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
