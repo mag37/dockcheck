@@ -386,6 +386,15 @@ check_image() {
     fi
   done
 
+  # Skipping non-compose containers unless option is set
+  ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
+  ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+  [[ "$ContPath" == "null" ]] && ContPath=""
+  if [[ -z "$ContPath" ]] && [[ "$DRunUp" == false ]]; then
+    printf "%s\n" "NoUpdates !$i - not checked, no compose file"
+    return
+  fi
+
   local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
@@ -410,7 +419,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld
+export t_out regbin RepoUrl DaysOld DRunUp jqbin
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
