@@ -257,7 +257,7 @@ binary_downloader() {
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
   if command -v curl &>/dev/null; then curl -L "$GetUrl" > "$ScriptWorkDir/$BinaryName";
   elif command -v wget &>/dev/null; then wget "$GetUrl" -O "$ScriptWorkDir/$BinaryName";
-  else printf "%s\n" "curl/wget not available - get $BinaryName manually from the repo link, exiting."; exit 1;
+  else printf "\n%bcurl/wget not available - get %s manually from the repo link, exiting.%b" "$c_red" "$BinaryName" "$c_reset"; exit 1;
   fi
   [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
 }
@@ -288,7 +288,7 @@ dependency_check() {
   if command -v "$AppName" &>/dev/null; then export "$AppVar"="$AppName";
   elif [[ -f "$ScriptWorkDir/$AppName" ]]; then export "$AppVar"="$ScriptWorkDir/$AppName";
   else
-    printf "%s\n" "Required dependency %b'%s'%b missing, do you want to install it?\n" "$c_teal" "$AppName" "$c_reset"
+    printf "\nRequired dependency %b'%s'%b missing, do you want to install it?\n" "$c_teal" "$AppName" "$c_reset"
     read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
     GetBin=${GetBin:-no} # set default to no if nothing is given
     if [[ "$GetBin" =~ [yYsS] ]]; then
@@ -481,7 +481,7 @@ if [[ -n ${GotUpdates[*]:-} ]]; then
   printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
   if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   [[ "$AutoMode" == false ]] && list_options || printf "%s\n" "${Updates[@]}"
-  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "Could not source notification function.\n"; }
+  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "\nCould not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any
