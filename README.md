@@ -272,6 +272,7 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 
 - [avegy](https://github.com/avegy)
 - [eichhorn](https://github.com/eichhorn)
+- [stepdg](https://github.com/stepdg)
 
 ___
 
