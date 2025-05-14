@@ -250,16 +250,17 @@ function dchk {
 }
 ```
 
+## :warning: `-r flag` disclaimer and warning
+**Wont auto-update the containers, only their images. (compose is recommended)**  
+`docker run` dont support using new images just by restarting a container.  
+Containers need to be manually stopped, removed and created again to run on the new image.  
+Using the `-r` option together with eg. `-i` and `-n` to just check for updates and send notifications and not update is safe though!
+
 ## :hammer: Known issues
 - No detailed error feedback (just skip + list what's skipped).
 - Not respecting `--profile` options when re-creating the container.
 - Not working well with containers created by **Portainer**.
 - **Watchtower** might cause issues due to retagging images when checking for updates (and thereby pulling new images).
-
-## :warning: `-r flag` disclaimer and warning
-**Wont auto-update the containers, only their images. (compose is recommended)**  
-`docker run` dont support using new images just by restarting a container.  
-Containers need to be manually stopped, removed and created again to run on the new image.
 
 ## :wrench: Debugging
 If you hit issues, you could check the output of the `extras/errorCheck.sh` script for clues.
