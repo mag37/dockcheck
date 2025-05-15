@@ -73,7 +73,7 @@ Stopped=${Stopped:=""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
-OnlySpecific=false
+OnlySpecific=${OnlySpecific:=false}
 SpecificContainer=${SpecificContainer:=""}
 Excludes=()
 GotUpdates=()
@@ -546,7 +546,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
       ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
-      [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
+      [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
 
       # Checking if compose-values are empty - hence started with docker run
       [[ -z "$ContPath" ]] && continue
