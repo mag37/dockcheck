@@ -28,8 +28,7 @@ trigger_notification() {
 }
 
 send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+    UpdToString=$( printf '%s\\n' "$@" )
 
     # platform specific notification code would go here
     printf "\nSending Gotify notification\n"
