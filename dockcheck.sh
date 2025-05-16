@@ -481,7 +481,7 @@ if [[ -n ${GotUpdates[*]:-} ]]; then
   printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
   if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   [[ "$AutoMode" == false ]] && list_options || printf "%s\n" "${Updates[@]}"
-  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "\nCould not source notification function.\n"; }
+  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${Updates[@]}" || printf "\nCould not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any

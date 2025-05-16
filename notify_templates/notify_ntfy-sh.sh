@@ -25,8 +25,7 @@ trigger_notification() {
 }
 
 send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+    UpdToString=$( printf '%s\\n' "$@" )
 
     printf "\nSending ntfy.sh notification\n"
 
