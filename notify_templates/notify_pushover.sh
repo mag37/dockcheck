@@ -1,18 +1,14 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_PUSHOVER_VERSION="v0.1"
+NOTIFY_PUSHOVER_VERSION="v0.2"
 #
-# Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
 # Requires jq installed and in PATH.
-# Modify to fit your setup - set Url and Token.
+# Set PUSHOVER_USER_KEY, PUSHOVER_TOKEN, and PUSHOVER_URL in your dockcheck.config file.
 
-FromHost=$(hostname)
-
-trigger_notification() {
-    # Modify to fit your setup:
-    PushoverUrl="https://api.pushover.net/1/messages.json"
-    PushoverUserKey="Your Pushover User Key Here"
-    PushoverToken="Your Pushover API Token Here"
+trigger_pushover_notification() {
+    PushoverUrl="${PUSHOVER_URL}" # e.g. PUSHOVER_URL=https://api.pushover.net/1/messages.json
+    PushoverUserKey="${PUSHOVER_USER_KEY}" # e.g. PUSHOVER_USER_KEY=userkey
+    PushoverToken="${PUSHOVER_TOKEN}" # e.g. PUSHOVER_TOKEN=token-value
 
     # Sending the notification via Pushover
     curl -sS -o /dev/null --show-error --fail -X POST \
@@ -21,37 +17,4 @@ trigger_notification() {
         -F "title=$MessageTitle" \
         -F "message=$MessageBody" \
         $PushoverUrl
-}
-
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-
-    # platform specific notification code would go here
-    printf "\nSending pushover notification\n"
-
-    MessageTitle="$FromHost - updates available."
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
-
-    trigger_notification
-}
-
-### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
-### to not send notifications when dockcheck itself has updates.
-dockcheck_notification() {
-    printf "\nSending pushover dockcheck notification\n"
-
-    MessageTitle="$FromHost - New version of dockcheck available."
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
-
-    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_pushover.sh"
-    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_PUSHOVER_VERSION/s/NOTIFY_PUSHOVER_VERSION=//p" | tr -d '"')"
-    if [[ "$NOTIFY_PUSHOVER_VERSION" != "$LatestNotifyRelease" ]] ; then
-        printf -v NotifyUpdate "\n\nnotify_pushover.sh update avialable:\n $NOTIFY_PUSHOVER_VERSION -> $LatestNotifyRelease\n"
-        MessageBody="${MessageBody}${NotifyUpdate}"
-    fi
-
-    trigger_notification
 }

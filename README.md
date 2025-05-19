@@ -20,6 +20,12 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.5**: Refactored notification logic. See notify_templates/notify_v2.sh for upgrade steps.
+    - Added helper functions to simplify sourcing files and executing functions if they exist.
+    - Created notify_v2.sh wrapper script.
+    - Simplified and consolidated notification logic within notify_v2.sh.
+    - Added support for notification management via environment variables.
+    - Moved notification secrets to dockcheck.config.
 - **v0.6.4**: Restructured the update process - first pulls all updates, then recreates all containers.
     - Added logic to skip update check on non-compose containers (unless `-r` option).
     - Added option `-F` to revert to `compose up -d <ContainerName>` targeting specific container and not the stack.
@@ -126,11 +132,19 @@ Alternatively create an alias where specific flags and values are set.
 Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
-Trigger with the `-i` flag if `notify.sh` is present and configured.  
-Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.  
-Run it scheduled with `-ni` to only get notified when there's updates available!  
+Trigger with the `-i` flag.
+If `notify.sh` is present and configured, it will be used. Otherwise, `notify_v2.sh` will be enabled.
+Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
+Run it scheduled with `-ni` to only get notified when there's updates available!
 
-Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)  
+Legacy installation and configuration:
+Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
+
+V2 installation and configuration:
+Remove or rename `notify.sh` if previously configured.
+Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
+Uncomment and set the environment variables related to the enabled notification channels.
+
 **Current templates:**
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))

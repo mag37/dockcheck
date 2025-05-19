@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.4"
-### ChangeNotes: Restructured update process - first pulls all images, then recreates all containers. Added -F option.
+VERSION="v0.6.5"
+### ChangeNotes: Refactored notification logic. See README.md for upgrade steps.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -17,12 +17,17 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 LatestRelease="$(curl -s -r 0-50 "$RawUrl" | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(curl -s -r 0-200 "$RawUrl" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
 
+# Source helper functions
+source_if_exists() {
+  if [[ -s "$1" ]]; then source "$1"; fi
+}
+
+source_if_exists_or_fail() {
+  [[ -s "$1" ]] && source "$1"
+}
+
 # User customizable defaults
-if [[ -s "${HOME}/.config/dockcheck.config" ]]; then
-  source "${HOME}/.config/dockcheck.config"
-elif [[ -s "${ScriptWorkDir}/dockcheck.config" ]]; then
-  source "${ScriptWorkDir}/dockcheck.config"
-fi
+source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists "${ScriptWorkDir}/dockcheck.config"
 
 # Help Function
 Help() {
@@ -124,10 +129,7 @@ SearchName="${1:-}"
 if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
 if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi
 if [[ "$Notify" == true ]]; then
-  if [[ -s "${ScriptWorkDir}/notify.sh" ]]; then
-    source "${ScriptWorkDir}/notify.sh"
-  else Notify=false
-  fi
+  source_if_exists_or_fail "${ScriptWorkDir}/notify.sh" || source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_v2.sh" || Notify=false
 fi
 if [[ -n "$Exclude" ]]; then
   IFS=',' read -ra Excludes <<< "$Exclude"
@@ -147,6 +149,14 @@ if [[ -n "$CollectorTextFileDirectory" ]]; then
     source "${ScriptWorkDir}/addons/prometheus/prometheus_collector.sh"
   fi
 fi
+
+exec_if_exists() {
+  if [[ $(type -t $1) == function ]]; then "$@"; fi
+}
+
+exec_if_exists_or_fail() {
+  [[ $(type -t $1) == function ]] && "$@"
+}
 
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
@@ -335,9 +345,12 @@ if [[ "$VERSION" != "$LatestRelease" ]]; then
     [[ "$SelfUpdate" =~ [yY] ]] && self_update
   elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]]; then self_update;
   else
-    [[ "$Notify" == true ]] && { [[ $(type -t dockcheck_notification) == function ]] && dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
+    [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
   fi
 fi
+
+# Version check for notify templates
+[[ "$Notify" == true ]] && { exec_if_exists_or_fail notify_update_notification || printf "Could not source notify notification function.\n"; }
 
 dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
@@ -457,11 +470,7 @@ unset IFS
 
 # Run the prometheus exporter function
 if [[ -n "${CollectorTextFileDirectory:-}" ]]; then
-  if type -t prometheus_exporter &>/dev/null; then
-    prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]}
-  else
-    printf "%s\n" "Could not source prometheus exporter function."
-  fi
+  exec_if_exists_or_fail prometheus_exporter ${#NoUpdates[@]} ${#GotUpdates[@]} ${#GotErrors[@]} || printf "%s\n" "Could not source prometheus exporter function."
 fi
 
 # Define how many updates are available
@@ -481,7 +490,7 @@ if [[ -n ${GotUpdates[*]:-} ]]; then
   printf "\n%bContainers with updates available:%b\n" "$c_yellow" "$c_reset"
   if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   [[ "$AutoMode" == false ]] && list_options || printf "%s\n" "${Updates[@]}"
-  [[ "$Notify" == true ]] && { type -t send_notification &>/dev/null && send_notification "${GotUpdates[@]}" || printf "\nCould not source notification function.\n"; }
+  [[ "$Notify" == true ]] && { exec_if_exists_or_fail send_notification "${GotUpdates[@]}" || printf "\nCould not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any

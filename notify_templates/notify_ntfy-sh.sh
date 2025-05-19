@@ -1,15 +1,11 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_NTFYSH_VERSION="v0.2"
+NOTIFY_NTFYSH_VERSION="v0.3"
 #
-# Copy/rename this file to notify.sh to enable the notification snippet.
 # Setup app and subscription at https://ntfy.sh
-# Use your unique Topic Name in the URL below.
+# Set NOTIFY_TOPIC_NAME in your dockcheck.config file.
 
-FromHost=$(hostname)
-
-trigger_notification() {
-    # Modify to fit your setup:
-    NtfyUrl="ntfy.sh/YourUniqueTopicName"
+trigger_ntfy-sh_notification() {
+    NtfyUrl="ntfy.sh/${NOTIFY_TOPIC_NAME}" # e.g. NTFY_TOPIC_NAME=YourUniqueTopicName
 
     if [[ "$PrintMarkdownURL" == true ]]; then
         ContentType="Markdown: yes"
@@ -22,36 +18,4 @@ trigger_notification() {
       -H "$ContentType"      \
       -d "$MessageBody" \
       "$NtfyUrl"
-}
-
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-
-    printf "\nSending ntfy.sh notification\n"
-
-    MessageTitle="$FromHost - updates available."
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
-
-    trigger_notification
-}
-
-### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
-### to not send notifications when dockcheck itself has updates.
-dockcheck_notification() {
-    printf "\nSending ntfy.sh dockcheck notification\n"
-
-    MessageTitle="$FromHost - New version of dockcheck available."
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
-
-    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_ntfy-sh.sh"
-    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_NTFYSH_VERSION/s/NOTIFY_NTFYSH_VERSION=//p" | tr -d '"')"
-    if [[ "$NOTIFY_NTFYSH_VERSION" != "$LatestNotifyRelease" ]] ; then
-        printf -v NotifyUpdate "\n\nnotify_ntfy-sh.sh update avialable:\n $NOTIFY_NTFYSH_VERSION -> $LatestNotifyRelease\n"
-        MessageBody="${MessageBody}${NotifyUpdate}"
-    fi
-
-    trigger_notification
 }
