@@ -6,7 +6,7 @@ NOTIFY_V2_VERSION="v0.1"
 # SLACK_TOKEN=xoxb-some-token-value
 # GOTIFY_TOKEN=some.token
 
-enabled_notify_channels=( ${NOTIFY_CHANNELS} )
+enabled_notify_channels=( ${NOTIFY_CHANNELS:-} )
 
 FromHost=$(hostname)
 
