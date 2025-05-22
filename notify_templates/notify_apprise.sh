@@ -2,9 +2,14 @@
 NOTIFY_APPRISE_VERSION="v0.2"
 #
 # Required receiving services must already be set up.
-# Set any sensitive values via variables in your dockcheck.config file.
-# Set APPRISE_PAYLOAD in your dockcheck.config file.
+# Do not modify this file directly. Set APPRISE_PAYLOAD in your dockcheck.config file.
 # If API, set APPRISE_URL instead.
+
+if [[ -z "${APPRISE_PAYLOAD:-}" ]] && [[ -z "${APPRISE_URL:-}" ]]; then
+  printf "Apprise notification channel enabled, but required configuration variables are missing. Apprise notifications will not be sent.\n"
+
+  remove_channel apprise
+fi
 
 trigger_apprise_notification() {
 

@@ -4,7 +4,7 @@ NOTIFY_DSM_VERSION="v0.2"
 #
 # mSMTP/sSMTP has to be installed and configured manually.
 # The existing DSM Notification Email configuration will be used automatically.
-# Set DSM_SENDMAILTO and DSM_SUBJECTTAG in your dockcheck.config file.
+# Do not modify this file directly. Set DSM_SENDMAILTO and DSM_SUBJECTTAG in your dockcheck.config file.
 
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
@@ -36,7 +36,7 @@ $MailPkg $SendMailTo << __EOF
 From: "$SenderName" <$SenderMail>
 date:$(date -R)
 To: <$SendMailTo>
-Subject: $SubjectTag $MessageTitle $FromHost
+Subject: $SubjectTag $MessageTitle
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 

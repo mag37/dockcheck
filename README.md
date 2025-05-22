@@ -137,13 +137,16 @@ If `notify.sh` is present and configured, it will be used. Otherwise, `notify_v2
 Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
 Run it scheduled with `-ni` to only get notified when there's updates available!
 
-Legacy installation and configuration:
-Use a `notify_X.sh` template file from the **notify_templates** directory, copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
-
-V2 installation and configuration:
-Remove or rename `notify.sh` if previously configured.
+V2 installation and configuration (tag v0.6.5 or later):
+Remove or rename `notify.sh` if previously configured using the legacy method.
 Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
 Uncomment and set the environment variables related to the enabled notification channels.
+It is recommended not to make changes directly to the `notify_X.sh` template files and to use only environment variables defined in `dockcheck.config` using this method.
+
+Legacy installation and configuration:
+Use a previous version of a `notify_X.sh` template file (tag v0.6.4 or earlier) from the **notify_templates** directory,
+copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
+
 
 **Current templates:**
 - Synology [DSM](https://www.synology.com/en-global/dsm)

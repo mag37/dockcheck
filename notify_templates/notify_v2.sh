@@ -10,6 +10,14 @@ enabled_notify_channels=( ${NOTIFY_CHANNELS:-} )
 
 FromHost=$(hostname)
 
+remove_channel() {
+  local temp_array=()
+  for channel in "${enabled_notify_channels[@]}"; do
+    [[ "${channel}" != "$1" ]] && temp_array+=("${channel}")
+  done
+  enabled_notify_channels=( "${temp_array[@]}" )
+}
+
 for channel in "${enabled_notify_channels[@]}"; do
   source_if_exists "${ScriptWorkDir}/notify_templates/notify_${channel}.sh"
 done
@@ -36,7 +44,7 @@ dockcheck_notification() {
     echo entered
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.
-    printf -v MessageBody "Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
+    printf -v MessageBody "Installed version: $1\nLatest version: $2\n\nChangenotes: $3"
 
     if [[ ${#enabled_notify_channels[@]} -gt 0 ]]; then printf "\n"; fi
     for channel in "${enabled_notify_channels[@]}"; do
@@ -58,17 +66,20 @@ notify_update_notification() {
       if [[ -n "${!VersionVar}" ]]; then
         RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_${notify_script}.sh"
         LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_${upper_channel}_VERSION/s/NOTIFY_${upper_channel}_VERSION=//p" | tr -d '"')"
-        if [[ "${!VersionVar}" != "$LatestNotifyRelease" ]] ; then
-            MessageTitle="$FromHost - New version of notify_${notify_script}.sh available."
+        LatestNotifyRelease=${LatestNotifyRelease:-undefined}
+        if [[ ! "${LatestNotifyRelease}" = "undefined" ]]; then
+          if [[ "${!VersionVar}" != "$LatestNotifyRelease" ]] ; then
+              MessageTitle="$FromHost - New version of notify_${notify_script}.sh available."
 
-            printf -v MessageBody "\nnotify_${notify_script}.sh update available:\n ${!VersionVar} -> $LatestNotifyRelease\n"
+              printf -v MessageBody "\nnotify_${notify_script}.sh update available:\n ${!VersionVar} -> $LatestNotifyRelease\n"
+          fi
+
+          printf "\n"
+          for channel in "${enabled_notify_channels[@]}"; do
+            printf "Sending notify_${notify_script}.sh update notification - ${channel}\n"
+            exec_if_exists trigger_${channel}_notification
+          done
         fi
-
-        printf "\n"
-        for channel in "${update_channels[@]}"; do
-          printf "Sending notify_${notify_script}.sh update notification - ${channel}\n"
-          exec_if_exists trigger_${channel}_notification
-        done
       fi
     done
   fi

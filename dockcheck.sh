@@ -125,6 +125,11 @@ shift "$((OPTIND-1))"
 # Set $1 to a variable for name filtering later
 SearchName="${1:-}"
 
+# Basic notify configuration check
+if [[ "${Notify}" == true ]] && [[ ! -s "${ScriptWorkDir}/notify.sh" ]] && [[ -z "${NOTIFY_CHANNELS:-}" ]]; then
+  printf "Using v2 notifications with -i flag passed but no notify channels configured in dockcheck.config. This will result in no notifications being sent.\n"
+fi
+
 # Setting up options and sourcing functions
 if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
 if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi

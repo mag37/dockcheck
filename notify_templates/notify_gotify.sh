@@ -2,23 +2,29 @@
 NOTIFY_GOTIFY_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
-# Set GOTIFY_TOKEN and GOTIFY_DOMAIN in your dockcheck.config file.
+# Do not modify this file directly. Set GOTIFY_TOKEN and GOTIFY_DOMAIN in your dockcheck.config file.
+
+if [[ -z "${GOTIFY_TOKEN:-}" ]] || [[ -z "${GOTIFY_DOMAIN:-}" ]]; then
+  printf "Gotify notification channel enabled, but required configuration variables are missing. Gotify notifications will not be sent.\n"
+
+  remove_channel gotify
+fi
 
 trigger_gotify_notification() {
-    GotifyToken="${GOTIFY_TOKEN}" # e.g. GOTIFY_TOKEN=token-value
-    GotifyUrl="${GOTIFY_DOMAIN}/message?token=${GotifyToken}" # e.g. GOTIFY_URL=https://gotify.domain.tld
+  GotifyToken="${GOTIFY_TOKEN}" # e.g. GOTIFY_TOKEN=token-value
+  GotifyUrl="${GOTIFY_DOMAIN}/message?token=${GotifyToken}" # e.g. GOTIFY_URL=https://gotify.domain.tld
 
-    if [[ "$PrintMarkdownURL" == true ]]; then
-        ContentType="text/markdown"
-    else
-        ContentType="text/plain"
-    fi
+  if [[ "$PrintMarkdownURL" == true ]]; then
+      ContentType="text/markdown"
+  else
+      ContentType="text/plain"
+  fi
 
-    JsonData=$( jq -n \
-                  --arg body "$MessageBody" \
-                  --arg title "$MessageTitle" \
-                  --arg type "$ContentType" \
-                  '{message: $body, title: $title, priority: 5, extras: {"client::display": {"contentType": $type}}}' )
+  JsonData=$( jq -n \
+                --arg body "$MessageBody" \
+                --arg title "$MessageTitle" \
+                --arg type "$ContentType" \
+                '{message: $body, title: $title, priority: 5, extras: {"client::display": {"contentType": $type}}}' )
 
-    curl -s -S --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
+  curl -s -S --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
 }
