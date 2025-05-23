@@ -24,6 +24,7 @@ trigger_apprise_notification() {
   #                      tgram://{bot_token}/{chat_id}/'
 
   if [[ -n "${APPRISE_URL:-}" ]]; then
+    AppriseURL="${APPRISE_URL}"
     curl -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL # e.g. APPRISE_URL=http://apprise.mydomain.tld:1234/notify/apprise
   fi
 }

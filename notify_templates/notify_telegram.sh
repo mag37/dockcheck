@@ -20,7 +20,7 @@ trigger_telegram_notification() {
   TelegramToken="${TELEGRAM_TOKEN}" # e.g. TELEGRAM_TOKEN=token-value
   TelegramChatId="${TELEGRAM_CHAT_ID}" # e.g. TELEGRAM_CHAT_ID=mychatid
   TelegramUrl="https://api.telegram.org/bot$TelegramToken"
-  TelegramTopicID=12345678 ## Set to 0 if not using specific topic within chat
+  TelegramTopicID=${TELEGRAM_TOPIC_ID:="0"}
   TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false}"
 
   curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$TelegramData"

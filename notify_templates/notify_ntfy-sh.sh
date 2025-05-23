@@ -2,16 +2,16 @@
 NOTIFY_NTFYSH_VERSION="v0.3"
 #
 # Setup app and subscription at https://ntfy.sh
-# Do not modify this file directly. Set NOTIFY_TOPIC_NAME in your dockcheck.config file.
+# Do not modify this file directly. Set NTFY_TOPIC_NAME in your dockcheck.config file.
 
-if [[ -z "${NOTIFY_TOPIC_NAME:-}" ]]; then
+if [[ -z "${NTFY_TOPIC_NAME:-}" ]]; then
   printf "Ntfy.sh notification channel enabled, but required configuration variables are missing. Ntfy.sh notifications will not be sent.\n"
 
   remove_channel ntfy-sh
 fi
 
 trigger_ntfy-sh_notification() {
-  NtfyUrl="ntfy.sh/${NOTIFY_TOPIC_NAME}" # e.g. NTFY_TOPIC_NAME=YourUniqueTopicName
+  NtfyUrl="ntfy.sh/${NTFY_TOPIC_NAME}" # e.g. NTFY_TOPIC_NAME=YourUniqueTopicName
 
   if [[ "$PrintMarkdownURL" == true ]]; then
       ContentType="Markdown: yes"

@@ -31,7 +31,7 @@ send_notification() {
 
     MessageTitle="$FromHost - updates available."
     # Setting the MessageBody variable here.
-    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString\n"
 
     exec_if_exists trigger_${channel}_notification "$@"
   done
@@ -41,10 +41,9 @@ send_notification() {
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
   if [[ ! "${DISABLE_DOCKCHECK_NOTIFICATION:-}" = "true" ]]; then
-    echo entered
     MessageTitle="$FromHost - New version of dockcheck available."
     # Setting the MessageBody variable here.
-    printf -v MessageBody "Installed version: $1\nLatest version: $2\n\nChangenotes: $3"
+    printf -v MessageBody "Installed version: $1\nLatest version: $2\n\nChangenotes: $3\n"
 
     if [[ ${#enabled_notify_channels[@]} -gt 0 ]]; then printf "\n"; fi
     for channel in "${enabled_notify_channels[@]}"; do
@@ -69,16 +68,15 @@ notify_update_notification() {
         LatestNotifyRelease=${LatestNotifyRelease:-undefined}
         if [[ ! "${LatestNotifyRelease}" = "undefined" ]]; then
           if [[ "${!VersionVar}" != "$LatestNotifyRelease" ]] ; then
-              MessageTitle="$FromHost - New version of notify_${notify_script}.sh available."
+            MessageTitle="$FromHost - New version of notify_${notify_script}.sh available."
 
-              printf -v MessageBody "\nnotify_${notify_script}.sh update available:\n ${!VersionVar} -> $LatestNotifyRelease\n"
+            printf -v MessageBody "notify_${notify_script}.sh update available:\n ${!VersionVar} -> $LatestNotifyRelease\n"
+
+            for channel in "${enabled_notify_channels[@]}"; do
+              printf "Sending notify_${notify_script}.sh update notification - ${channel}\n"
+              exec_if_exists trigger_${channel}_notification
+            done
           fi
-
-          printf "\n"
-          for channel in "${enabled_notify_channels[@]}"; do
-            printf "Sending notify_${notify_script}.sh update notification - ${channel}\n"
-            exec_if_exists trigger_${channel}_notification
-          done
         fi
       fi
     done
