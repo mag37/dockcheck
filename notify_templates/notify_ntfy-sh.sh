@@ -1,9 +1,13 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_NTFYSH_VERSION="v0.2"
+NOTIFY_NTFYSH_VERSION="v0.3"
 #
 # Copy/rename this file to notify.sh to enable the notification snippet.
 # Setup app and subscription at https://ntfy.sh
 # Use your unique Topic Name in the URL below.
+
+# To be added in the MessageBody if "-d X" was used
+# leading space is left intentionally for clean output
+[[ -n "$DaysOld" ]] && msgdaysold="with $DaysOld or more days old " || msgdaysold=""
 
 FromHost=$(hostname)
 
@@ -30,7 +34,7 @@ send_notification() {
 
     printf "\nSending ntfy.sh notification\n"
 
-    MessageTitle="$FromHost - updates available."
+    MessageTitle="$FromHost - updates ${msgdaysold}available."
     # Setting the MessageBody variable here.
     printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString"
 
