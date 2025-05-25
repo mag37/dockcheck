@@ -1,43 +1,18 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_DISCORD_VERSION="v0.1"
+NOTIFY_DISCORD_VERSION="v0.2"
 #
-# Copy/rename this file to notify.sh to enable the notification snippet.
 # Required receiving services must already be set up.
-# Modify to fit your setup - set DiscordWebhookUrl
+# Do not modify this file directly. Set DISCORD_WEBHOOK_URL in your dockcheck.config file.
 
-FromHost=$(hostname)
+if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
+  printf "Discord notification channel enabled, but required configuration variables are missing. Discord notifications will not be sent.\n"
 
-trigger_notification() {
-    # Modify to fit your setup:
-    DiscordWebhookUrl="PasteYourFullDiscordWebhookURL"
+  remove_channel discord
+fi
 
-    MsgBody="{\"username\":\"$FromHost\",\"content\":\"$MessageBody\"}"
-    curl -sS -o /dev/null --fail -X POST -H "Content-Type: application/json" -d "$MsgBody" "$DiscordWebhookUrl"
-}
+trigger_discord_notification() {
+  DiscordWebhookUrl="${DISCORD_WEBHOOK_URL}" # e.g. DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/<token string>
 
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-
-    printf "\nSending Discord notification\n"
-    # Setting the MessageBody variable here.
-    MessageBody="🐋 Containers on $FromHost with updates available: \n$UpdToString"
-
-    trigger_notification
-}
-
-### Rename (eg. disabled_dockcheck_notification), remove or comment out the following function
-### to not send notifications when dockcheck itself has updates.
-dockcheck_notification() {
-    printf "\nSending Discord dockcheck notification\n"
-    MessageBody="$FromHost - New version of dockcheck available: \n Installed version: $1 \nLatest version: $2 \n\nChangenotes: $3"
-
-    RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_discord.sh"
-    LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_DISCORD_VERSION/s/NOTIFY_DISCORD_VERSION=//p" | tr -d '"')"
-    if [[ "$NOTIFY_DISCORD_VERSION" != "$LatestNotifyRelease" ]] ; then
-        printf -v NotifyUpdate "\n\nnotify_discord.sh update avialable:\n $NOTIFY_DISCORD_VERSION -> $LatestNotifyRelease\n"
-        MessageBody="${MessageBody}${NotifyUpdate}"
-    fi
-
-    trigger_notification
+  MsgBody="{\"username\":\"$FromHost\",\"content\":\"$MessageBody\"}"
+  curl -sS -o /dev/null --fail -X POST -H "Content-Type: application/json" -d "$MsgBody" "$DiscordWebhookUrl"
 }
