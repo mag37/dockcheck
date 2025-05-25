@@ -23,9 +23,10 @@ ___
 - **v0.6.5**: Refactored notification logic. See notify_templates/notify_v2.sh for upgrade steps.
     - Added helper functions to simplify sourcing files and executing functions if they exist.
     - Created notify_v2.sh wrapper script.
-    - Simplified and consolidated notification logic within notify_v2.sh.
-    - Added support for notification management via environment variables.
-    - Moved notification secrets to dockcheck.config.
+      - Simplified and consolidated notification logic within notify_v2.sh.
+      - Added support for notification management via environment variables.
+      - Moved notification secrets to **dockcheck.config**.
+    - Added retries to wget/curl to not get empty responses when github is slow.
 - **v0.6.4**: Restructured the update process - first pulls all updates, then recreates all containers.
     - Added logic to skip update check on non-compose containers (unless `-r` option).
     - Added option `-F` to revert to `compose up -d <ContainerName>` targeting specific container and not the stack.
@@ -40,10 +41,6 @@ ___
     - `-u`, Allow auto self update of dockcheck.sh
     - `-I`, Print container release URLs in the CLI "choose update" list. (please contribute to `urls.list`)
     - Extras: `-m`, Monochrome mode now hides the progress bar.
-- **v0.6.1**: Hotfixes: (try removing set+shopt+shopt if debugging more errors)
-    - xargs/pipefail, removed `-set -e` bash option for now.
-    - unbound variables fixed (hopefully)
-    - dependency installer from pkgmanager rewritten
 ___
 
 
@@ -64,7 +61,7 @@ Options:
 -F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure).
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
--I     Prints custom releasenote urls alongside each container with updates (requires urls.list).
+-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list).
 -l     Only update if label is set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
 -M     Prints custom releasenote urls as markdown (requires template support).

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.6.4"
-### ChangeNotes: Refactored notification logic. See README.md for upgrade steps.
+# ChangeNotes: Refactored notification logic. See README.md for upgrade steps.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -14,8 +14,8 @@ ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
 # Check if there's a new release of the script
-LatestRelease="$(curl -s -r 0-50 "$RawUrl" | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
-LatestChanges="$(curl -s -r 0-200 "$RawUrl" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
+LatestRelease="$(curl --retry 3 --retry-delay 1 --retry-max-time 10 -s -r 0-50 "$RawUrl" | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+LatestChanges="$(curl --retry 3 --retry-delay 1 --retry-max-time 10 -s -r 0-200 "$RawUrl" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
 
 # Source helper functions
 source_if_exists() {
@@ -43,7 +43,7 @@ Help() {
   echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
-  echo "-I     Prints custom releasenote urls alongside each container with updates (requires urls.list)."
+  echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
   echo "-l     Only update if label is set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
@@ -166,12 +166,12 @@ exec_if_exists_or_fail() {
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if command -v curl &>/dev/null; then
-    curl -L $RawUrl > "$ScriptPath"; chmod +x "$ScriptPath"
+    curl --retry 3 --retry-delay 1 --retry-max-time 10 -L $RawUrl > "$ScriptPath"; chmod +x "$ScriptPath"
     printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # Exit the old instance
   elif command -v wget &>/dev/null; then
-    wget $RawUrl -O "$ScriptPath"; chmod +x "$ScriptPath"
+    wget --waitretry=1 --timeout=15 -t 10 $RawUrl -O "$ScriptPath"; chmod +x "$ScriptPath"
     printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
@@ -270,8 +270,8 @@ binary_downloader() {
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset"; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
-  if command -v curl &>/dev/null; then curl -L "$GetUrl" > "$ScriptWorkDir/$BinaryName";
-  elif command -v wget &>/dev/null; then wget "$GetUrl" -O "$ScriptWorkDir/$BinaryName";
+  if command -v curl &>/dev/null; then curl --retry 3 --retry-delay 1 --retry-max-time 10 -L "$GetUrl" > "$ScriptWorkDir/$BinaryName";
+  elif command -v wget &>/dev/null; then wget --waitretry=1 --timeout=15 -t 10 "$GetUrl" -O "$ScriptWorkDir/$BinaryName";
   else printf "\n%bcurl/wget not available - get %s manually from the repo link, exiting.%b" "$c_red" "$BinaryName" "$c_reset"; exit 1;
   fi
   [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
@@ -285,7 +285,7 @@ distro_checker() {
   elif [[ -f /etc/arch-release ]]; then
     [[ "$isRoot" == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
   elif [[ -f /etc/debian_version ]]; then
-    [[ "" == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
+    [[ "$isRoot" == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
   elif [[ -f /etc/redhat-release ]]; then
     [[ "$isRoot" == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
   elif [[ -f /etc/SuSE-release ]]; then
