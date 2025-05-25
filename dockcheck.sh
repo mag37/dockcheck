@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION="v0.6.4"
+VERSION="v0.6.5"
 # ChangeNotes: Refactored notification logic. See README.md for upgrade steps.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
