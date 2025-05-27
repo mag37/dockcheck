@@ -3,7 +3,8 @@ NOTIFY_PUSHBULLET_VERSION="v0.2"
 #
 # Required receiving services must already be set up.
 # Requires jq installed and in PATH.
-# Do not modify this file directly. Set PUSHBULLET_TOKEN and PUSHBULLET_URL in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set PUSHBULLET_TOKEN and PUSHBULLET_URL in your dockcheck.config file.
 
 if [[ -z "${PUSHBULLET_URL:-}" ]] || [[ -z "${PUSHBULLET_TOKEN:-}" ]]; then
   printf "Pushbullet notification channel enabled, but required configuration variables are missing. Pushbullet notifications will not be sent.\n"

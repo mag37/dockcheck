@@ -2,7 +2,8 @@
 NOTIFY_DISCORD_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
-# Do not modify this file directly. Set DISCORD_WEBHOOK_URL in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set DISCORD_WEBHOOK_URL in your dockcheck.config file.
 
 if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
   printf "Discord notification channel enabled, but required configuration variables are missing. Discord notifications will not be sent.\n"

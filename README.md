@@ -157,9 +157,10 @@ Make certain your project directory is laid out as below. You only need the noti
 ├── dockcheck.sh
 └── urls.list         # optional
 ```
+If you wish to customize `notify_v2.sh` or the notify templates yourself, you may copy them to your project root directory alongside the main script where they will be ignored by git.
 Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
 Uncomment and set the environment variables related to the enabled notification channels.
-It is recommended not to make changes directly to the `notify_X.sh` template files and to use only environment variables defined in `dockcheck.config` using this method.
+It is recommended not to make changes directly to the `notify_X.sh` template files within the `notify_templates` subdirectory and instead use only environment variables defined in `dockcheck.config` using this method.
 
 Legacy installation and configuration:
 Use a previous version of a `notify_X.sh` template file (tag v0.6.4 or earlier) from the **notify_templates** directory,

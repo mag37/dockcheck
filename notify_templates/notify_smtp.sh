@@ -3,7 +3,8 @@ NOTIFY_SMTP_VERSION="v0.2"
 # INFO: ssmtp is depcerated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.
-# Do not modify this file directly. Set SMTP_MAIL_FROM, SMTP_MAIL_TO, and SMTP_SUBJECT_TAG in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set SMTP_MAIL_FROM, SMTP_MAIL_TO, and SMTP_SUBJECT_TAG in your dockcheck.config file.
 
 if [[ -z "${SMTP_MAIL_FROM:-}" ]] || [[ -z "${SMTP_MAIL_TO:-}" ]] || [[ -z "${SMTP_SUBJECT_TAG:-}" ]]; then
   printf "SMTP notification channel enabled, but required configuration variables are missing. SMTP notifications will not be sent.\n"

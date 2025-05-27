@@ -1,7 +1,7 @@
 NOTIFY_V2_VERSION="v0.2"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
-# Leave (or place) this file and any desired notify template files in the "notify_templates" subdirectory.
+# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
 # Enable and configure all required notification variables in your dockcheck.config file, e.g.:
 # NOTIFY_CHANNELS=apprise gotify slack
 # SLACK_TOKEN=xoxb-some-token-value
@@ -20,8 +20,9 @@ remove_channel() {
 }
 
 for channel in "${enabled_notify_channels[@]}"; do
+  source_if_exists_or_fail "${ScriptWorkDir}/notify_${channel}.sh" || \
   source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_${channel}.sh" || \
-  printf "The notification channel ${channel} is enabled, but ${ScriptWorkDir}/notify_templates/notify_${channel}.sh was not found.\n"
+  printf "The notification channel ${channel} is enabled, but notify_${channel}.sh was not found. Check the ${ScriptWorkDir} directory or the notify_templates subdirectory.\n"
 done
 
 send_notification() {
@@ -31,12 +32,16 @@ send_notification() {
   for channel in "${enabled_notify_channels[@]}"; do
     printf "\nSending ${channel} notification\n"
 
-    MessageTitle="$FromHost - updates available."
+    # To be added in the MessageBody if "-d X" was used
+    # leading space is left intentionally for clean output
+    [[ -n "$DaysOld" ]] && msgdaysold="with images ${DaysOld}+ days old " || msgdaysold=""
+
+    MessageTitle="$FromHost - updates ${msgdaysold}available."
     # Setting the MessageBody variable here.
     printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString\n"
 
     exec_if_exists_or_fail trigger_${channel}_notification || \
-    printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure ${ScriptWorkDir}/notify_templates/notify_${channel}.sh is available.\n"
+    printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
   done
 }
 
@@ -52,7 +57,7 @@ dockcheck_notification() {
     for channel in "${enabled_notify_channels[@]}"; do
       printf "Sending dockcheck update notification - ${channel}\n"
       exec_if_exists_or_fail trigger_${channel}_notification || \
-      printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure ${ScriptWorkDir}/notify_templates/notify_${channel}.sh is available.\n"
+      printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
     done
   fi
 }
@@ -79,7 +84,7 @@ notify_update_notification() {
             for channel in "${enabled_notify_channels[@]}"; do
               printf "Sending notify_${notify_script}.sh update notification - ${channel}\n"
               exec_if_exists_or_fail trigger_${channel}_notification || \
-              printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure ${ScriptWorkDir}/notify_templates/notify_${channel}.sh is available.\n"
+              printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
             done
           fi
         fi

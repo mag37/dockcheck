@@ -2,7 +2,8 @@
 NOTIFY_NTFYSH_VERSION="v0.4"
 #
 # Setup app and subscription at https://ntfy.sh
-# Do not modify this file directly. Set NTFY_DOMAIN and NTFY_TOPIC_NAME in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set NTFY_DOMAIN and NTFY_TOPIC_NAME in your dockcheck.config file.
 
 if [[ -z "${NTFY_DOMAIN:-}" ]] || [[ -z "${NTFY_TOPIC_NAME:-}" ]]; then
   printf "Ntfy.sh notification channel enabled, but required configuration variables are missing. Ntfy.sh notifications will not be sent.\n"
