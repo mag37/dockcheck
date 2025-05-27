@@ -136,6 +136,27 @@ Run it scheduled with `-ni` to only get notified when there's updates available!
 
 V2 installation and configuration (tag v0.6.5 or later):
 Remove or rename `notify.sh` if previously configured using the legacy method.
+Make certain your project directory is laid out as below. You only need the notify_v2.sh file and any notification templates you wish to enable, but there is no harm in having all of them present.
+```
+ .
+├── notify_templates/
+│   ├── notify_DSM.sh
+│   ├── notify_apprise.sh
+│   ├── notify_discord.sh
+│   ├── notify_generic.sh
+│   ├── notify_gotify.sh
+│   ├── notify_matrix.sh
+│   ├── notify_ntfy-sh.sh
+│   ├── notify_pushbullet.sh
+│   ├── notify_pushover.sh
+│   ├── notify_slack.sh
+│   ├── notify_smtp.sh
+│   ├── notify_telegram.sh
+│   └── notify_v2.sh
+├── dockcheck.config
+├── dockcheck.sh
+└── urls.list         # optional
+```
 Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
 Uncomment and set the environment variables related to the enabled notification channels.
 It is recommended not to make changes directly to the `notify_X.sh` template files and to use only environment variables defined in `dockcheck.config` using this method.

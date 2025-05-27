@@ -1,6 +1,7 @@
-NOTIFY_V2_VERSION="v0.1"
+NOTIFY_V2_VERSION="v0.2"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
+# Leave (or place) this file and any desired notify template files in the "notify_templates" subdirectory.
 # Enable and configure all required notification variables in your dockcheck.config file, e.g.:
 # NOTIFY_CHANNELS=apprise gotify slack
 # SLACK_TOKEN=xoxb-some-token-value
@@ -19,7 +20,8 @@ remove_channel() {
 }
 
 for channel in "${enabled_notify_channels[@]}"; do
-  source_if_exists "${ScriptWorkDir}/notify_templates/notify_${channel}.sh"
+  source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_${channel}.sh" || \
+  printf "The notification channel ${channel} is enabled, but ${ScriptWorkDir}/notify_templates/notify_${channel}.sh was not found.\n"
 done
 
 send_notification() {
@@ -33,7 +35,8 @@ send_notification() {
     # Setting the MessageBody variable here.
     printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString\n"
 
-    exec_if_exists trigger_${channel}_notification "$@"
+    exec_if_exists_or_fail trigger_${channel}_notification || \
+    printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure ${ScriptWorkDir}/notify_templates/notify_${channel}.sh is available.\n"
   done
 }
 
@@ -48,7 +51,8 @@ dockcheck_notification() {
     if [[ ${#enabled_notify_channels[@]} -gt 0 ]]; then printf "\n"; fi
     for channel in "${enabled_notify_channels[@]}"; do
       printf "Sending dockcheck update notification - ${channel}\n"
-      exec_if_exists trigger_${channel}_notification
+      exec_if_exists_or_fail trigger_${channel}_notification || \
+      printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure ${ScriptWorkDir}/notify_templates/notify_${channel}.sh is available.\n"
     done
   fi
 }
@@ -62,7 +66,7 @@ notify_update_notification() {
     for notify_script in "${update_channels[@]}"; do
       upper_channel=$(tr '[:lower:]' '[:upper:]' <<< "$notify_script")
       VersionVar="NOTIFY_${upper_channel}_VERSION"
-      if [[ -n "${!VersionVar}" ]]; then
+      if [[ -n "${!VersionVar:-}" ]]; then
         RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_${notify_script}.sh"
         LatestNotifyRelease="$(curl -s -r 0-150 $RawNotifyUrl | sed -n "/NOTIFY_${upper_channel}_VERSION/s/NOTIFY_${upper_channel}_VERSION=//p" | tr -d '"')"
         LatestNotifyRelease=${LatestNotifyRelease:-undefined}
@@ -74,7 +78,8 @@ notify_update_notification() {
 
             for channel in "${enabled_notify_channels[@]}"; do
               printf "Sending notify_${notify_script}.sh update notification - ${channel}\n"
-              exec_if_exists trigger_${channel}_notification
+              exec_if_exists_or_fail trigger_${channel}_notification || \
+              printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure ${ScriptWorkDir}/notify_templates/notify_${channel}.sh is available.\n"
             done
           fi
         fi
