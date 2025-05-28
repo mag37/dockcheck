@@ -11,7 +11,7 @@ if [[ -z "${NTFY_TOPIC_NAME:-}" ]]; then
 fi
 
 trigger_ntfy-sh_notification() {
-  NtfyUrl="ntfy.sh/${NTFY_TOPIC_NAME}" # e.g. NTFY_TOPIC_NAME=YourUniqueTopicName
+  NtfyUrl="${NTFY_DOMAIN}/${NTFY_TOPIC_NAME}" # e.g. NTFY_TOPIC_NAME=YourUniqueTopicName
 
   if [[ "$PrintMarkdownURL" == true ]]; then
       ContentType="Markdown: yes"
