@@ -2,7 +2,8 @@
 NOTIFY_GOTIFY_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
-# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
 # Do not modify this file directly within the "notify_templates" subdirectory. Set GOTIFY_TOKEN and GOTIFY_DOMAIN in your dockcheck.config file.
 
 if [[ -z "${GOTIFY_TOKEN:-}" ]] || [[ -z "${GOTIFY_DOMAIN:-}" ]]; then

@@ -2,7 +2,8 @@
 NOTIFY_APPRISE_VERSION="v0.2"
 #
 # Required receiving services must already be set up.
-# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
 # Do not modify this file directly within the "notify_templates" subdirectory. Set APPRISE_PAYLOAD in your dockcheck.config file.
 # If API, set APPRISE_URL instead.
 

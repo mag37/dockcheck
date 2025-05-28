@@ -4,7 +4,8 @@ NOTIFY_DSM_VERSION="v0.2"
 #
 # mSMTP/sSMTP has to be installed and configured manually.
 # The existing DSM Notification Email configuration will be used automatically.
-# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
 # Do not modify this file directly within the "notify_templates" subdirectory. Set DSM_SENDMAILTO and DSM_SUBJECTTAG in your dockcheck.config file.
 
 MSMTP=$(which msmtp)

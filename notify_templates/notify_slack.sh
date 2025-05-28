@@ -2,7 +2,8 @@
 NOTIFY_SLACK_VERSION="v0.2"
 #
 # Setup app and token at https://api.slack.com/tutorials/tracks/posting-messages-with-curl
-# Leave (or place) this file in the "notify_templates" subdirectory in the same directory as your dockcheck.sh script. If you wish make your own modifications, copy it to your root folder.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
 # Do not modify this file directly within the "notify_templates" subdirectory. Set SLACK_ACCESS_TOKEN, and SLACK_CHANNEL_ID in your dockcheck.config file.
 
 if [[ -z "${SLACK_ACCESS_TOKEN:-}" ]] || [[ -z "${SLACK_CHANNEL_ID:-}" ]]; then
