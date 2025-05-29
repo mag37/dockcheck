@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.5"
-# ChangeNotes: Refactored notification logic. See README.md for upgrade steps.
+VERSION="v0.6.6"
+# ChangeNotes: notify_v2 bugfixes - clarify readme and error messages, better sourcing templates, tweaks.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 

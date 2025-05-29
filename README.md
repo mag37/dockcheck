@@ -20,6 +20,13 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.6**: Notify_v2 bugfixes
+    - Clearer readme and error messages
+    - Sourcing templates from either project root or subdirectory
+    - Consistent newline handling
+    - Added (when using `-d`) days old message to notification title
+    - Added ntfy.sh self hosted domain option to config
+    - jq fixes to templates (and properly using $jqbin)
 - **v0.6.5**: Refactored notification logic. See notify_templates/notify_v2.sh for upgrade steps.
     - Added helper functions to simplify sourcing files and executing functions if they exist.
     - Created notify_v2.sh wrapper script.
@@ -37,10 +44,6 @@ ___
     - `-M`, Markdown format url-releasenotes in notification (requires template rework, look at gotify!)
     - Added [addons/DSM/README.md](./addons/DSM/README.md) for more info Synology DSM info.
     - Permission checks - graceful exit if no docker permissions + checking if root for pkg-manager.
-- **v0.6.2**: Style and colour changes, prometheus hotfix, new options:
-    - `-u`, Allow auto self update of dockcheck.sh
-    - `-I`, Print container release URLs in the CLI "choose update" list. (please contribute to `urls.list`)
-    - Extras: `-m`, Monochrome mode now hides the progress bar.
 ___
 
 

@@ -1,49 +1,75 @@
-# This is a list of container names and releasenote urls, separated by space.
-# Modify, add and (if necessary) remove to fit your needs.
 # Additions are welcome! Append your list to the git-repo, use generic names and sensible urls.
+# Modify, add and (if necessary) remove to fit your needs.
+# This is a list of container names and releasenote urls, separated by space.
 
-apprise-api https://github.com/linuxserver/docker-apprise-api/releases
-homer https://github.com/bastienwirtz/homer/releases
-nginx https://github.com/docker-library/official-images/blob/master/library/nginx
-vaultwarden-server https://github.com/dani-garcia/vaultwarden/releases
-bruceforce-vaultwarden-backup https://github.com/Bruceforce/vaultwarden-backup/blob/main/CHANGELOG.md
 actual_server https://actualbudget.org/blog
-gotify https://github.com/gotify/server/releases
-traefik https://github.com/traefik/traefik/releases
-caddy https://github.com/caddyserver/caddy/releases
-homarr https://github.com/homarr-labs/homarr/releases
-dozzle https://github.com/amir20/dozzle/releases
-beszel https://github.com/henrygd/beszel/releases
-forgejo https://codeberg.org/forgejo/forgejo/releases
-dockge https://github.com/louislam/dockge/releases
-cup https://github.com/sergi0g/cup/releases
-
-calibre https://github.com/linuxserver/docker-calibre/releases
-calibre-web https://github.com/linuxserver/docker-calibre-web/releases
-readarr https://github.com/Readarr/Readarr/releases
+apprise-api https://github.com/linuxserver/docker-apprise-api/releases
 audiobookshelf https://github.com/advplyr/audiobookshelf/releases
-
-gluetun https://github.com/qdm12/gluetun/releases
 bazarr https://github.com/morpheus65535/bazarr/releases
 bazarr-ls https://github.com/linuxserver/docker-bazarr/releases
+beszel https://github.com/henrygd/beszel/releases
+bookstack https://github.com/BookStackApp/BookStack/releases
+bruceforce-vaultwarden-backup https://github.com/Bruceforce/vaultwarden-backup/blob/main/CHANGELOG.md
+caddy https://github.com/caddyserver/caddy/releases
+calibre https://github.com/linuxserver/docker-calibre/releases
+calibre-web https://github.com/linuxserver/docker-calibre-web/releases
+cleanuperr https://github.com/flmorg/cleanuperr/releases
+cross-seed https://github.com/cross-seed/cross-seed/releases
+cup https://github.com/sergi0g/cup/releases
+dockge https://github.com/louislam/dockge/releases
+dozzle https://github.com/amir20/dozzle/releases
+flatnotes https://github.com/dullage/flatnotes/releases
+forgejo https://codeberg.org/forgejo/forgejo/releases
+fressrss https://github.com/FreshRSS/FreshRSS/releases
+gluetun https://github.com/qdm12/gluetun/releases
+go2rtc https://github.com/AlexxIT/go2rtc/releases
+gotify https://github.com/gotify/server/releases
+hbbr https://github.com/rustdesk/rustdesk-server/releases
+hbbs https://github.com/rustdesk/rustdesk-server/releases
+homarr https://github.com/homarr-labs/homarr/releases
+home-assistant https://github.com/home-assistant/core/releases/
+homer https://github.com/bastienwirtz/homer/releases
+immich_machine_learning https://github.com/immich-app/immich/releases
+immich_postgres https://github.com/tensorchord/VectorChord/releases
+immich_redis https://github.com/valkey-io/valkey/releases
+immich_server https://github.com/immich-app/immich/releases
+jellyfin https://github.com/jellyfin/jellyfin/releases
+jellyseerr https://github.com/Fallenbagel/jellyseerr/releases
+jellystat https://github.com/CyferShepard/Jellystat/releases
+librespeed https://github.com/librespeed/speedtest/releases
+lidarr https://github.com/Lidarr/Lidarr/releases/
+lidarr-ls https://github.com/linuxserver/docker-lidarr/releases
+lubelogger https://github.com/hargata/lubelog/releases
+mattermost https://github.com/mattermost/mattermost/releases
+mealie https://github.com/mealie-recipes/mealie/releases
+meilisearch https://github.com/meilisearch/meilisearch/releases
+monica https://github.com/monicahq/monica/releases
+mqtt https://github.com/eclipse/mosquitto/tags
+nextcloud-aio-mastercontainer https://github.com/nextcloud/all-in-one/releases
+nginx https://github.com/docker-library/official-images/blob/master/library/nginx
+owncast https://github.com/owncast/owncast/releases
 prowlarr https://github.com/Prowlarr/Prowlarr/releases
 prowlarr-ls https://github.com/linuxserver/docker-prowlarr/releases
+qbittorrent https://www.qbittorrent.org/news
+qbittorrent-nox https://www.qbittorrent.org/news
+radarr https://github.com/Radarr/Radarr/releases/
+radarr-ls https://github.com/linuxserver/docker-radarr/releases
+readarr https://github.com/Readarr/Readarr/releases
+readeck https://codeberg.org/readeck/readeck/releases
 recyclarr https://github.com/recyclarr/recyclarr/releases
+roundcubemail https://github.com/roundcube/roundcubemail/releases
 sabnzbd https://github.com/linuxserver/docker-sabnzbd/releases
-sonarr https://github.com/linuxserver/docker-sonarr/releases
-radarr https://github.com/linuxserver/docker-radarr/releases
-lidarr https://github.com/linuxserver/docker-lidarr/releases
-jellyseerr https://github.com/Fallenbagel/jellyseerr/releases
-jellyfin https://github.com/jellyfin/jellyfin/releases
-tautulli https://github.com/Tautulli/Tautulli/releases
-cleanuperr https://github.com/flmorg/cleanuperr/releases
+scrutiny https://github.com/AnalogJ/scrutiny/releases
+sftpgo https://github.com/drakkan/sftpgo/releases
 slskd https://github.com/slskd/slskd/releases
-
-home-assistant https://github.com/home-assistant/docker/releases
+snappymail https://github.com/the-djmaze/snappymail/releases
+sonarr https://github.com/Sonarr/Sonarr/releases/
+sonarr-ls https://github.com/linuxserver/docker-sonarr/releases
+syncthing https://github.com/syncthing/syncthing/releases
+tautulli https://github.com/Tautulli/Tautulli/releases
+thelounge https://github.com/thelounge/thelounge/releases
+traefik https://github.com/traefik/traefik/releases
+vaultwarden-server https://github.com/dani-garcia/vaultwarden/releases
+watchtower https://github.com/beatkind/watchtower/releases
+wud https://github.com/getwud/wud/releases
 zigbee2mqtt https://github.com/Koenkk/zigbee2mqtt/releases
-mqtt https://github.com/eclipse/mosquitto/tags
-
-bookstack https://github.com/BookStackApp/BookStack/releases
-lubelogger https://github.com/hargata/lubelog/releases
-mealie https://github.com/mealie-recipes/mealie/releases
-flatnotes https://github.com/dullage/flatnotes/releases
