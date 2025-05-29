@@ -332,6 +332,9 @@ dependency_check() {
   ${!AppVar} "$VerFlag" &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
 }
 
+dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
+
 # Numbered List function
 # if urls.list exists add release note url per line
 list_options() {
@@ -353,9 +356,6 @@ if [[ "$VERSION" != "$LatestRelease" ]]; then
     [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
   fi
 fi
-
-dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
 # Version check for notify templates
 [[ "$Notify" == true ]] && { exec_if_exists_or_fail notify_update_notification || printf "Could not source notify notification function.\n"; }
