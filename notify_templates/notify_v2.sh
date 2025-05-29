@@ -29,6 +29,7 @@ done
 send_notification() {
   [[ -s "$ScriptWorkDir"/urls.list ]] && releasenotes || Updates=("$@")
   UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+  UpdToString=${UpdToString%\\n}
 
   for channel in "${enabled_notify_channels[@]}"; do
     printf "\nSending ${channel} notification\n"
@@ -39,7 +40,7 @@ send_notification() {
 
     MessageTitle="$FromHost - updates ${msgdaysold}available."
     # Setting the MessageBody variable here.
-    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n$UpdToString\n"
+    printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n${UpdToString}\n"
 
     exec_if_exists_or_fail trigger_${channel}_notification || \
     printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
