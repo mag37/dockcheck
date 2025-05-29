@@ -3,7 +3,9 @@ NOTIFY_PUSHBULLET_VERSION="v0.2"
 #
 # Required receiving services must already be set up.
 # Requires jq installed and in PATH.
-# Do not modify this file directly. Set PUSHBULLET_TOKEN and PUSHBULLET_URL in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set PUSHBULLET_TOKEN and PUSHBULLET_URL in your dockcheck.config file.
 
 if [[ -z "${PUSHBULLET_URL:-}" ]] || [[ -z "${PUSHBULLET_TOKEN:-}" ]]; then
   printf "Pushbullet notification channel enabled, but required configuration variables are missing. Pushbullet notifications will not be sent.\n"
@@ -16,5 +18,5 @@ trigger_pushbullet_notification() {
   PushToken="${PUSHBULLET_TOKEN}" # e.g. PUSHBULLET_TOKEN=token-value
 
   # Requires jq to process json data
-  jq -n --arg title "$MessageTitle" --arg body "$MessageBody" '{body: $body, title: $title, type: "note"}' | curl -sS -o /dev/null --show-error --fail -X POST -H "Access-Token: $PushToken" -H "Content-type: application/json" $PushUrl -d @-
+  "$jqbin" -n --arg title "$MessageTitle" --arg body "$MessageBody" '{body: $body, title: $title, type: "note"}' | curl -sS -o /dev/null --show-error --fail -X POST -H "Access-Token: $PushToken" -H "Content-type: application/json" $PushUrl -d @-
 }

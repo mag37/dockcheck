@@ -1,5 +1,5 @@
 # ignore users custom notify.sh
-/notify.sh
+/notify*.sh
 /urls.list
 # ignore user config
 /dockcheck.config

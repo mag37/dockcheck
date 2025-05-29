@@ -2,7 +2,9 @@
 NOTIFY_GOTIFY_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
-# Do not modify this file directly. Set GOTIFY_TOKEN and GOTIFY_DOMAIN in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set GOTIFY_TOKEN and GOTIFY_DOMAIN in your dockcheck.config file.
 
 if [[ -z "${GOTIFY_TOKEN:-}" ]] || [[ -z "${GOTIFY_DOMAIN:-}" ]]; then
   printf "Gotify notification channel enabled, but required configuration variables are missing. Gotify notifications will not be sent.\n"
@@ -20,7 +22,7 @@ trigger_gotify_notification() {
       ContentType="text/plain"
   fi
 
-  JsonData=$( jq -n \
+  JsonData=$( "$jqbin" -n \
                 --arg body "$MessageBody" \
                 --arg title "$MessageTitle" \
                 --arg type "$ContentType" \

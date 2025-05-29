@@ -2,7 +2,9 @@
 NOTIFY_MATRIX_VERSION="v0.2"
 #
 # Required receiving services must already be set up.
-# Do not modify this file directly. Set MATRIX_ACCESS_TOKEN, MATRIX_ROOM_ID, and MATRIX_SERVER_URL in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set MATRIX_ACCESS_TOKEN, MATRIX_ROOM_ID, and MATRIX_SERVER_URL in your dockcheck.config file.
 
 if [[ -z "${MATRIX_ACCESS_TOKEN:-}" ]] || [[ -z "${MATRIX_ROOM_ID}:-" ]] || [[ -z "${MATRIX_SERVER_URL}:-" ]]; then
   printf "Matrix notification channel enabled, but required configuration variables are missing. Matrix notifications will not be sent.\n"

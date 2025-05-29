@@ -1,8 +1,10 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_TELEGRAM_VERSION="v0.2"
+NOTIFY_TELEGRAM_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
-# Do not modify this file directly. Set TELEGRAM_CHAT_ID and TELEGRAM_TOKEN in your dockcheck.config file.
+# Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
+# Do not modify this file directly within the "notify_templates" subdirectory. Set TELEGRAM_CHAT_ID and TELEGRAM_TOKEN in your dockcheck.config file.
 
 if [[ -z "${TELEGRAM_CHAT_ID:-}" ]] || [[ -z "${TELEGRAM_TOKEN:-}" ]]; then
   printf "Telegram notification channel enabled, but required configuration variables are missing. Telegram notifications will not be sent.\n"
@@ -21,7 +23,13 @@ trigger_telegram_notification() {
   TelegramChatId="${TELEGRAM_CHAT_ID}" # e.g. TELEGRAM_CHAT_ID=mychatid
   TelegramUrl="https://api.telegram.org/bot$TelegramToken"
   TelegramTopicID=${TELEGRAM_TOPIC_ID:="0"}
-  TelegramData="{\"chat_id\":\"$TelegramChatId\",\"text\":\"$MessageBody\",\"message_thread_id\":\"$TelegramTopicID\",\"disable_notification\": false}"
 
-  curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$TelegramData"
+  JsonData=$( "$jqbin" -n \
+              --arg chatid "$TelegramChatId" \
+              --arg text "$MessageBody" \
+              --arg thread "$TelegramTopicID" \
+              --arg parse_mode "$ParseMode" \
+              '{"chat_id": $chatid, "text": $text, "message_thread_id": $thread, "disable_notification": false, "parse_mode": $parse_mode, "disable_web_page_preview": true}' )
+
+  curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$JsonData"
 }
