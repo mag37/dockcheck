@@ -24,7 +24,7 @@ trigger_telegram_notification() {
   TelegramUrl="https://api.telegram.org/bot$TelegramToken"
   TelegramTopicID=${TELEGRAM_TOPIC_ID:="0"}
 
-  JsonData=$( jq -n \
+  JsonData=$( "$jqbin" -n \
               --arg chatid "$TelegramChatId" \
               --arg text "$MessageBody" \
               --arg thread "$TelegramTopicID" \

@@ -15,7 +15,7 @@ fi
 trigger_discord_notification() {
   DiscordWebhookUrl="${DISCORD_WEBHOOK_URL}" # e.g. DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/<token string>
 
-  JsonData=$( jq -n \
+  JsonData=$( "$jqbin" -n \
               --arg username "$FromHost" \
               --arg body "$MessageBody" \
               '{"username": $username, "content": $body}' )

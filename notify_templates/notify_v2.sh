@@ -10,7 +10,7 @@ NOTIFY_V2_VERSION="v0.2"
 
 enabled_notify_channels=( ${NOTIFY_CHANNELS:-} )
 
-FromHost=$(hostname)
+FromHost=$(cat /etc/hostname)
 
 remove_channel() {
   local temp_array=()

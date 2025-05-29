@@ -354,11 +354,11 @@ if [[ "$VERSION" != "$LatestRelease" ]]; then
   fi
 fi
 
-# Version check for notify templates
-[[ "$Notify" == true ]] && { exec_if_exists_or_fail notify_update_notification || printf "Could not source notify notification function.\n"; }
-
 dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
+
+# Version check for notify templates
+[[ "$Notify" == true ]] && { exec_if_exists_or_fail notify_update_notification || printf "Could not source notify notification function.\n"; }
 
 # Check docker compose binary
 docker info &>/dev/null || { printf "\n%bYour current user does not have permissions to the docker socket - may require root / docker group. Exiting.%b\n" "$c_red" "$c_reset"; exit 1; }

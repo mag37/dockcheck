@@ -22,7 +22,7 @@ trigger_gotify_notification() {
       ContentType="text/plain"
   fi
 
-  JsonData=$( jq -n \
+  JsonData=$( "$jqbin" -n \
                 --arg body "$MessageBody" \
                 --arg title "$MessageTitle" \
                 --arg type "$ContentType" \
