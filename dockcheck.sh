@@ -49,7 +49,7 @@ Help() {
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
-  echo "-r     Allow updating images for docker run; won't update the container."
+  echo "-r     Allow checking for updates/updating images for docker run containers. Won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
