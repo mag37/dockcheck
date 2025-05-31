@@ -25,7 +25,7 @@ ___
     - Sourcing templates from either project root or subdirectory
     - Consistent newline handling
     - Added (when using `-d`) days old message to notification title
-    - Added ntfy.sh self hosted domain option to config
+    - Added ntfy self hosted domain option to config
     - jq fixes to templates (and properly using $jqbin)
 - **v0.6.5**: Refactored notification logic. See notify_templates/notify_v2.sh for upgrade steps.
     - Added helper functions to simplify sourcing files and executing functions if they exist.
@@ -38,7 +38,7 @@ ___
     - Added logic to skip update check on non-compose containers (unless `-r` option).
     - Added option `-F` to revert to `compose up -d <ContainerName>` targeting specific container and not the stack.
         - Also added corresponding label and config-option.
-    - Added markdown formatting to `notify_ntfy-sh.sh` template.
+    - Added markdown formatting to `notify_ntfy.sh` template.
 - **v0.6.3**: Some fixes and changes:
     - Stops when a container recreation (compose up -d) fails, also `up`s the whole stack now.
     - `-M`, Markdown format url-releasenotes in notification (requires template rework, look at gotify!)
@@ -70,7 +70,7 @@ Options:
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
--r     Allow updating images for docker run, wont update the container.
+-r     Allow checking for updates/updating images for docker run containers. Won't update the container.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -u     Allow automatic self updates - caution as this will pull new code and autorun it.
@@ -149,7 +149,7 @@ Make certain your project directory is laid out as below. You only need the noti
 │   ├── notify_generic.sh
 │   ├── notify_gotify.sh
 │   ├── notify_matrix.sh
-│   ├── notify_ntfy-sh.sh
+│   ├── notify_ntfy.sh
 │   ├── notify_pushbullet.sh
 │   ├── notify_pushover.sh
 │   ├── notify_slack.sh
@@ -176,7 +176,7 @@ copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
   - Read the [QuickStart](extras/apprise_quickstart.md)
-- [ntfy.sh](https://ntfy.sh/) - HTTP-based pub-sub notifications.
+- [ntfy](https://ntfy.sh/) - HTTP-based pub-sub notifications.
 - [Gotify](https://gotify.net/) - a simple server for sending and receiving messages.
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 - [Telegram](https://telegram.org/) - Telegram chat API.
