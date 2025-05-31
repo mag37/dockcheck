@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_NTFYSH_VERSION="v0.4"
+NOTIFY_NTFY_VERSION="v0.4"
 #
 # Setup app and subscription at https://ntfy.sh
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -7,12 +7,12 @@ NOTIFY_NTFYSH_VERSION="v0.4"
 # Do not modify this file directly within the "notify_templates" subdirectory. Set NTFY_DOMAIN and NTFY_TOPIC_NAME in your dockcheck.config file.
 
 if [[ -z "${NTFY_DOMAIN:-}" ]] || [[ -z "${NTFY_TOPIC_NAME:-}" ]]; then
-  printf "Ntfy.sh notification channel enabled, but required configuration variables are missing. Ntfy.sh notifications will not be sent.\n"
+  printf "Ntfy notification channel enabled, but required configuration variables are missing. Ntfy notifications will not be sent.\n"
 
-  remove_channel ntfy-sh
+  remove_channel ntfy
 fi
 
-trigger_ntfy-sh_notification() {
+trigger_ntfy_notification() {
   NtfyUrl="${NTFY_DOMAIN}/${NTFY_TOPIC_NAME}"
   # e.g.
   # NTFY_DOMAIN=ntfy.sh
