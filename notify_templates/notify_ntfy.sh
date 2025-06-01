@@ -24,7 +24,7 @@ trigger_ntfy_notification() {
       ContentType="Markdown: no" #text/plain
   fi
 
-  curl -sS -o /dev/null --show-error --fail \
+  curl -sS -o /dev/null --fail \
     -H "Title: $MessageTitle" \
     -H "$ContentType"      \
     -d "$MessageBody" \

@@ -18,5 +18,5 @@ trigger_pushbullet_notification() {
   PushToken="${PUSHBULLET_TOKEN}" # e.g. PUSHBULLET_TOKEN=token-value
 
   # Requires jq to process json data
-  "$jqbin" -n --arg title "$MessageTitle" --arg body "$MessageBody" '{body: $body, title: $title, type: "note"}' | curl -sS -o /dev/null --show-error --fail -X POST -H "Access-Token: $PushToken" -H "Content-type: application/json" $PushUrl -d @-
+  "$jqbin" -n --arg title "$MessageTitle" --arg body "$MessageBody" '{body: $body, title: $title, type: "note"}' | curl -sS -o /dev/null --fail -X POST -H "Access-Token: $PushToken" -H "Content-type: application/json" $PushUrl -d @-
 }
