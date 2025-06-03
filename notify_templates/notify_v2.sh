@@ -8,9 +8,9 @@ NOTIFY_V2_VERSION="v0.3"
 # SLACK_TOKEN=xoxb-some-token-value
 # GOTIFY_TOKEN=some.token
 
-# Number of seconds to snooze identical update notifications based on local image hash
+# Number of seconds to snooze identical update notifications based on local image name
 # or dockcheck.sh/notify.sh template file updates.
-# Actual snooze will be 60 seconds less to avoid the chance of missed notifications due to differences in execution time.
+# Actual snooze will be 60 seconds less to avoid the chance of missed notifications due to minor scheduling or script run time issues.
 snooze="${SNOOZE_SECONDS:-}"
 SnoozeFile="${ScriptWorkDir}/snooze.list"
 
