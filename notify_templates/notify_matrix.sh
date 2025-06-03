@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_MATRIX_VERSION="v0.2"
+NOTIFY_MATRIX_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -19,5 +19,9 @@ trigger_matrix_notification() {
   MsgBody="{\"msgtype\":\"m.text\",\"body\":\"$MessageBody\"}"
 
   # URL Example:  https://matrix.org/_matrix/client/r0/rooms/!xxxxxx:example.com/send/m.room.message?access_token=xxxxxxxx
-  curl -sS -o /dev/null --fail -X POST "$MatrixServer/_matrix/client/r0/rooms/$Room_id/send/m.room.message?access_token=$AccessToken" -H 'Content-Type: application/json' -d "$MsgBody"
+  curl -sSf -o /dev/null ${CurlArgs} -X POST "$MatrixServer/_matrix/client/r0/rooms/$Room_id/send/m.room.message?access_token=$AccessToken" -H 'Content-Type: application/json' -d "$MsgBody"
+
+  if [[ $? -gt 0 ]]; then
+    NotifyError=true
+  fi
 }

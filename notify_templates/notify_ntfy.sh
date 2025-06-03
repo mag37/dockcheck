@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_NTFY_VERSION="v0.4"
+NOTIFY_NTFYSH_VERSION="v0.5"
 #
 # Setup app and subscription at https://ntfy.sh
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -24,9 +24,13 @@ trigger_ntfy_notification() {
       ContentType="Markdown: no" #text/plain
   fi
 
-  curl -sS -o /dev/null --show-error --fail \
+  curl -sSf -o /dev/null ${CurlArgs} \
     -H "Title: $MessageTitle" \
     -H "$ContentType"      \
     -d "$MessageBody" \
     "$NtfyUrl"
+
+  if [[ $? -gt 0 ]]; then
+    NotifyError=true
+  fi
 }

@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_DISCORD_VERSION="v0.3"
+NOTIFY_DISCORD_VERSION="v0.4"
 #
 # Required receiving services must already be set up.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -20,5 +20,9 @@ trigger_discord_notification() {
               --arg body "$MessageBody" \
               '{"username": $username, "content": $body}' )
 
-  curl -sS -o /dev/null --fail -X POST -H "Content-Type: application/json" -d "$JsonData" "$DiscordWebhookUrl"
+  curl -sSf -o /dev/null ${CurlArgs} -X POST -H "Content-Type: application/json" -d "$JsonData" "$DiscordWebhookUrl"
+
+  if [[ $? -gt 0 ]]; then
+    NotifyError=true
+  fi
 }

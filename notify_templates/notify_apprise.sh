@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_APPRISE_VERSION="v0.2"
+NOTIFY_APPRISE_VERSION="v0.3"
 #
 # Required receiving services must already be set up.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -18,6 +18,10 @@ trigger_apprise_notification() {
   if [[ -n "${APPRISE_PAYLOAD:-}" ]]; then
     apprise -vv -t "$MessageTitle" -b "$MessageBody" \
       ${APPRISE_PAYLOAD}
+
+    if [[ $? -gt 0 ]]; then
+      NotifyError=true
+    fi
   fi
 
   # e.g. APPRISE_PAYLOAD='mailto://myemail:mypass@gmail.com
@@ -27,6 +31,10 @@ trigger_apprise_notification() {
 
   if [[ -n "${APPRISE_URL:-}" ]]; then
     AppriseURL="${APPRISE_URL}"
-    curl -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL # e.g. APPRISE_URL=http://apprise.mydomain.tld:1234/notify/apprise
+    curl -sSf -o /dev/null ${CurlArgs} -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL # e.g. APPRISE_URL=http://apprise.mydomain.tld:1234/notify/apprise
+
+    if [[ $? -gt 0 ]]; then
+      NotifyError=true
+    fi
   fi
 }
