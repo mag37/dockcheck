@@ -31,7 +31,7 @@ trigger_apprise_notification() {
 
   if [[ -n "${APPRISE_URL:-}" ]]; then
     AppriseURL="${APPRISE_URL}"
-    curl -sSf -o /dev/null ${CurlArgs} -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL # e.g. APPRISE_URL=http://apprise.mydomain.tld:1234/notify/apprise
+    curl -S -o /dev/null ${CurlArgs} -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL # e.g. APPRISE_URL=http://apprise.mydomain.tld:1234/notify/apprise
 
     if [[ $? -gt 0 ]]; then
       NotifyError=true

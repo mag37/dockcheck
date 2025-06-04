@@ -46,7 +46,7 @@ notify_containers_count() {
   for update in "$@"
   do
     read -a container <<< "${update}"
-    found=$(grep "${container[0]}" "${SnoozeFile}" || printf "")
+    found=$(grep -w "${container[0]}" "${SnoozeFile}" || printf "")
 
     if [[ -n "${found}" ]]; then
       read -a arr <<< "${found}"
@@ -69,7 +69,7 @@ update_snooze() {
   for arg in "$@"
   do
     read -a entry <<< "${arg}"
-    found=$(grep "${entry[0]}" "${SnoozeFile}" || printf "")
+    found=$(grep -w "${entry[0]}" "${SnoozeFile}" || printf "")
 
     if [[ -n "${found}" ]]; then
       sed -e "s/${entry[0]}.*/${entry[0]} ${CurrentEpochTime}/" "${SnoozeFile}" > "${SnoozeFile}.new"
@@ -102,7 +102,7 @@ cleanup_snooze() {
       sed -e "/${entry}/d" "${SnoozeFile}" > "${SnoozeFile}.new"
       mv "${SnoozeFile}.new" "${SnoozeFile}"
     fi
-  done <<< "$(cat ${SnoozeFile} | grep ${switch} '\.sh')"
+  done <<< "$(cat ${SnoozeFile} | grep ${switch} '\.sh ')"
 }
 
 send_notification() {
@@ -149,7 +149,7 @@ dockcheck_notification() {
     NotifyError=false
 
     if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-      found=$(grep "dockcheck\.sh" "${SnoozeFile}" || printf "")
+      found=$(grep -w "dockcheck\.sh" "${SnoozeFile}" || printf "")
       if [[ -n "${found}" ]]; then
         read -a arr <<< "${found}"
         CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
@@ -203,7 +203,7 @@ notify_update_notification() {
       VersionVar="NOTIFY_${UpperChannel}_VERSION"
       if [[ -n "${!VersionVar:-}" ]]; then
         RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_${NotifyScript}.sh"
-        LatestNotifySnippet="$(curl ${CurlArgs} -sf -r 0-150 "$RawNotifyUrl" || printf "undefined")"
+        LatestNotifySnippet="$(curl ${CurlArgs} -r 0-150 "$RawNotifyUrl" || printf "undefined")"
         LatestNotifyRelease="$(echo "$LatestNotifySnippet" | sed -n "/${VersionVar}/s/${VersionVar}=//p" | tr -d '"')"
         if [[ ! "${LatestNotifyRelease}" == "undefined" ]]; then
           if [[ "${!VersionVar}" != "${LatestNotifyRelease}" ]] ; then
@@ -216,7 +216,7 @@ notify_update_notification() {
     if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
       for update in "${Updates[@]}"; do
         read -a NotifyScript <<< "${update}"
-        found=$(grep "${NotifyScript}" "${SnoozeFile}" || printf "")
+        found=$(grep -w "${NotifyScript}" "${SnoozeFile}" || printf "")
         if [[ -n "${found}" ]]; then
           read -a arr <<< "${found}"
           CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))

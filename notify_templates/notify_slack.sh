@@ -17,7 +17,7 @@ trigger_slack_notification() {
   ChannelID="${SLACK_CHANNEL_ID}" # e.g. CHANNEL_ID=mychannel
   SlackUrl="https://slack.com/api/chat.postMessage"
 
-  curl -sSf -o /dev/null ${CurlArgs} \
+  curl -S -o /dev/null ${CurlArgs} \
     -d "text=$MessageBody" -d "channel=$ChannelID" \
     -H "Authorization: Bearer $AccessToken" \
     -X POST $SlackUrl

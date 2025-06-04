@@ -19,7 +19,7 @@ trigger_matrix_notification() {
   MsgBody="{\"msgtype\":\"m.text\",\"body\":\"$MessageBody\"}"
 
   # URL Example:  https://matrix.org/_matrix/client/r0/rooms/!xxxxxx:example.com/send/m.room.message?access_token=xxxxxxxx
-  curl -sSf -o /dev/null ${CurlArgs} -X POST "$MatrixServer/_matrix/client/r0/rooms/$Room_id/send/m.room.message?access_token=$AccessToken" -H 'Content-Type: application/json' -d "$MsgBody"
+  curl -S -o /dev/null ${CurlArgs} -X POST "$MatrixServer/_matrix/client/r0/rooms/$Room_id/send/m.room.message?access_token=$AccessToken" -H 'Content-Type: application/json' -d "$MsgBody"
 
   if [[ $? -gt 0 ]]; then
     NotifyError=true

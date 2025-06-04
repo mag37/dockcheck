@@ -56,32 +56,32 @@ Help() {
 }
 
 # Initialise variables
-Timeout=${Timeout:=10}
-MaxAsync=${MaxAsync:=1}
-BarWidth=${BarWidth:=50}
-AutoMode=${AutoMode:=false}
-DontUpdate=${DontUpdate:=false}
-AutoPrune=${AutoPrune:=false}
-AutoSelfUpdate=${AutoSelfUpdate:=false}
-OnlyLabel=${OnlyLabel:=false}
-Notify=${Notify:=false}
-ForceRestartStacks=${ForceRestartStacks:=false}
-DRunUp=${DRunUp:=false}
-MonoMode=${MonoMode:=false}
-PrintReleaseURL=${PrintReleaseURL:=false}
-PrintMarkdownURL=${PrintMarkdownURL:=false}
-Stopped=${Stopped:=""}
+Timeout=${Timeout:-10}
+MaxAsync=${MaxAsync:-1}
+BarWidth=${BarWidth:-50}
+AutoMode=${AutoMode:-false}
+DontUpdate=${DontUpdate:-false}
+AutoPrune=${AutoPrune:-false}
+AutoSelfUpdate=${AutoSelfUpdate:-false}
+OnlyLabel=${OnlyLabel:-false}
+Notify=${Notify:-false}
+ForceRestartStacks=${ForceRestartStacks:-false}
+DRunUp=${DRunUp:-false}
+MonoMode=${MonoMode:-false}
+PrintReleaseURL=${PrintReleaseURL:-false}
+PrintMarkdownURL=${PrintMarkdownURL:-false}
+Stopped=${Stopped:-""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
-OnlySpecific=${OnlySpecific:=false}
-SpecificContainer=${SpecificContainer:=""}
+OnlySpecific=${OnlySpecific:-false}
+SpecificContainer=${SpecificContainer:-""}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
 GotErrors=()
 SelectedUpdates=()
-CurlArgs=${CurlArgs:-"--retry 3 --retry-delay 1 --retry-max-time 20 --max-time 5"}
+CurlArgs="--retry ${CurlRetryCount:=3} --retry-delay ${CurlRetryDelay:=1}  --connect-timeout ${CurlConnectTimeout:=5} -sf"
 regbin=""
 jqbin=""
 
@@ -123,7 +123,7 @@ shift "$((OPTIND-1))"
 SearchName="${1:-}"
 
 # Check if there's a new release of the script
-LatestSnippet="$(curl ${CurlArgs} -sf -r 0-200 "$RawUrl" || printf "undefined")"
+LatestSnippet="$(curl ${CurlArgs} -r 0-200 "$RawUrl" || printf "undefined")"
 LatestRelease="$(echo "${LatestSnippet}" | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
 LatestChanges="$(echo "${LatestSnippet}" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
 
@@ -168,7 +168,7 @@ exec_if_exists_or_fail() {
 self_update_curl() {
   cp "$ScriptPath" "$ScriptPath".bak
   if command -v curl &>/dev/null; then
-    curl ${CurlArgs} -sf -L $RawUrl > "$ScriptPath"; chmod +x "$ScriptPath" || { printf "ERROR: Failed to curl updated Dockcheck.sh script. Skipping update.\n"; return 1; }
+    curl ${CurlArgs} -L $RawUrl > "$ScriptPath"; chmod +x "$ScriptPath" || { printf "ERROR: Failed to curl updated Dockcheck.sh script. Skipping update.\n"; return 1; }
     printf "\n%b---%b starting over with the updated version %b---%b\n" "$c_yellow" "$c_teal" "$c_yellow" "$c_reset"
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 1 # Exit the old instance
@@ -272,7 +272,7 @@ binary_downloader() {
     *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset"; exit 1;;
   esac
   GetUrl="${BinaryUrl/TEMP/"$architecture"}"
-  if command -v curl &>/dev/null; then curl ${CurlArgs} -sf -L "$GetUrl" > "$ScriptWorkDir/$BinaryName" || { printf "ERROR: Failed to curl binary dependency. Rerun the script to retry.\n"; exit 1; }
+  if command -v curl &>/dev/null; then curl ${CurlArgs} -L "$GetUrl" > "$ScriptWorkDir/$BinaryName" || { printf "ERROR: Failed to curl binary dependency. Rerun the script to retry.\n"; exit 1; }
   elif command -v wget &>/dev/null; then wget --waitretry=1 --timeout=15 -t 10 "$GetUrl" -O "$ScriptWorkDir/$BinaryName";
   else printf "\n%bcurl/wget not available - get %s manually from the repo link, exiting.%b" "$c_red" "$BinaryName" "$c_reset"; exit 1;
   fi

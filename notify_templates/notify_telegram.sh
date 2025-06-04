@@ -31,7 +31,7 @@ trigger_telegram_notification() {
               --arg parse_mode "$ParseMode" \
               '{"chat_id": $chatid, "text": $text, "message_thread_id": $thread, "disable_notification": false, "parse_mode": $parse_mode, "disable_web_page_preview": true}' )
 
-  curl -sSf -o /dev/null ${CurlArgs} -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$JsonData"
+  curl -S -o /dev/null ${CurlArgs} -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$JsonData"
 
   if [[ $? -gt 0 ]]; then
     NotifyError=true

@@ -20,7 +20,7 @@ trigger_discord_notification() {
               --arg body "$MessageBody" \
               '{"username": $username, "content": $body}' )
 
-  curl -sSf -o /dev/null ${CurlArgs} -X POST -H "Content-Type: application/json" -d "$JsonData" "$DiscordWebhookUrl"
+  curl -S -o /dev/null ${CurlArgs} -X POST -H "Content-Type: application/json" -d "$JsonData" "$DiscordWebhookUrl"
 
   if [[ $? -gt 0 ]]; then
     NotifyError=true

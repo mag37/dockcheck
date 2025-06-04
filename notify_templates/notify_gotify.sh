@@ -28,7 +28,7 @@ trigger_gotify_notification() {
                 --arg type "$ContentType" \
                 '{message: $body, title: $title, priority: 5, extras: {"client::display": {"contentType": $type}}}' )
 
-  curl -sSf -o /dev/null ${CurlArgs} --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
+  curl -S -o /dev/null ${CurlArgs} --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
 
   if [[ $? -gt 0 ]]; then
     NotifyError=true

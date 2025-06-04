@@ -19,7 +19,7 @@ trigger_pushover_notification() {
   PushoverToken="${PUSHOVER_TOKEN}" # e.g. PUSHOVER_TOKEN=token-value
 
   # Sending the notification via Pushover
-  curl -sSf -o /dev/null ${CurlArgs} -X POST \
+  curl -S -o /dev/null ${CurlArgs} -X POST \
       -F "token=$PushoverToken" \
       -F "user=$PushoverUserKey" \
       -F "title=$MessageTitle" \
