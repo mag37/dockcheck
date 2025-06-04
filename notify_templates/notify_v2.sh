@@ -109,14 +109,14 @@ send_notification() {
   [[ -s "$ScriptWorkDir"/urls.list ]] && releasenotes || Updates=("$@")
 
   if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-    UpdCount=$(notify_containers_count "${Updates[@]}")
+    UpdNotifyCount=$(notify_containers_count "${Updates[@]}")
   else
-    UpdCount="${#Updates[@]}"
+    UpdNotifyCount="${#Updates[@]}"
   fi
 
   NotifyError=false
 
-  if [[ "${UpdCount}" -gt 0 ]]; then
+  if [[ "${UpdNotifyCount}" -gt 0 ]]; then
     UpdToString=$( printf '%s\\n' "${Updates[@]}" )
     UpdToString=${UpdToString%\\n}
 

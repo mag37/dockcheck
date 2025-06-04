@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.6.7"
-# ChangeNotes: notify_v2 bugfixes - clarify readme and error messages, better sourcing templates, tweaks.
+# ChangeNotes: snooze feature (see readme), curl arguments, cleanup.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
