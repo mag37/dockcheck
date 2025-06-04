@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_DSM_VERSION="v0.2"
+NOTIFY_DSM_VERSION="v0.3"
 # INFO: ssmtp is deprecated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.
@@ -45,6 +45,11 @@ Content-Transfer-Encoding: 7bit
 $MessageBody
  From $SenderName
 __EOF
+
+if [[ $? -gt 0 ]]; then
+  NotifyError=true
+fi
+
 # This ensures DSM's container manager will also see the update
 /var/packages/ContainerManager/target/tool/image_upgradable_checker
 }

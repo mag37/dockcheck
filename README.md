@@ -20,6 +20,11 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.7**: Snooze feature, curl, and consolidation
+    - Added snooze feature to delay notifications
+    - Added configurable default curl arguments
+    - Consolidated and standardized notify template update notifications
+    - Added curl error handling
 - **v0.6.6**: Notify_v2 bugfixes
     - Clearer readme and error messages
     - Sourcing templates from either project root or subdirectory
@@ -168,6 +173,12 @@ It is recommended not to make changes directly to the `notify_X.sh` template fil
 Legacy installation and configuration:
 Use a previous version of a `notify_X.sh` template file (tag v0.6.4 or earlier) from the **notify_templates** directory,
 copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
+
+Snooze feature:
+To enable snooze, uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` file and set it to the number of seconds you wish to prevent duplicate alerts.
+The true snooze duration will be 60 seconds less than your configure value to account for minor scheduling or script run time issues.
+A new update will interrupt the snooze for all updates of an entire category. This keeps the total number of updates available clear, as well as prevents notifications from becoming staggered and being sent frequently.
+`dockcheck.sh` updates, container updates, and notification template updates are each handled as separate categories.
 
 
 **Current templates:**
