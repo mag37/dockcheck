@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_TELEGRAM_VERSION="v0.3"
+NOTIFY_TELEGRAM_VERSION="v0.4"
 #
 # Required receiving services must already be set up.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -31,5 +31,9 @@ trigger_telegram_notification() {
               --arg parse_mode "$ParseMode" \
               '{"chat_id": $chatid, "text": $text, "message_thread_id": $thread, "disable_notification": false, "parse_mode": $parse_mode, "disable_web_page_preview": true}' )
 
-  curl -sS -o /dev/null --fail -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$JsonData"
+  curl -S -o /dev/null ${CurlArgs} -X POST "$TelegramUrl/sendMessage" -H 'Content-Type: application/json' -d "$JsonData"
+
+  if [[ $? -gt 0 ]]; then
+    NotifyError=true
+  fi
 }
