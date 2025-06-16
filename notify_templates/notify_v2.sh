@@ -2,7 +2,7 @@ NOTIFY_V2_VERSION="v0.3"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
-# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
+# If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script and rename to notify.sh.
 # Enable and configure all required notification variables in your dockcheck.config file, e.g.:
 # NOTIFY_CHANNELS=apprise gotify slack
 # SLACK_TOKEN=xoxb-some-token-value
@@ -102,7 +102,7 @@ cleanup_snooze() {
       sed -e "/${entry}/d" "${SnoozeFile}" > "${SnoozeFile}.new"
       mv "${SnoozeFile}.new" "${SnoozeFile}"
     fi
-  done <<< "$(cat ${SnoozeFile} | grep ${switch} '\.sh ')"
+  done <<< "$(grep ${switch} '\.sh ' ${SnoozeFile})"
 }
 
 send_notification() {

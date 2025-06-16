@@ -142,8 +142,7 @@ If `notify.sh` is present and configured, it will be used. Otherwise, `notify_v2
 Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
 Run it scheduled with `-ni` to only get notified when there's updates available!
 
-V2 installation and configuration (tag v0.6.5 or later):
-Remove or rename `notify.sh` if previously configured using the legacy method.
+Installation and configuration:
 Make certain your project directory is laid out as below. You only need the notify_v2.sh file and any notification templates you wish to enable, but there is no harm in having all of them present.
 ```
  .
@@ -165,20 +164,24 @@ Make certain your project directory is laid out as below. You only need the noti
 ├── dockcheck.sh
 └── urls.list         # optional
 ```
-If you wish to customize `notify_v2.sh` or the notify templates yourself, you may copy them to your project root directory alongside the main dockcheck.sh script (where they will also be ignored by git).
 Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
 Uncomment and set the environment variables related to the enabled notification channels.
 It is recommended not to make changes directly to the `notify_X.sh` template files within the `notify_templates` subdirectory and instead use only environment variables defined in `dockcheck.config` using this method.
+If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` script (where they will also be ignored by git).
+Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` folder.
 
 Legacy installation and configuration:
 Use a previous version of a `notify_X.sh` template file (tag v0.6.4 or earlier) from the **notify_templates** directory,
 copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
 
 Snooze feature:
+Use case: You wish to be notified of available updates in a timely manner, but do not require reminders after the initial notification with the same frequency.
+e.g. Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.
+With snooze you will not receive another notification about updates for this container for a configurable period of time. Without snooze you will receive additional notifications every hour.
 To enable snooze, uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` file and set it to the number of seconds you wish to prevent duplicate alerts.
 The true snooze duration will be 60 seconds less than your configure value to account for minor scheduling or script run time issues.
-A new update will interrupt the snooze for all updates of an entire category. This keeps the total number of updates available clear, as well as prevents notifications from becoming staggered and being sent frequently.
-`dockcheck.sh` updates, container updates, and notification template updates are each handled as separate categories.
+If an update becomes available for an item that is not snoozed, notifications will be sent and include all available updates for that item's category, even snoozed items.
+`dockcheck.sh` updates, notification template updates, and container updates are considered three separate categories.
 
 
 **Current templates:**
