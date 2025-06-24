@@ -39,16 +39,6 @@ ___
       - Added support for notification management via environment variables.
       - Moved notification secrets to **dockcheck.config**.
     - Added retries to wget/curl to not get empty responses when github is slow.
-- **v0.6.4**: Restructured the update process - first pulls all updates, then recreates all containers.
-    - Added logic to skip update check on non-compose containers (unless `-r` option).
-    - Added option `-F` to revert to `compose up -d <ContainerName>` targeting specific container and not the stack.
-        - Also added corresponding label and config-option.
-    - Added markdown formatting to `notify_ntfy.sh` template.
-- **v0.6.3**: Some fixes and changes:
-    - Stops when a container recreation (compose up -d) fails, also `up`s the whole stack now.
-    - `-M`, Markdown format url-releasenotes in notification (requires template rework, look at gotify!)
-    - Added [addons/DSM/README.md](./addons/DSM/README.md) for more info Synology DSM info.
-    - Permission checks - graceful exit if no docker permissions + checking if root for pkg-manager.
 ___
 
 
@@ -142,7 +132,7 @@ If `notify.sh` is present and configured, it will be used. Otherwise, `notify_v2
 Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
 Run it scheduled with `-ni` to only get notified when there's updates available!
 
-Installation and configuration:
+#### Installation and configuration:
 Make certain your project directory is laid out as below. You only need the notify_v2.sh file and any notification templates you wish to enable, but there is no harm in having all of them present.
 ```
  .
@@ -165,26 +155,29 @@ Make certain your project directory is laid out as below. You only need the noti
 └── urls.list         # optional
 ```
 Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
-Uncomment and set the environment variables related to the enabled notification channels.
-It is recommended not to make changes directly to the `notify_X.sh` template files within the `notify_templates` subdirectory and instead use only environment variables defined in `dockcheck.config` using this method.
+Uncomment and set the environment variables related to the enabled notification channels.  
+It is recommended to only edit the environmental variables in `dockcheck.config` and not make changes directly to the `notify_X.sh` template files within the `notify_templates` subdirectory.
 If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` script (where they will also be ignored by git).
-Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` folder.
+Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` root directory.
 
-Legacy installation and configuration:
+
+#### Legacy installation and configuration:
 Use a previous version of a `notify_X.sh` template file (tag v0.6.4 or earlier) from the **notify_templates** directory,
 copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
 
-Snooze feature:
-Use case: You wish to be notified of available updates in a timely manner, but do not require reminders after the initial notification with the same frequency.
-e.g. Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.
-With snooze you will not receive another notification about updates for this container for a configurable period of time. Without snooze you will receive additional notifications every hour.
+#### Snooze feature:
+**Use case:** You wish to be notified of available updates in a timely manner, but do not require reminders after the initial notification with the same frequency.
+e.g. *Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.*  
+**Snooze enabled:** you will not receive another notification about updates for this container for a configurable period of time.   
+**Snooze disabled:** you will receive additional notifications every hour.
+
 To enable snooze, uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` file and set it to the number of seconds you wish to prevent duplicate alerts.
 The true snooze duration will be 60 seconds less than your configure value to account for minor scheduling or script run time issues.
 If an update becomes available for an item that is not snoozed, notifications will be sent and include all available updates for that item's category, even snoozed items.
 `dockcheck.sh` updates, notification template updates, and container updates are considered three separate categories.
 
 
-**Current templates:**
+#### Current notify templates:
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
@@ -199,7 +192,7 @@ If an update becomes available for an item that is not snoozed, notifications wi
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 - [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 
-Further additions are welcome - suggestions or PR!  
+Further additions are welcome - suggestions or PRs!  
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
 
 ### :date: Release notes addon
@@ -242,7 +235,7 @@ See the [README.md](./addons/prometheus/README.md) for more detailed information
 <sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
 
 ### :small_orange_diamond: Zabbix config to monitor docker image updates
-If you already use Zabbix - this config will Shows number of available docker image updates on host.  
+If you already use Zabbix - this config will show numbers of available docker image updates on host.  
 Example: *2 Docker Image updates on host-xyz*  
 See project: [thetorminal/zabbix-docker-image-updates](https://github.com/thetorminal/zabbix-docker-image-updates)
 
