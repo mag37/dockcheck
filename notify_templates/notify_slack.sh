@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_SLACK_VERSION="v0.2"
+NOTIFY_SLACK_VERSION="v0.3"
 #
 # Setup app and token at https://api.slack.com/tutorials/tracks/posting-messages-with-curl
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -17,8 +17,12 @@ trigger_slack_notification() {
   ChannelID="${SLACK_CHANNEL_ID}" # e.g. CHANNEL_ID=mychannel
   SlackUrl="https://slack.com/api/chat.postMessage"
 
-  curl -sS -o /dev/null --show-error --fail \
+  curl -S -o /dev/null ${CurlArgs} \
     -d "text=$MessageBody" -d "channel=$ChannelID" \
     -H "Authorization: Bearer $AccessToken" \
     -X POST $SlackUrl
+
+  if [[ $? -gt 0 ]]; then
+    NotifyError=true
+  fi
 }

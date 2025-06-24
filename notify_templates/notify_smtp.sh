@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_SMTP_VERSION="v0.2"
+NOTIFY_SMTP_VERSION="v0.3"
 # INFO: ssmtp is depcerated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.
@@ -40,4 +40,8 @@ Content-Transfer-Encoding: 7bit
 $MessageBody
 
 __EOF
+
+if [[ $? -gt 0 ]]; then
+  NotifyError=true
+fi
 }

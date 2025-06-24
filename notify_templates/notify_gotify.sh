@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_GOTIFY_VERSION="v0.3"
+NOTIFY_GOTIFY_VERSION="v0.4"
 #
 # Required receiving services must already be set up.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -28,5 +28,9 @@ trigger_gotify_notification() {
                 --arg type "$ContentType" \
                 '{message: $body, title: $title, priority: 5, extras: {"client::display": {"contentType": $type}}}' )
 
-  curl -s -S --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
+  curl -S -o /dev/null ${CurlArgs} --data "${JsonData}" -H 'Content-Type: application/json' -X POST "${GotifyUrl}" 1> /dev/null
+
+  if [[ $? -gt 0 ]]; then
+    NotifyError=true
+  fi
 }

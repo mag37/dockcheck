@@ -5,3 +5,5 @@
 /dockcheck.config
 # ignore the auto-installed regctl
 regctl
+# ignore snooze file
+snooze.list
