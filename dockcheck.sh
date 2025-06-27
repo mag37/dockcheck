@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.8"
-# ChangeNotes: DisplaySourcedfiles variable displays what configuration files are being used 
+VERSION="v0.6.7"
+# ChangeNotes: snooze feature (see readme), curl arguments, cleanup.n files are being used
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -14,21 +14,18 @@ ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
 # Source helper functions
+DisplaySourcedFiles=false
 source_if_exists() {
-  srcFile="$1"
-  if [[ -s "$srcFile" ]]; then
-    source "$srcFile"
-    DisplaySourcedFiles=${DisplaySourcedFiles:-false}
-    [[ "$DisplaySourcedFiles" == true ]] && echo " * ${srcFile} is being used"
+  if [[ -s "$1" ]]; then
+    source "$1"
+    [[ "$DisplaySourcedFiles" == true ]] && echo " * ${$1} is being used"
   fi
 }
 
 source_if_exists_or_fail() {
-  srcFile="$1"
-  if [[ -s "$srcFile" ]]; then
-    source "$srcFile"
-    DisplaySourcedFiles=${DisplaySourcedFiles:-false}
-    [[ "$DisplaySourcedFiles" == true ]] && echo " * ${srcFile} is being used"
+  if [[ -s "$1" ]]; then
+    source "$1"
+    [[ "$DisplaySourcedFiles" == true ]] && echo " * ${$1} is being used"
   else
     return 1
   fi
@@ -88,7 +85,6 @@ Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
-DisplaySourcedFiles=${DisplaySourcedFiles:-false}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
