@@ -139,6 +139,8 @@ send_notification() {
   fi
 
   [[ -n "${snooze}" ]] && cleanup_snooze "${Updates[@]}"
+
+  return 0
 }
 
 ### Set DISABLE_DOCKCHECK_NOTIFICATION=false in dockcheck.config
@@ -187,6 +189,8 @@ dockcheck_notification() {
       fi
     fi
   fi
+
+  return 0
 }
 
 ### Set DISABLE_NOTIFY_NOTIFICATION=false in dockcheck.config
@@ -256,4 +260,6 @@ notify_update_notification() {
     UpdatesPlusDockcheck+=("dockcheck.sh")
     [[ -n "${snooze}" ]] && cleanup_snooze "${UpdatesPlusDockcheck[@]}"
   fi
+
+  return 0
 }
