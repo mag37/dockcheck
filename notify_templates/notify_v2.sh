@@ -139,6 +139,8 @@ send_notification() {
   fi
 
   [[ -n "${snooze}" ]] && cleanup_snooze "${Updates[@]}"
+
+  return 0
 }
 
 ### Set DISABLE_DOCKCHECK_NOTIFICATION=false in dockcheck.config
@@ -187,14 +189,17 @@ dockcheck_notification() {
       fi
     fi
   fi
+
+  return 0
 }
 
-### Set DISABLE_NOTIFY_UPDATE_NOTIFICATION=false in dockcheck.config
+### Set DISABLE_NOTIFY_NOTIFICATION=false in dockcheck.config
 ### to not send notifications when notify scripts themselves have updates.
 notify_update_notification() {
-  if [[ ! "${DISABLE_NOTIFY_UPDATE_NOTIFICATION:-}" == "true" ]]; then
+  if [[ ! "${DISABLE_NOTIFY_NOTIFICATION:-}" == "true" ]]; then
     NotifyUpdateNotify=false
     NotifyError=false
+    NotifyUpdates=()
 
     UpdateChannels=( "${enabled_notify_channels[@]}" "v2" )
 
@@ -207,14 +212,14 @@ notify_update_notification() {
         LatestNotifyRelease="$(echo "$LatestNotifySnippet" | sed -n "/${VersionVar}/s/${VersionVar}=//p" | tr -d '"')"
         if [[ ! "${LatestNotifyRelease}" == "undefined" ]]; then
           if [[ "${!VersionVar}" != "${LatestNotifyRelease}" ]] ; then
-            Updates+=("${NotifyScript}.sh ${!VersionVar} -> ${LatestNotifyRelease}")
+            NotifyUpdates+=("${NotifyScript}.sh ${!VersionVar} -> ${LatestNotifyRelease}")
           fi
         fi
       fi
     done
 
     if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-      for update in "${Updates[@]}"; do
+      for update in "${NotifyUpdates[@]}"; do
         read -a NotifyScript <<< "${update}"
         found=$(grep -w "${NotifyScript}" "${SnoozeFile}" || printf "")
         if [[ -n "${found}" ]]; then
@@ -232,8 +237,8 @@ notify_update_notification() {
     fi
 
     if [[ "${NotifyUpdateNotify}" == "true" ]]; then
-      if [[ "${#Updates[@]}" -gt 0 ]]; then
-        UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+      if [[ "${#NotifyUpdates[@]}" -gt 0 ]]; then
+        UpdToString=$( printf '%s\\n' "${NotifyUpdates[@]}" )
         UpdToString=${UpdToString%\\n}
         NotifyError=false
 
@@ -247,12 +252,14 @@ notify_update_notification() {
           printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
         done
 
-        [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${Updates[@]}"
+        [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${NotifyUpdates[@]}"
       fi
     fi
 
-    UpdatesPlusDockcheck=("${Updates[@]}")
+    UpdatesPlusDockcheck=("${NotifyUpdates[@]}")
     UpdatesPlusDockcheck+=("dockcheck.sh")
     [[ -n "${snooze}" ]] && cleanup_snooze "${UpdatesPlusDockcheck[@]}"
   fi
+
+  return 0
 }
