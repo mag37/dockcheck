@@ -1,4 +1,4 @@
-NOTIFY_V2_VERSION="v0.3"
+NOTIFY_V2_VERSION="v0.4"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
