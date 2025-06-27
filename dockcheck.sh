@@ -14,18 +14,19 @@ ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
 # Source helper functions
-DisplaySourcedFiles=false
 source_if_exists() {
   if [[ -s "$1" ]]; then
     source "$1"
-    [[ "$DisplaySourcedFiles" == true ]] && echo " * ${$1} is being used"
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * ${$1} is being used"
+    return 0
   fi
 }
 
 source_if_exists_or_fail() {
   if [[ -s "$1" ]]; then
     source "$1"
-    [[ "$DisplaySourcedFiles" == true ]] && echo " * ${$1} is being used"
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * ${$1} is being used"
+    return 0
   else
     return 1
   fi
