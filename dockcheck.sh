@@ -14,14 +14,6 @@ ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
 # Source helper functions
-source_if_exists() {
-  if [[ -s "$1" ]]; then
-    source "$1"
-    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * ${$1} is being used"
-    return 0
-  fi
-}
-
 source_if_exists_or_fail() {
   if [[ -s "$1" ]]; then
     source "$1"
@@ -33,7 +25,7 @@ source_if_exists_or_fail() {
 }
 
 # User customizable defaults
-source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists "${ScriptWorkDir}/dockcheck.config"
+source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
 
 # Help Function
 Help() {
