@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.7"
-# ChangeNotes: snooze feature (see readme), curl arguments, cleanup.
+VERSION="v0.6.8"
+# ChangeNotes: bugfix unbound variable in notify_v2, new option "DisplaySourcedFiles" added to config
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 

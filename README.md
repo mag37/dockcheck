@@ -20,6 +20,9 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.8**:
+    - Bugfix: Unbound variable in notify_v2.sh
+    - New option: "DisplaySourcedFiles" *config* added to list what files get sourced
 - **v0.6.7**: Snooze feature, curl, and consolidation
     - Added snooze feature to delay notifications
     - Added configurable default curl arguments
@@ -168,7 +171,7 @@ copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh
 #### Snooze feature:
 **Use case:** You wish to be notified of available updates in a timely manner, but do not require reminders after the initial notification with the same frequency.
 e.g. *Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.*  
-**Snooze enabled:** you will not receive another notification about updates for this container for a configurable period of time.   
+**Snooze enabled:** you will not receive another notification about updates for this container for a configurable period of time.  
 **Snooze disabled:** you will receive additional notifications every hour.
 
 To enable snooze, uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` file and set it to the number of seconds you wish to prevent duplicate alerts.
