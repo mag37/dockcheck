@@ -17,7 +17,7 @@ ScriptWorkDir="$(dirname "$ScriptPath")"
 source_if_exists_or_fail() {
   if [[ -s "$1" ]]; then
     source "$1"
-    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * ${$1} is being used"
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
     return 0
   else
     return 1
