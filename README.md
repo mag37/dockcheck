@@ -5,9 +5,11 @@
   <img src="https://img.shields.io/badge/bash-4.3-green?style=flat-square&logo=gnubash" alt="bash">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/license-GPLv3-red?style=flat-square" alt="GPLv3"></a>
   <img src="https://img.shields.io/github/v/tag/mag37/dockcheck?style=flat-square&label=release" alt="release">
+  <br>
   <a href="https://ko-fi.com/mag37"><img src="https://img.shields.io/badge/-Ko--fi-grey?style=flat-square&logo=Ko-fi" alt="Buy me a Coffee"></a>
   <a href="https://liberapay.com/user-bin-rob/donate"><img src="https://img.shields.io/badge/-LiberaPay-grey?style=flat-square&logo=liberapay" alt="LiberaPay"></a>
   <a href="https://github.com/sponsors/mag37"><img src="https://img.shields.io/badge/-Sponsor-grey?style=flat-square&logo=github" alt="Github Sponsor"></a>
+  <a href="https://www.paypal.com/donate/?business=P2V5MCWRGCNBG&no_recurring=0&currency_code=SEK"><img src="https://img.shields.io/badge/-PayPal-grey?style=flat-square&logo=paypal" alt="PayPal donation"></a>
 </p>
 
 <h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
