@@ -147,6 +147,7 @@ Make certain your project directory is laid out as below. You only need the noti
 │   ├── notify_discord.sh
 │   ├── notify_generic.sh
 │   ├── notify_gotify.sh
+│   ├── notify_HA.sh
 │   ├── notify_matrix.sh
 │   ├── notify_ntfy.sh
 │   ├── notify_pushbullet.sh
@@ -190,6 +191,7 @@ If an update becomes available for an item that is not snoozed, notifications wi
   - Read the [QuickStart](extras/apprise_quickstart.md)
 - [ntfy](https://ntfy.sh/) - HTTP-based pub-sub notifications.
 - [Gotify](https://gotify.net/) - a simple server for sending and receiving messages.
+- [Home Assistant](https://www.home-assistant.io/integrations/notify/) - Connection to the notify [integrations](https://www.home-assistant.io/integrations/#notifications).
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 - [Telegram](https://telegram.org/) - Telegram chat API.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
