@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="extras/dockcheck_logo_by_booYah187.png" width="160" title="dockcheck">
+  <img src="extras/dockcheck_colour.png" width="300" title="dockcheck">
 </p>
 <p align="center">
   <img src="https://img.shields.io/badge/bash-4.3-green?style=flat-square&logo=gnubash" alt="bash">
