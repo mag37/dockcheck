@@ -121,8 +121,11 @@ while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
 done
 shift "$((OPTIND-1))"
 
-# Set $1 to a variable for name filtering later
+# Set $1 to a variable for name filtering later, rewriting if multiple
 SearchName="${1:-}"
+if [[ ! -z "$SearchName" ]]; then
+  SearchName="^(${SearchName//,/|})$"
+fi
 
 # Check if there's a new release of the script
 LatestSnippet="$(curl ${CurlArgs} -r 0-200 "$RawUrl" || printf "undefined")"
