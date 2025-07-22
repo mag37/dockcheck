@@ -573,8 +573,11 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
       [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
 
+      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Checking if compose-values are empty - hence started with docker run
-      [[ -z "$ContPath" ]] && continue
+      [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
+      # Checking if Label Only -option is set, and if container got the label
+      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
 
       # cd to the compose-file directory to account for people who use relative volumes
       cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
@@ -590,7 +593,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       # Set variable when compose up should only target the specific container, not the stack
       if [[ $OnlySpecific == true ]] || [[ $ContOnlySpecific == true ]]; then SpecificContainer="$ContName"; fi
 
-      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
         ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
