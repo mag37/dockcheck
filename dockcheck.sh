@@ -29,7 +29,7 @@ source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_
 
 # Help Function
 Help() {
-  echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]"
+  echo "Syntax:     dockcheck.sh [OPTION] [comma separated names to include]"
   echo "Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"

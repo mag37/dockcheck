@@ -52,7 +52,7 @@ ___
 ## :mag_right: `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
-Syntax:     dockcheck.sh [OPTION] [part of name to filter]
+Syntax:     dockcheck.sh [OPTION] [comma separated names to include]
 Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall
 
 Options:
