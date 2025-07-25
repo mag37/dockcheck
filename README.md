@@ -22,6 +22,10 @@
 ___
 ## :bell: Changelog
 
+- **v0.6.9**: #
+    - Bugfix: label logic didn't skip recreation (skipped pulling).
+    - Added comma separated search filtering so you can selectively search exactly which containers to check/update.
+      - eg: `dockcheck.sh -yp homer,dozzle`
 - **v0.6.8**:
     - Bugfix: Unbound variable in notify_v2.sh
     - New option: "DisplaySourcedFiles" *config* added to list what files get sourced
@@ -30,20 +34,6 @@ ___
     - Added configurable default curl arguments
     - Consolidated and standardized notify template update notifications
     - Added curl error handling
-- **v0.6.6**: Notify_v2 bugfixes
-    - Clearer readme and error messages
-    - Sourcing templates from either project root or subdirectory
-    - Consistent newline handling
-    - Added (when using `-d`) days old message to notification title
-    - Added ntfy self hosted domain option to config
-    - jq fixes to templates (and properly using $jqbin)
-- **v0.6.5**: Refactored notification logic. See notify_templates/notify_v2.sh for upgrade steps.
-    - Added helper functions to simplify sourcing files and executing functions if they exist.
-    - Created notify_v2.sh wrapper script.
-      - Simplified and consolidated notification logic within notify_v2.sh.
-      - Added support for notification management via environment variables.
-      - Moved notification secrets to **dockcheck.config**.
-    - Added retries to wget/curl to not get empty responses when github is slow.
 ___
 
 

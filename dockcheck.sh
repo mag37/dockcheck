@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.8"
-# ChangeNotes: bugfix unbound variable in notify_v2, new option "DisplaySourcedFiles" added to config
+VERSION="v0.6.9"
+# ChangeNotes: bugfix label logic and added comma separated search filtering
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
