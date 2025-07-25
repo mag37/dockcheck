@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.8"
-# ChangeNotes: bugfix unbound variable in notify_v2, new option "DisplaySourcedFiles" added to config
+VERSION="v0.6.9"
+# ChangeNotes: bugfix label logic and added comma separated search filtering
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -29,7 +29,7 @@ source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_
 
 # Help Function
 Help() {
-  echo "Syntax:     dockcheck.sh [OPTION] [part of name to filter]"
+  echo "Syntax:     dockcheck.sh [OPTION] [comma separated names to include]"
   echo "Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
@@ -121,8 +121,11 @@ while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
 done
 shift "$((OPTIND-1))"
 
-# Set $1 to a variable for name filtering later
+# Set $1 to a variable for name filtering later, rewriting if multiple
 SearchName="${1:-}"
+if [[ ! -z "$SearchName" ]]; then
+  SearchName="^(${SearchName//,/|})$"
+fi
 
 # Check if there's a new release of the script
 LatestSnippet="$(curl ${CurlArgs} -r 0-200 "$RawUrl" || printf "undefined")"
@@ -570,8 +573,11 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
       [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
 
+      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Checking if compose-values are empty - hence started with docker run
-      [[ -z "$ContPath" ]] && continue
+      [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
+      # Checking if Label Only -option is set, and if container got the label
+      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
 
       # cd to the compose-file directory to account for people who use relative volumes
       cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
@@ -587,7 +593,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       # Set variable when compose up should only target the specific container, not the stack
       if [[ $OnlySpecific == true ]] || [[ $ContOnlySpecific == true ]]; then SpecificContainer="$ContName"; fi
 
-      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Check if the whole stack should be restarted
       if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
         ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
