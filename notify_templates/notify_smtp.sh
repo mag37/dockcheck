@@ -15,11 +15,14 @@ fi
 
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
+SENDMAIL=$(which sendmail)
 
 if [ -n "$MSMTP" ] ; then
 	MailPkg=$MSMTP
 elif [ -n "$SSMTP" ] ; then
 	MailPkg=$SSMTP
+elif [ -n "$SENDMAIL" ] ; then
+	MailPkg=$SENDMAIL
 else
 	echo "No msmtp or ssmtp binary found in PATH: $PATH" ; exit 1
 fi
