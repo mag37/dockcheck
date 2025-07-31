@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_SMTP_VERSION="v0.3"
+NOTIFY_SMTP_VERSION="v0.31"
 # INFO: ssmtp is depcerated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.

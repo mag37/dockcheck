@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_DSM_VERSION="v0.3"
+NOTIFY_DSM_VERSION="v0.31"
 # INFO: ssmtp is deprecated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.
@@ -10,11 +10,14 @@ NOTIFY_DSM_VERSION="v0.3"
 
 MSMTP=$(which msmtp)
 SSMTP=$(which ssmtp)
+SENDMAIL=$(which sendmail)
 
 if [ -n "$MSMTP" ] ; then
 	MailPkg=$MSMTP
 elif [ -n "$SSMTP" ] ; then
 	MailPkg=$SSMTP
+elif [ -n "$SENDMAIL" ] ; then
+	MailPkg=$SENDMAIL
 else
 	echo "No msmtp or ssmtp binary found in PATH: $PATH" ; exit 1
 fi
