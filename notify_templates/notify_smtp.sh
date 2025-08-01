@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_SMTP_VERSION="v0.31"
+NOTIFY_SMTP_VERSION="v0.4"
 # INFO: ssmtp is depcerated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.
@@ -24,7 +24,7 @@ elif [ -n "$SSMTP" ] ; then
 elif [ -n "$SENDMAIL" ] ; then
 	MailPkg=$SENDMAIL
 else
-	echo "No msmtp or ssmtp binary found in PATH: $PATH" ; exit 1
+	echo "No msmtp, ssmtp or sendmail binary found in PATH: $PATH" ; exit 1
 fi
 
 trigger_smtp_notification() {
