@@ -24,11 +24,18 @@ trigger_ntfy_notification() {
       ContentType="Markdown: no" #text/plain
   fi
 
+  if [[ -n "${NTFY_AUTH:-}" ]]; then
+    NtfyAuth="-u $NTFY_AUTH"
+  else
+    NtfyAuth=""
+  fi
+
   curl -S -o /dev/null ${CurlArgs} \
     -H "Title: $MessageTitle" \
     -H "$ContentType"      \
     -d "$MessageBody" \
-    "$NtfyUrl"
+    $NtfyAuth \
+    -L "$NtfyUrl"
 
   if [[ $? -gt 0 ]]; then
     NotifyError=true
