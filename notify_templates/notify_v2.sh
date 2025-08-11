@@ -1,4 +1,4 @@
-NOTIFY_V2_VERSION="v0.4"
+NOTIFY_V2_VERSION="v0.5"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -177,16 +177,7 @@ dockcheck_notification() {
         printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
       done
 
-      if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-        if [[ "${NotifyError}" == "false" ]]; then
-          if [[ -n "${found}" ]]; then
-            sed -e "s/dockcheck\.sh.*/dockcheck\.sh ${CurrentEpochTime}/" "${SnoozeFile}" > "${SnoozeFile}.new"
-            mv "${SnoozeFile}.new" "${SnoozeFile}"
-          else
-            printf "dockcheck.sh ${CurrentEpochTime}\n" >> "${SnoozeFile}"
-          fi
-        fi
-      fi
+      [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "dockcheck.sh"
     fi
   fi
 
