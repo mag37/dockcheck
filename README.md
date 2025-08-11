@@ -22,7 +22,11 @@
 ___
 ## :bell: Changelog
 
-- **v0.6.9**: #
+- **v0.7.0**:
+    - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
+    - Added authentication support to Ntfy.sh.
+    - Added suport for sendmail in the SMTP-template.
+- **v0.6.9**:
     - Bugfix: label logic didn't skip recreation (skipped pulling).
     - Added comma separated search filtering so you can selectively search exactly which containers to check/update.
       - eg: `dockcheck.sh -yp homer,dozzle`

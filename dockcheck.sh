@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.6.9"
-# ChangeNotes: bugfix label logic and added comma separated search filtering
+VERSION="v0.7.0"
+# ChangeNotes: Snooze bugfix, added auth support to ntfy.sh and sendmail support to SMTP
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -601,7 +601,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       fi
     done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
-    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\n Auto pruning.."; docker image prune -f; fi
+    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
     printf "\nNo updates installed, exiting.\n"
