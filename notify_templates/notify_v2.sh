@@ -189,9 +189,11 @@ dockcheck_notification() {
 
       if [[ ${#enabled_notify_channels[@]} -gt 0 ]]; then printf "\n"; fi
       for channel in "${enabled_notify_channels[@]}"; do
-        printf "Sending dockcheck update notification - ${channel}\n"
-        exec_if_exists_or_fail trigger_${channel}_notification || \
-        printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
+        if [[ ! "${channel}" == "file" ]]; then
+          printf "Sending dockcheck update notification - ${channel}\n"
+          exec_if_exists_or_fail trigger_${channel}_notification || \
+          printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
+        fi
       done
 
       [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "dockcheck.sh"
