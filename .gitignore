@@ -7,3 +7,5 @@
 regctl
 # ignore snooze file
 snooze.list
+# ignore updates file
+updates_available.txt
