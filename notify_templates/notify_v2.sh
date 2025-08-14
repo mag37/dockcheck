@@ -114,6 +114,23 @@ send_notification() {
     UpdNotifyCount="${#Updates[@]}"
   fi
 
+  if [[ "${enabled_notify_channels[@]}" == *"file"* ]]; then
+    UpdToString=$( printf '%s, ' "${Updates[@]}" )
+    UpdToString="${UpdToString%, }"
+
+    if [[ -z "${UpdToString}" ]]; then
+      UpdToString="None"
+    fi
+
+    printf "\nSending file notification\n"
+    printf -v MessageBody "${UpdToString}"
+
+    exec_if_exists_or_fail trigger_file_notification || \
+    printf "Attempted to send notification to channel file, but the function was not found. Make sure notify_file.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
+
+    remove_channel file
+  fi
+
   NotifyError=false
 
   if [[ "${UpdNotifyCount}" -gt 0 ]]; then
@@ -238,9 +255,11 @@ notify_update_notification() {
         printf -v MessageBody "Notify templates on $FromHost with updates available:\n${UpdToString}\n"
 
         for channel in "${enabled_notify_channels[@]}"; do
-          printf "Sending notify template update notification - ${channel}\n"
-          exec_if_exists_or_fail trigger_${channel}_notification || \
-          printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
+          if [[ ! "${channel}" == "file" ]]; then
+            printf "Sending notify template update notification - ${channel}\n"
+            exec_if_exists_or_fail trigger_${channel}_notification || \
+            printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
+          fi
         done
 
         [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${NotifyUpdates[@]}"
