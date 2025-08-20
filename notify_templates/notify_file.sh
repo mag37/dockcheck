@@ -5,7 +5,17 @@ NOTIFY_FILE_VERSION="v0.1"
 # If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
 
 trigger_file_notification() {
-  NotifyFile="${ScriptWorkDir}/updates_available.txt"
+  if [[ -n "$1" ]]; then
+    file_channel="$1"
+    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$file_channel")
+  else
+    file_channel="file"
+    UpperChannel="FILE"
+  fi
+
+  FilePathVar="${UpperChannel}_PATH"
+
+  NotifyFile="${!FilePathVar:=${ScriptWorkDir}/updates_available.txt}"
 
   echo "${MessageBody}" > ${NotifyFile}
 

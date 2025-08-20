@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 VERSION="v0.7.1"
-# ChangeNotes: Call send_notification even when no updates are available to write to file (if enabled) and clean up snooze
+# ChangeNotes: Add support for multiple notifications of the same type, output formatting, and file output
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 

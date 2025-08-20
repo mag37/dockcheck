@@ -22,6 +22,16 @@
 ___
 ## :bell: Changelog
 
+- **v0.7.1**:
+    - Added support for multiple notifications using the same template
+    - Added support for notification output format
+    - Added support for file output
+    - Added optional configuration variables per channel to (replace <channel> with any channel name):
+      - <channel>\_TEMPLATE : Specify a template
+      - <channel>\_SKIPSNOOZE : Skip snooze
+      - <channel>\_CONTAINERSONLY : Only notify for docker container related updates
+      - <channel>\_ALLOWEMPTY : Always send notifications, even when empty
+      - <channel>\_OUTPUT : Define output format
 - **v0.7.0**:
     - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
     - Added authentication support to Ntfy.sh.
@@ -194,7 +204,22 @@ If an update becomes available for an item that is not snoozed, notifications wi
 - [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 
 Further additions are welcome - suggestions or PRs!  
-<sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
+<sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>
+
+#### Notification channel configuration:
+All required environment variables for each channel type are provided in the default.config file as comments and must be uncommented and modified for your requirements.
+For advanced users, additional functionality is available via custom configurations and environment variables.
+Use cases (in all cases, replace <channel> with the name of the channel specified in the NOTIFY_CHANNELS environment variable):
+- To bypass the snooze feature, even when enabled, add the variable `<channel>\_SKIPSNOOZE` to `dockcheck.config` and set it equal to `true`.
+- To configure the channel to only send Docker container update notifications, add the variable `<channel>\_CONTAINERSONLY` to `dockcheck.config` and set it equal to `true`.
+- To send notifications even when there are no updates available, add the variable `<channel>\_ALLOWEMPTY` to `dockcheck.config` and set it equal to `true`.
+- To use another notification output format, add the variable `<channel>\_OUTPUT` to `dockcheck.config` and set it equal to `csv`, `json`, or `text`. If unset or set to an invalid value, defaults to `text`.
+- To send multiple notifications using the same notification template:
+  - Strings in the `NOTIFY_CHANNELS` list are now treated as unique names and do not necessarily refer to the notification template that will be called, though they do by default.
+  - Add another notification channel to `NOTIFY_CHANNELS` in `dockcheck.config`. It can have any name as long as it is unique and contains no spaces or special characters.
+  - Add the variable `<channel>\_TEMPLATE` to `dockcheck.config` where `<channel>` is the name of the channel added above and set the value to an available notification template script (`slack`, `apprise`, `gotify`, etc.)
+  - Add all other environment variables required for the chosen template to function with `<channel>` in upper case as the prefix rather than the template name.
+    - For example, if `<channel>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
 
 ### :date: Release notes addon
 There's a function to use a lookup-file to add release note URL's to the notification message.  

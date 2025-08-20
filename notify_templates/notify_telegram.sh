@@ -1,28 +1,41 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_TELEGRAM_VERSION="v0.4"
+NOTIFY_TELEGRAM_VERSION="v0.5"
 #
 # Required receiving services must already be set up.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
 # If you instead wish make your own modifications, make a copy in the same directory as the main dockcheck.sh script.
 # Do not modify this file directly within the "notify_templates" subdirectory. Set TELEGRAM_CHAT_ID and TELEGRAM_TOKEN in your dockcheck.config file.
 
-if [[ -z "${TELEGRAM_CHAT_ID:-}" ]] || [[ -z "${TELEGRAM_TOKEN:-}" ]]; then
-  printf "Telegram notification channel enabled, but required configuration variables are missing. Telegram notifications will not be sent.\n"
-
-  remove_channel telegram
-fi
-
 trigger_telegram_notification() {
+  if [[ -n "$1" ]]; then
+    telegram_channel="$1"
+    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$telegram_channel")
+  else
+    telegram_channel="telegram"
+    UpperChannel="TELEGRAM"
+  fi
+
+  TelegramTokenVar="${UpperChannel}_TOKEN"
+  TelegramChatIdVar="${UpperChannel}_CHAT_ID"
+  TelegramTopicIdVar="${UpperChannel}_TOPIC_ID"
+
+  if [[ -z "${!TelegramChatIdVar:-}" ]] || [[ -z "${!TelegramTokenVar:-}" ]]; then
+    printf "The ${telegram_channel} notification channel is enabled, but required configuration variables are missing. Telegram notifications will not be sent.\n"
+
+    remove_channel telegram
+    return 1
+  fi
+
   if [[ "$PrintMarkdownURL" == true ]]; then
       ParseMode="Markdown"
   else
       ParseMode="HTML"
   fi
 
-  TelegramToken="${TELEGRAM_TOKEN}" # e.g. TELEGRAM_TOKEN=token-value
-  TelegramChatId="${TELEGRAM_CHAT_ID}" # e.g. TELEGRAM_CHAT_ID=mychatid
+  TelegramToken="${!TelegramTokenVar}" # e.g. TELEGRAM_TOKEN=token-value
+  TelegramChatId="${!TelegramChatIdVar}" # e.g. TELEGRAM_CHAT_ID=mychatid
   TelegramUrl="https://api.telegram.org/bot$TelegramToken"
-  TelegramTopicID=${TELEGRAM_TOPIC_ID:="0"}
+  TelegramTopicID=${!TelegramTopicIdVar:="0"}
 
   JsonData=$( "$jqbin" -n \
               --arg chatid "$TelegramChatId" \

@@ -1,4 +1,4 @@
-NOTIFY_V2_VERSION="v0.5"
+NOTIFY_V2_VERSION="v0.6"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -13,8 +13,32 @@ NOTIFY_V2_VERSION="v0.5"
 # Actual snooze will be 60 seconds less to avoid the chance of missed notifications due to minor scheduling or script run time issues.
 snooze="${SNOOZE_SECONDS:-}"
 SnoozeFile="${ScriptWorkDir}/snooze.list"
+[[ ! -f "${SnoozeFile}" ]] && touch "${SnoozeFile}"
 
 enabled_notify_channels=( ${NOTIFY_CHANNELS:-} )
+
+# Global output string variable for modification by functions
+UpdToString=""
+FormattedOutput=""
+
+get_channel_template() {
+  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local TemplateVar="${UpperChannel}_TEMPLATE"
+  if [[ -n "${!TemplateVar:-}" ]]; then
+    printf "${!TemplateVar}"
+  else
+    printf "$1"
+  fi
+}
+
+declare -A unique_templates
+
+for channel in "${enabled_notify_channels[@]}"; do
+  template=$(get_channel_template "${channel}")
+  unique_templates["${template}"]=1
+done
+
+enabled_notify_templates=( "${!unique_templates[@]}" )
 
 FromHost=$(cat /etc/hostname)
 
@@ -23,49 +47,96 @@ CurrentEpochSeconds=$(date +%s)
 
 NotifyError=false
 
+for template in "${enabled_notify_templates[@]}"; do
+  source_if_exists_or_fail "${ScriptWorkDir}/notify_${template}.sh" || \
+  source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_${template}.sh" || \
+  printf "The notification channel template ${template} is enabled, but notify_${template}.sh was not found. Check the ${ScriptWorkDir} directory or the notify_templates subdirectory.\n"
+done
+
+skip_snooze() {
+  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local SkipSnoozeVar="${UpperChannel}_SKIPSNOOZE"
+  if [[ "${!SkipSnoozeVar:-}" == "true" ]]; then
+    printf "true"
+  else
+    printf "false"
+  fi
+}
+
+allow_empty() {
+  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local AllowEmptyVar="${UpperChannel}_ALLOWEMPTY"
+  if [[ "${!AllowEmptyVar:-}" == "true" ]]; then
+    printf "true"
+  else
+    printf "false"
+  fi
+}
+
+containers_only() {
+  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local ContainersOnlyVar="${UpperChannel}_CONTAINERSONLY"
+  if [[ "${!ContainersOnlyVar:-}" == "true" ]]; then
+    printf "true"
+  else
+    printf "false"
+  fi
+}
+
+output_format() {
+  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local OutputFormatVar="${UpperChannel}_OUTPUT"
+  if [[ -z "${!OutputFormatVar:-}" ]]; then
+    printf "text"
+  else
+    printf "${!OutputFormatVar:-}"
+  fi
+}
+
 remove_channel() {
   local temp_array=()
   for channel in "${enabled_notify_channels[@]}"; do
-    [[ "${channel}" != "$1" ]] && temp_array+=("${channel}")
+    local channel_template=$(get_channel_template "${channel}")
+    [[ "${channel_template}" != "$1" ]] && temp_array+=("${channel}")
   done
   enabled_notify_channels=( "${temp_array[@]}" )
 }
 
-for channel in "${enabled_notify_channels[@]}"; do
-  source_if_exists_or_fail "${ScriptWorkDir}/notify_${channel}.sh" || \
-  source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_${channel}.sh" || \
-  printf "The notification channel ${channel} is enabled, but notify_${channel}.sh was not found. Check the ${ScriptWorkDir} directory or the notify_templates subdirectory.\n"
-done
-
-notify_containers_count() {
-  unset NotifyContainers
-  NotifyContainers=()
-
-  [[ ! -f "${SnoozeFile}" ]] && touch "${SnoozeFile}"
-
-  for update in "$@"
-  do
-    read -a container <<< "${update}"
-    found=$(grep -w "${container[0]}" "${SnoozeFile}" || printf "")
-
+is_snoozed() {
+  if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
+    local found=$(grep -w "$1" "${SnoozeFile}" || printf "")
     if [[ -n "${found}" ]]; then
       read -a arr <<< "${found}"
       CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
       if [[ "${CurrentEpochSeconds}" -gt "${CheckEpochSeconds}" ]]; then
-        NotifyContainers+=("${update}")
+        printf "false"
+      else
+        printf "true"
       fi
     else
-      NotifyContainers+=("${update}")
+      printf "false"
+    fi
+  else
+    printf "false"
+  fi
+}
+
+unsnoozed_count() {
+  unset Unsnoozed
+  Unsnoozed=()
+
+  for element in "$@"
+  do
+    read -a item <<< "${element}"
+    if [[ $(is_snoozed "${item[0]}") == "false" ]]; then
+      Unsnoozed+=("${element}")
     fi
   done
 
-  printf "${#NotifyContainers[@]}"
+  printf "${#Unsnoozed[@]}"
 }
 
 update_snooze() {
-
-  [[ ! -f "${SnoozeFile}" ]] && touch "${SnoozeFile}"
-
   for arg in "$@"
   do
     read -a entry <<< "${arg}"
@@ -85,8 +156,6 @@ cleanup_snooze() {
   NotifyEntries=()
   switch=""
 
-  [[ ! -f "${SnoozeFile}" ]] && touch "${SnoozeFile}"
-
   for arg in "$@"
   do
     read -a entry <<< "${arg}"
@@ -105,57 +174,90 @@ cleanup_snooze() {
   done <<< "$(grep ${switch} '\.sh ' ${SnoozeFile})"
 }
 
+format_output() {
+  local UpdateType="$1"
+  local OutputFormat="$2"
+  local FormattedTextTemplate="$3"
+  local tempcsv=""
+  tempcsv="${UpdToString//  ->  /,}"
+  tempcsv="${tempcsv//.sh /.sh,}"
+
+  if [[ "${OutputFormat}" == "csv" ]]; then
+    if [[ -z "${UpdToString}" ]]; then
+      FormattedOutput="None"
+    else
+      FormattedOutput="${tempcsv}"
+    fi
+  elif [[ "${OutputFormat}" == "json" ]]; then
+    if [[ -z "${UpdToString}" ]]; then
+      FormattedOutput='{"updates": []}'
+    else
+      if [[ "${UpdateType}" == "container_update" ]]; then
+        # container updates case
+        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"container_name": .[0], "release_notes": .[1]})} | del(..|nulls)')
+      elif [[ "${UpdateType}" == "notify_update" ]]; then
+        # script updates case
+        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2]})}')
+      elif [[ "${UpdateType}" == "dockcheck_update" ]]; then
+        # dockcheck update case
+        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2], "release_notes": .[3]})}')
+      else
+        FormattedOutput="Invalid input"
+      fi
+    fi
+  else
+    if [[ -z "${UpdToString}" ]]; then
+      FormattedOutput="None"
+    else
+      if [[ "${UpdateType}" == "dockcheck_update" ]]; then
+        FormattedOutput="${FormattedTextTemplate/<insert_text_iv>/$4}"
+        FormattedOutput="${FormattedTextTemplate/<insert_text_lv>/$5}"
+        FormattedOutput="${FormattedTextTemplate/<insert_text_rn>/$6}"
+      else
+        FormattedOutput="${FormattedTextTemplate/<insert_text>/${UpdToString}}"
+      fi
+    fi
+  fi
+}
+
 send_notification() {
   [[ -s "$ScriptWorkDir"/urls.list ]] && releasenotes || Updates=("$@")
 
-  if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-    UpdNotifyCount=$(notify_containers_count "${Updates[@]}")
-  else
-    UpdNotifyCount="${#Updates[@]}"
-  fi
-
-  if [[ "${enabled_notify_channels[@]}" == *"file"* ]]; then
-    UpdToString=$( printf '%s, ' "${Updates[@]}" )
-    UpdToString="${UpdToString%, }"
-
-    if [[ -z "${UpdToString}" ]]; then
-      UpdToString="None"
-    fi
-
-    printf "\nSending file notification\n"
-    printf -v MessageBody "${UpdToString}"
-
-    exec_if_exists_or_fail trigger_file_notification || \
-    printf "Attempted to send notification to channel file, but the function was not found. Make sure notify_file.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
-
-    remove_channel file
-  fi
-
+  UnsnoozedContainers=$(unsnoozed_count "${Updates[@]}")
   NotifyError=false
+  Notified="false"
 
-  if [[ "${UpdNotifyCount}" -gt 0 ]]; then
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-    UpdToString=${UpdToString%\\n}
+  # To be added in the MessageBody if "-d X" was used
+  # Trailing space is left intentionally for clean output
+  [[ -n "$DaysOld" ]] && msgdaysold="with images ${DaysOld}+ days old " || msgdaysold=""
+  MessageTitle="$FromHost - updates ${msgdaysold}available."
 
-    for channel in "${enabled_notify_channels[@]}"; do
-      printf "\nSending ${channel} notification\n"
+  UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+  UpdToString="${UpdToString%, }"
+  UpdToString=${UpdToString%\\n}
 
-      # To be added in the MessageBody if "-d X" was used
-      # leading space is left intentionally for clean output
-      [[ -n "$DaysOld" ]] && msgdaysold="with images ${DaysOld}+ days old " || msgdaysold=""
+  for channel in "${enabled_notify_channels[@]}"; do
+    local template=$(get_channel_template "${channel}")
 
-      MessageTitle="$FromHost - updates ${msgdaysold}available."
-      # Setting the MessageBody variable here.
-      printf -v MessageBody "🐋 Containers on $FromHost with updates available:\n${UpdToString}\n"
+    # Formats UpdToString variable per channel settings
+    format_output "container_update" "$(output_format "${channel}")" "🐋 Containers on $FromHost with updates available:\n<insert_text_cu>\n"
 
-      exec_if_exists_or_fail trigger_${channel}_notification || \
-      printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
-    done
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "${FormattedOutput}"
 
-    [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${Updates[@]}"
+    if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedContainers} -gt 0 ]] } && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] }; then
+      printf "\nSending ${channel} notification"
+      exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
+      printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
+      Notified="true"
+    fi
+  done
+
+  if [[ "${Notified}" == "true" ]]; then
+    [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && [[ "${FormattedOutput}" != "None" ]] && [[ "${Notified}" == "true" ]] && update_snooze "${Updates[@]}"
+    printf "\n"
   fi
-
-  [[ -n "${snooze}" ]] && cleanup_snooze "${Updates[@]}"
+  [[ -n "${snooze}" ]] && [[ "${FormattedOutput}" != "None" ]] && cleanup_snooze "${Updates[@]}"
 
   return 0
 }
@@ -164,39 +266,30 @@ send_notification() {
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
   if [[ ! "${DISABLE_DOCKCHECK_NOTIFICATION:-}" == "true" ]]; then
-    DockcheckNotify=false
     NotifyError=false
+    Notified=false
 
-    if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-      found=$(grep -w "dockcheck\.sh" "${SnoozeFile}" || printf "")
-      if [[ -n "${found}" ]]; then
-        read -a arr <<< "${found}"
-        CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
-        if [[ "${CurrentEpochSeconds}" -gt "${CheckEpochSeconds}" ]]; then
-          DockcheckNotify=true
-        fi
-      else
-        DockcheckNotify=true
+    MessageTitle="$FromHost - New version of dockcheck available."
+
+    # Formats UpdToString variable per channel settings
+    format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
+
+    # Setting the MessageBody variable here.
+    printf -v MessageBody "${FormattedOutput}"
+
+    for channel in "${enabled_notify_channels[@]}"; do
+      local template=$(get_channel_template "${channel}")
+      if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ $(is_snoozed "dockcheck\.sh") == "false" ]] } && [[ $(containers_only "${channel}") == "false" ]] && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] }; then
+        printf "\nSending dockcheck update notification - ${channel}"
+        exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
+        printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
+        Notified="true"
       fi
-    else
-      DockcheckNotify=true
-    fi
+    done
 
-    if [[ "${DockcheckNotify}" == "true" ]]; then
-      MessageTitle="$FromHost - New version of dockcheck available."
-      # Setting the MessageBody variable here.
-      printf -v MessageBody "Installed version: $1\nLatest version: $2\n\nChangenotes: $3\n"
-
-      if [[ ${#enabled_notify_channels[@]} -gt 0 ]]; then printf "\n"; fi
-      for channel in "${enabled_notify_channels[@]}"; do
-        if [[ ! "${channel}" == "file" ]]; then
-          printf "Sending dockcheck update notification - ${channel}\n"
-          exec_if_exists_or_fail trigger_${channel}_notification || \
-          printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
-        fi
-      done
-
+    if [[ "${Notified}" == "true" ]]; then
       [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "dockcheck.sh"
+      printf "\n"
     fi
   fi
 
@@ -207,11 +300,11 @@ dockcheck_notification() {
 ### to not send notifications when notify scripts themselves have updates.
 notify_update_notification() {
   if [[ ! "${DISABLE_NOTIFY_NOTIFICATION:-}" == "true" ]]; then
-    NotifyUpdateNotify=false
     NotifyError=false
     NotifyUpdates=()
+    Notified=false
 
-    UpdateChannels=( "${enabled_notify_channels[@]}" "v2" )
+    UpdateChannels=( "${enabled_notify_templates[@]}" "v2" )
 
     for NotifyScript in "${UpdateChannels[@]}"; do
       UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$NotifyScript")
@@ -222,55 +315,45 @@ notify_update_notification() {
         LatestNotifyRelease="$(echo "$LatestNotifySnippet" | sed -n "/${VersionVar}/s/${VersionVar}=//p" | tr -d '"')"
         if [[ ! "${LatestNotifyRelease}" == "undefined" ]]; then
           if [[ "${!VersionVar}" != "${LatestNotifyRelease}" ]] ; then
-            NotifyUpdates+=("${NotifyScript}.sh ${!VersionVar} -> ${LatestNotifyRelease}")
+            NotifyUpdates+=("${NotifyScript}.sh ${!VersionVar}  ->  ${LatestNotifyRelease}")
           fi
         fi
       fi
     done
 
-    if [[ -n "${snooze}" ]] && [[ -f "${SnoozeFile}" ]]; then
-      for update in "${NotifyUpdates[@]}"; do
-        read -a NotifyScript <<< "${update}"
-        found=$(grep -w "${NotifyScript}" "${SnoozeFile}" || printf "")
-        if [[ -n "${found}" ]]; then
-          read -a arr <<< "${found}"
-          CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
-          if [[ "${CurrentEpochSeconds}" -gt "${CheckEpochSeconds}" ]]; then
-            NotifyUpdateNotify=true
-          fi
-        else
-          NotifyUpdateNotify=true
-        fi
-      done
-    else
-      NotifyUpdateNotify=true
-    fi
+    UnsnoozedTemplates=$(unsnoozed_count "${NotifyUpdates[@]}")
 
-    if [[ "${NotifyUpdateNotify}" == "true" ]]; then
-      if [[ "${#NotifyUpdates[@]}" -gt 0 ]]; then
-        UpdToString=$( printf '%s\\n' "${NotifyUpdates[@]}" )
-        UpdToString=${UpdToString%\\n}
-        NotifyError=false
+    MessageTitle="$FromHost - New version of notify templates available."
 
-        MessageTitle="$FromHost - New version of notify templates available."
+    UpdToString=$( printf '%s\\n' "${NotifyUpdates[@]}" )
+    UpdToString="${UpdToString%, }"
+    UpdToString=${UpdToString%\\n}
 
-        printf -v MessageBody "Notify templates on $FromHost with updates available:\n${UpdToString}\n"
+    for channel in "${enabled_notify_channels[@]}"; do
+      local template=$(get_channel_template "${channel}")
 
-        for channel in "${enabled_notify_channels[@]}"; do
-          if [[ ! "${channel}" == "file" ]]; then
-            printf "Sending notify template update notification - ${channel}\n"
-            exec_if_exists_or_fail trigger_${channel}_notification || \
-            printf "Attempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${channel}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory.\n"
-          fi
-        done
+      # Formats UpdToString variable per channel settings
+      format_output "notify_update" "$(output_format "${channel}")" "Notify templates on $FromHost with updates available:\n<insert_text>\n"
 
-        [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${NotifyUpdates[@]}"
+      # Setting the MessageBody variable here.
+      printf -v MessageBody "${FormattedOutput}"
+
+      if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedTemplates} -gt 0 ]] } && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] } && [[ $(containers_only "${channel}") == "false" ]]; then
+        printf "\nSending notify template update notification - ${channel}"
+        exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
+        printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
+        Notified="true"
       fi
+    done
+
+    if [[ "${Notified}" == "true" ]]; then
+      [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && [[ "${FormattedOutput}" != "None" ]] && [[ "${Notified}" == "true" ]] && update_snooze "${NotifyUpdates[@]}"
+      printf "\n"
     fi
 
     UpdatesPlusDockcheck=("${NotifyUpdates[@]}")
     UpdatesPlusDockcheck+=("dockcheck.sh")
-    [[ -n "${snooze}" ]] && cleanup_snooze "${UpdatesPlusDockcheck[@]}"
+    [[ -n "${snooze}" ]] && [[ "${FormattedOutput}" != "None" ]] && cleanup_snooze "${UpdatesPlusDockcheck[@]}"
   fi
 
   return 0
