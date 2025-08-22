@@ -209,12 +209,16 @@ format_output() {
     if [[ -z "${UpdToString}" ]]; then
       FormattedOutput="None"
     else
-      if [[ "${UpdateType}" == "dockcheck_update" ]]; then
+      if [[ "${UpdateType}" == "container_update" ]]; then
+        FormattedOutput="${FormattedTextTemplate/<insert_text_cu>/${UpdToString}}"
+      elif [[ "${UpdateType}" == "notify_update" ]]; then
+        FormattedOutput="${FormattedTextTemplate/<insert_text_nu>/${UpdToString}}"
+      elif [[ "${UpdateType}" == "dockcheck_update" ]]; then
         FormattedOutput="${FormattedTextTemplate/<insert_text_iv>/$4}"
         FormattedOutput="${FormattedTextTemplate/<insert_text_lv>/$5}"
         FormattedOutput="${FormattedTextTemplate/<insert_text_rn>/$6}"
       else
-        FormattedOutput="${FormattedTextTemplate/<insert_text>/${UpdToString}}"
+        FormattedOutput="Invalid input"
       fi
     fi
   fi
@@ -333,7 +337,7 @@ notify_update_notification() {
       local template=$(get_channel_template "${channel}")
 
       # Formats UpdToString variable per channel settings
-      format_output "notify_update" "$(output_format "${channel}")" "Notify templates on $FromHost with updates available:\n<insert_text>\n"
+      format_output "notify_update" "$(output_format "${channel}")" "Notify templates on $FromHost with updates available:\n<insert_text_nu>\n"
 
       # Setting the MessageBody variable here.
       printf -v MessageBody "${FormattedOutput}"
