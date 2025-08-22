@@ -179,8 +179,13 @@ format_output() {
   local OutputFormat="$2"
   local FormattedTextTemplate="$3"
   local tempcsv=""
-  tempcsv="${UpdToString//  ->  /,}"
-  tempcsv="${tempcsv//.sh /.sh,}"
+
+  if [[ ! "${UpdateType}" == "dockcheck_update" ]]; then
+    tempcsv="${UpdToString//  ->  /,}"
+    tempcsv="${tempcsv//.sh /.sh,}"
+  else
+    tempcsv="${UpdToString}"
+  fi
 
   if [[ "${OutputFormat}" == "csv" ]]; then
     if [[ -z "${UpdToString}" ]]; then
@@ -200,7 +205,7 @@ format_output() {
         FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2]})}')
       elif [[ "${UpdateType}" == "dockcheck_update" ]]; then
         # dockcheck update case
-        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2], "release_notes": .[3]})}')
+        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2], "release_notes": (.[3:] | join(","))})}')
       else
         FormattedOutput="Invalid input"
       fi
@@ -215,8 +220,8 @@ format_output() {
         FormattedOutput="${FormattedTextTemplate/<insert_text_nu>/${UpdToString}}"
       elif [[ "${UpdateType}" == "dockcheck_update" ]]; then
         FormattedOutput="${FormattedTextTemplate/<insert_text_iv>/$4}"
-        FormattedOutput="${FormattedTextTemplate/<insert_text_lv>/$5}"
-        FormattedOutput="${FormattedTextTemplate/<insert_text_rn>/$6}"
+        FormattedOutput="${FormattedOutput/<insert_text_lv>/$5}"
+        FormattedOutput="${FormattedOutput/<insert_text_rn>/$6}"
       else
         FormattedOutput="Invalid input"
       fi
@@ -274,15 +279,17 @@ dockcheck_notification() {
     Notified=false
 
     MessageTitle="$FromHost - New version of dockcheck available."
-
-    # Formats UpdToString variable per channel settings
-    format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
-
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "${FormattedOutput}"
+    UpdToString="dockcheck.sh,$1,$2,\"$3\""
 
     for channel in "${enabled_notify_channels[@]}"; do
       local template=$(get_channel_template "${channel}")
+
+      # Formats UpdToString variable per channel settings
+      format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
+
+      # Setting the MessageBody variable here.
+      printf -v MessageBody "${FormattedOutput}"
+
       if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ $(is_snoozed "dockcheck\.sh") == "false" ]] } && [[ $(containers_only "${channel}") == "false" ]] && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] }; then
         printf "\nSending dockcheck update notification - ${channel}"
         exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
