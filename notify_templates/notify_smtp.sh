@@ -24,11 +24,11 @@ fi
 trigger_smtp_notification() {
   if [[ -n "$1" ]]; then
     smtp_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$smtp_channel")
   else
     smtp_channel="smtp"
-    UpperChannel="SMTP"
   fi
+
+  UpperChannel="${smtp_channel^^}"
 
   SendMailFromVar="${UpperChannel}_MAIL_FROM"
   SendMailToVar="${UpperChannel}_MAIL_TO"

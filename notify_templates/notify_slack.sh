@@ -9,11 +9,11 @@ NOTIFY_SLACK_VERSION="v0.4"
 trigger_slack_notification() {
   if [[ -n "$1" ]]; then
     slack_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$slack_channel")
   else
     slack_channel="slack"
-    UpperChannel="SLACK"
   fi
+
+  UpperChannel="${slack_channel^^}"
 
   AccessTokenVar="${UpperChannel}_ACCESS_TOKEN"
   ChannelIDVar="${UpperChannel}_CHANNEL_ID"

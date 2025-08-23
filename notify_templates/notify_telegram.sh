@@ -9,11 +9,11 @@ NOTIFY_TELEGRAM_VERSION="v0.5"
 trigger_telegram_notification() {
   if [[ -n "$1" ]]; then
     telegram_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$telegram_channel")
   else
     telegram_channel="telegram"
-    UpperChannel="TELEGRAM"
   fi
+
+  UpperChannel="${telegram_channel^^}"
 
   TelegramTokenVar="${UpperChannel}_TOKEN"
   TelegramChatIdVar="${UpperChannel}_CHAT_ID"

@@ -9,11 +9,11 @@ NOTIFY_MATRIX_VERSION="v0.4"
 trigger_matrix_notification() {
   if [[ -n "$1" ]]; then
     matrix_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$matrix_channel")
   else
     matrix_channel="matrix"
-    UpperChannel="MATRIX"
   fi
+
+  UpperChannel="${matrix_channel^^}"
 
   AccessTokenVar="${UpperChannel}_ACCESS_TOKEN"
   RoomIdVar="${UpperChannel}_ROOM_ID"

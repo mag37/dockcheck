@@ -25,11 +25,11 @@ fi
 trigger_DSM_notification() {
   if [[ -n "$1" ]]; then
     DSM_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$DSM_channel")
   else
     DSM_channel="DSM"
-    UpperChannel="DSM"
   fi
+
+UpperChannel="${DSM_channel^^}"
 
 DSMSendmailToVar="${UpperChannel}_SENDMAILTO"
 DSMSubjectTagVar="${UpperChannel}_SUBJECTTAG"

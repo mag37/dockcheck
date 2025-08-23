@@ -9,11 +9,11 @@ NOTIFY_DISCORD_VERSION="v0.5"
 trigger_discord_notification() {
   if [[ -n "$1" ]]; then
     discord_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$discord_channel")
   else
     discord_channel="discord"
-    UpperChannel="DISCORD"
   fi
+
+  UpperChannel="${discord_channel^^}"
 
   DiscordWebhookUrlVar="${UpperChannel}_WEBHOOK_URL"
 

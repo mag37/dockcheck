@@ -10,11 +10,11 @@ NOTIFY_PUSHOVER_VERSION="v0.4"
 trigger_pushover_notification() {
   if [[ -n "$1" ]]; then
     pushover_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$pushover_channel")
   else
     pushover_channel="pushover"
-    UpperChannel="PUSHOVER"
   fi
+
+  UpperChannel="${pushover_channel^^}"
 
   PushoverUrlVar="${UpperChannel}_URL"
   PushoverUserKeyVar="${UpperChannel}_USER_KEY"

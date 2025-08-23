@@ -9,17 +9,17 @@ NOTIFY_NTFYSH_VERSION="v0.7"
 trigger_ntfy_notification() {
   if [[ -n "$1" ]]; then
     ntfy_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$ntfy_channel")
   else
     ntfy_channel="ntfy"
-    UpperChannel="NTFY"
   fi
+
+  UpperChannel="${ntfy_channel^^}"
 
   NtfyDomainVar="${UpperChannel}_DOMAIN"
   NtfyTopicNameVar="${UpperChannel}_TOPIC_NAME"
   NtfyAuthVar="${UpperChannel}_AUTH"
 
-  if [[ -z "${!GotifyTokenVar:-}" ]] || [[ -z "${!GotifyUrlVar:-}" ]]; then
+  if [[ -z "${!NtfyDomainVar:-}" ]] || [[ -z "${!NtfyTopicNameVar:-}" ]]; then
     printf "The ${ntfy_channel} notification channel is enabled, but required configuration variables are missing. Ntfy notifications will not be sent.\n"
 
     remove_channel ntfy

@@ -10,11 +10,11 @@ NOTIFY_HA_VERSION="v0.2"
 trigger_HA_notification() {
   if [[ -n "$1" ]]; then
     HA_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$HA_channel")
   else
     HA_channel="HA"
-    UpperChannel="HA"
   fi
+
+  UpperChannel="${HA_channel^^}"
 
   HAEntityVar="${UpperChannel}_ENTITY"
   HAUrlVar="${UpperChannel}_URL"

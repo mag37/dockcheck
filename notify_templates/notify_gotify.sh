@@ -9,11 +9,11 @@ NOTIFY_GOTIFY_VERSION="v0.5"
 trigger_gotify_notification() {
   if [[ -n "$1" ]]; then
     gotify_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$gotify_channel")
   else
     gotify_channel="gotify"
-    UpperChannel="GOTIFY"
   fi
+
+  UpperChannel="${gotify_channel^^}"
 
   GotifyTokenVar="${UpperChannel}_TOKEN"
   GotifyUrlVar="${UpperChannel}_DOMAIN"

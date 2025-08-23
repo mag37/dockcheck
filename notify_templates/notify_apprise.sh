@@ -10,11 +10,11 @@ NOTIFY_APPRISE_VERSION="v0.4"
 trigger_apprise_notification() {
   if [[ -n "$1" ]]; then
     apprise_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$apprise_channel")
   else
     apprise_channel="apprise"
-    UpperChannel="APPRISE"
   fi
+
+  UpperChannel="${apprise_channel^^}"
 
   ApprisePayloadVar="${UpperChannel}_PAYLOAD"
   AppriseUrlVar="${UpperChannel}_URL"

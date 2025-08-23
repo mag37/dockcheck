@@ -22,7 +22,7 @@ UpdToString=""
 FormattedOutput=""
 
 get_channel_template() {
-  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local UpperChannel="${1^^}"
   local TemplateVar="${UpperChannel}_TEMPLATE"
   if [[ -n "${!TemplateVar:-}" ]]; then
     printf "${!TemplateVar}"
@@ -54,7 +54,7 @@ for template in "${enabled_notify_templates[@]}"; do
 done
 
 skip_snooze() {
-  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local UpperChannel="${1^^}"
   local SkipSnoozeVar="${UpperChannel}_SKIPSNOOZE"
   if [[ "${!SkipSnoozeVar:-}" == "true" ]]; then
     printf "true"
@@ -64,7 +64,7 @@ skip_snooze() {
 }
 
 allow_empty() {
-  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local UpperChannel="${1^^}"
   local AllowEmptyVar="${UpperChannel}_ALLOWEMPTY"
   if [[ "${!AllowEmptyVar:-}" == "true" ]]; then
     printf "true"
@@ -74,7 +74,7 @@ allow_empty() {
 }
 
 containers_only() {
-  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local UpperChannel="${1^^}"
   local ContainersOnlyVar="${UpperChannel}_CONTAINERSONLY"
   if [[ "${!ContainersOnlyVar:-}" == "true" ]]; then
     printf "true"
@@ -84,7 +84,7 @@ containers_only() {
 }
 
 output_format() {
-  local UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+  local UpperChannel="${1^^}"
   local OutputFormatVar="${UpperChannel}_OUTPUT"
   if [[ -z "${!OutputFormatVar:-}" ]]; then
     printf "text"
@@ -318,7 +318,7 @@ notify_update_notification() {
     UpdateChannels=( "${enabled_notify_templates[@]}" "v2" )
 
     for NotifyScript in "${UpdateChannels[@]}"; do
-      UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$NotifyScript")
+      UpperChannel="${NotifyScript^^}"
       VersionVar="NOTIFY_${UpperChannel}_VERSION"
       if [[ -n "${!VersionVar:-}" ]]; then
         RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_${NotifyScript}.sh"

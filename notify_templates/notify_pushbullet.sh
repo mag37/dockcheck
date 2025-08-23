@@ -10,11 +10,11 @@ NOTIFY_PUSHBULLET_VERSION="v0.4"
 trigger_pushbullet_notification() {
   if [[ -n "$1" ]]; then
     pushbullet_channel="$1"
-    UpperChannel=$(tr '[:lower:]' '[:upper:]' <<< "$pushbullet_channel")
   else
     pushbullet_channel="pushbullet"
-    UpperChannel="PUSHBULLET"
   fi
+
+  UpperChannel="${pushbullet_channel^^}"
 
   PushUrlVar="${UpperChannel}_URL"
   PushTokenVar="${UpperChannel}_TOKEN"
