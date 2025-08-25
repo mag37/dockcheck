@@ -108,10 +108,10 @@ is_snoozed() {
     if [[ -n "${found}" ]]; then
       read -a arr <<< "${found}"
       CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
-      if [[ "${CurrentEpochSeconds}" -gt "${CheckEpochSeconds}" ]]; then
-        printf "false"
-      else
+      if [[ "${CurrentEpochSeconds}" -le "${CheckEpochSeconds}" ]]; then
         printf "true"
+      else
+        printf "false"
       fi
     else
       printf "false"
@@ -254,7 +254,7 @@ send_notification() {
     # Setting the MessageBody variable here.
     printf -v MessageBody "${FormattedOutput}"
 
-    if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedContainers} -gt 0 ]] } && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] }; then
+    if { { [[ "${MessageBody}" == "None" ]] || [[ "${MessageBody}" == '{"updates": []}' ]]; } && [[ $(allow_empty "${channel}") == "true" ]]; } || { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedContainers} -gt 0 ]]; }; then
       printf "\nSending ${channel} notification"
       exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
       printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
@@ -290,7 +290,7 @@ dockcheck_notification() {
       # Setting the MessageBody variable here.
       printf -v MessageBody "${FormattedOutput}"
 
-      if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ $(is_snoozed "dockcheck\.sh") == "false" ]] } && [[ $(containers_only "${channel}") == "false" ]] && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] }; then
+      if { { [[ "${MessageBody}" == "None" ]] || [[ "${MessageBody}" == '{"updates": []}' ]]; } && [[ $(allow_empty "${channel}") == "true" ]]; } && { [[ $(skip_snooze "${channel}") == "true" ]] || [[ $(is_snoozed "dockcheck\.sh") == "false" ]]; } && [[ $(containers_only "${channel}") == "false" ]]; then
         printf "\nSending dockcheck update notification - ${channel}"
         exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
         printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
@@ -323,8 +323,9 @@ notify_update_notification() {
       if [[ -n "${!VersionVar:-}" ]]; then
         RawNotifyUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/notify_templates/notify_${NotifyScript}.sh"
         LatestNotifySnippet="$(curl ${CurlArgs} -r 0-150 "$RawNotifyUrl" || printf "undefined")"
-        LatestNotifyRelease="$(echo "$LatestNotifySnippet" | sed -n "/${VersionVar}/s/${VersionVar}=//p" | tr -d '"')"
-        if [[ ! "${LatestNotifyRelease}" == "undefined" ]]; then
+        if [[ ! "${LatestNotifySnippet}" == "undefined" ]]; then
+          LatestNotifyRelease="$(echo "$LatestNotifySnippet" | sed -n "/${VersionVar}/s/${VersionVar}=//p" | tr -d '"')"
+
           if [[ "${!VersionVar}" != "${LatestNotifyRelease}" ]] ; then
             NotifyUpdates+=("${NotifyScript}.sh ${!VersionVar}  ->  ${LatestNotifyRelease}")
           fi
@@ -349,7 +350,7 @@ notify_update_notification() {
       # Setting the MessageBody variable here.
       printf -v MessageBody "${FormattedOutput}"
 
-      if { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedTemplates} -gt 0 ]] } && { { [[ "${MessageBody}" != "None" ]] && [[ "${MessageBody}" != '{"updates": []}' ]] } || [[ $(allow_empty "${channel}") == "true" ]] } && [[ $(containers_only "${channel}") == "false" ]]; then
+      if { { [[ "${MessageBody}" == "None" ]] || [[ "${MessageBody}" == '{"updates": []}' ]]; } && [[ $(allow_empty "${channel}") == "true" ]]; } && { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedTemplates} -gt 0 ]]; } && [[ $(containers_only "${channel}") == "false" ]]; then
         printf "\nSending notify template update notification - ${channel}"
         exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
         printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
