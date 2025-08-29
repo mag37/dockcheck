@@ -23,7 +23,7 @@ trigger_matrix_notification() {
     printf "The ${matrix_channel} notification channel is enabled, but required configuration variables are missing. Matrix notifications will not be sent.\n"
 
     remove_channel matrix
-    return 1
+    return 0
   fi
 
   AccessToken="${!AccessTokenVar}" # e.g. MATRIX_ACCESS_TOKEN=token-value

@@ -23,7 +23,7 @@ trigger_ntfy_notification() {
     printf "The ${ntfy_channel} notification channel is enabled, but required configuration variables are missing. Ntfy notifications will not be sent.\n"
 
     remove_channel ntfy
-    return 1
+    return 0
   fi
 
   NtfyUrl="${!NtfyDomainVar}/${!NtfyTopicNameVar}"

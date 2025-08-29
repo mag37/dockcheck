@@ -22,7 +22,7 @@ trigger_gotify_notification() {
     printf "The ${gotify_channel} notification channel is enabled, but required configuration variables are missing. Gotify notifications will not be sent.\n"
 
     remove_channel gotify
-    return 1
+    return 0
   fi
 
   GotifyToken="${!GotifyTokenVar}" # e.g. GOTIFY_TOKEN=token-value

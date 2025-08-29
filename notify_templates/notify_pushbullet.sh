@@ -23,7 +23,7 @@ trigger_pushbullet_notification() {
     printf "The ${pushbullet_channel} notification channel is enabled, but required configuration variables are missing. Pushbullet notifications will not be sent.\n"
 
     remove_channel pushbullet
-    return 1
+    return 0
   fi
 
   PushUrl="${!PushUrlVar}" # e.g. PUSHBULLET_URL=https://api.pushbullet.com/v2/pushes

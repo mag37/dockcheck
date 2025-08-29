@@ -23,7 +23,7 @@ trigger_apprise_notification() {
     printf "The ${apprise_channel} notification channel is enabled, but required configuration variables are missing. Apprise notifications will not be sent.\n"
 
     remove_channel apprise
-    return 1
+    return 0
   fi
 
   if [[ -n "${!ApprisePayloadVar:-}" ]]; then

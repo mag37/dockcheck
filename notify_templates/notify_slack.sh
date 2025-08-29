@@ -22,7 +22,7 @@ trigger_slack_notification() {
     printf "The ${slack_channel} notification channel is enabled, but required configuration variables are missing. Slack notifications will not be sent.\n"
 
     remove_channel slack
-    return 1
+    return 0
   fi
 
   AccessToken="${!AccessTokenVar}" # e.g. SLACK_ACCESS_TOKEN=some-token

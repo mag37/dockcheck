@@ -229,8 +229,38 @@ format_output() {
   fi
 }
 
+skip_notification() {
+  # Skip notification logic. Default to false. Handle all cases, and only those cases, where notifications should be skipped.
+  local SkipNotification="false"
+  local Channel="$1"
+  local UnsnoozedCount="$2"
+  local NotificationType="$3"
+
+  if [[ $(containers_only "${Channel}") == "true" ]] && [[ "${NotificationType}" != "container" ]]; then
+    # Do not send notifications through channels only configured for container update notifications
+    SkipNotification="true"
+  else
+    # Handle empty update cases separately
+    if [[ -z "${UpdToString}" ]]; then
+      if [[ $(allow_empty "${Channel}") == "false" ]]; then
+        # Do not send notifications if there are none and allow_empty is false
+        SkipNotification="true"
+      fi
+    else
+      if [[ $(skip_snooze "${Channel}") == "false" ]] && [[ ${UnsnoozedCount} -eq 0 ]]; then
+        # Do not send notifications if there are any, they are all snoozed, and skip_snooze is false
+        SkipNotification="true"
+      fi
+    fi
+  fi
+
+  printf "${SkipNotification}"
+}
+
 send_notification() {
   [[ -s "$ScriptWorkDir"/urls.list ]] && releasenotes || Updates=("$@")
+
+  [[ -n "${snooze}" ]] && cleanup_snooze "${Updates[@]}"
 
   UnsnoozedContainers=$(unsnoozed_count "${Updates[@]}")
   NotifyError=false
@@ -246,15 +276,16 @@ send_notification() {
   UpdToString=${UpdToString%\\n}
 
   for channel in "${enabled_notify_channels[@]}"; do
-    local template=$(get_channel_template "${channel}")
+    local SkipNotification=$(skip_notification "${channel}" "${UnsnoozedContainers}" "container")
+    if [[ "${SkipNotification}" == "false" ]]; then
+      local template=$(get_channel_template "${channel}")
 
-    # Formats UpdToString variable per channel settings
-    format_output "container_update" "$(output_format "${channel}")" "🐋 Containers on $FromHost with updates available:\n<insert_text_cu>\n"
+      # Formats UpdToString variable per channel settings
+      format_output "container_update" "$(output_format "${channel}")" "🐋 Containers on $FromHost with updates available:\n<insert_text_cu>\n"
 
-    # Setting the MessageBody variable here.
-    printf -v MessageBody "${FormattedOutput}"
+      # Setting the MessageBody variable here.
+      printf -v MessageBody "${FormattedOutput}"
 
-    if { { [[ "${MessageBody}" == "None" ]] || [[ "${MessageBody}" == '{"updates": []}' ]]; } && [[ $(allow_empty "${channel}") == "true" ]]; } || { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedContainers} -gt 0 ]]; }; then
       printf "\nSending ${channel} notification"
       exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
       printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
@@ -263,10 +294,9 @@ send_notification() {
   done
 
   if [[ "${Notified}" == "true" ]]; then
-    [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && [[ "${FormattedOutput}" != "None" ]] && [[ "${Notified}" == "true" ]] && update_snooze "${Updates[@]}"
+    [[ -n "${snooze}" ]] && [[ -n "${UpdToString}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${Updates[@]}"
     printf "\n"
   fi
-  [[ -n "${snooze}" ]] && [[ "${FormattedOutput}" != "None" ]] && cleanup_snooze "${Updates[@]}"
 
   return 0
 }
@@ -275,6 +305,7 @@ send_notification() {
 ### to not send notifications when dockcheck itself has updates.
 dockcheck_notification() {
   if [[ ! "${DISABLE_DOCKCHECK_NOTIFICATION:-}" == "true" ]]; then
+    UnsnoozedDockcheck=$(unsnoozed_count "dockcheck\.sh")
     NotifyError=false
     Notified=false
 
@@ -282,15 +313,16 @@ dockcheck_notification() {
     UpdToString="dockcheck.sh,$1,$2,\"$3\""
 
     for channel in "${enabled_notify_channels[@]}"; do
-      local template=$(get_channel_template "${channel}")
+      local SkipNotification=$(skip_notification "${channel}" "${UnsnoozedDockcheck}" "dockcheck")
+      if [[ "${SkipNotification}" == "false" ]]; then
+        local template=$(get_channel_template "${channel}")
 
-      # Formats UpdToString variable per channel settings
-      format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
+        # Formats UpdToString variable per channel settings
+        format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
 
-      # Setting the MessageBody variable here.
-      printf -v MessageBody "${FormattedOutput}"
+        # Setting the MessageBody variable here.
+        printf -v MessageBody "${FormattedOutput}"
 
-      if { { [[ "${MessageBody}" == "None" ]] || [[ "${MessageBody}" == '{"updates": []}' ]]; } && [[ $(allow_empty "${channel}") == "true" ]]; } && { [[ $(skip_snooze "${channel}") == "true" ]] || [[ $(is_snoozed "dockcheck\.sh") == "false" ]]; } && [[ $(containers_only "${channel}") == "false" ]]; then
         printf "\nSending dockcheck update notification - ${channel}"
         exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
         printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
@@ -333,6 +365,10 @@ notify_update_notification() {
       fi
     done
 
+    UpdatesPlusDockcheck=("${NotifyUpdates[@]}")
+    UpdatesPlusDockcheck+=("dockcheck.sh")
+    [[ -n "${snooze}" ]] && cleanup_snooze "${UpdatesPlusDockcheck[@]}"
+
     UnsnoozedTemplates=$(unsnoozed_count "${NotifyUpdates[@]}")
 
     MessageTitle="$FromHost - New version of notify templates available."
@@ -342,15 +378,17 @@ notify_update_notification() {
     UpdToString=${UpdToString%\\n}
 
     for channel in "${enabled_notify_channels[@]}"; do
-      local template=$(get_channel_template "${channel}")
+      local SkipNotification=$(skip_notification "${channel}" "${UnsnoozedTemplates}" "notify")
 
-      # Formats UpdToString variable per channel settings
-      format_output "notify_update" "$(output_format "${channel}")" "Notify templates on $FromHost with updates available:\n<insert_text_nu>\n"
+      if [[ "${SkipNotification}" == "false" ]]; then
+        local template=$(get_channel_template "${channel}")
 
-      # Setting the MessageBody variable here.
-      printf -v MessageBody "${FormattedOutput}"
+        # Formats UpdToString variable per channel settings
+        format_output "notify_update" "$(output_format "${channel}")" "Notify templates on $FromHost with updates available:\n<insert_text_nu>\n"
 
-      if { { [[ "${MessageBody}" == "None" ]] || [[ "${MessageBody}" == '{"updates": []}' ]]; } && [[ $(allow_empty "${channel}") == "true" ]]; } && { [[ $(skip_snooze "${channel}") == "true" ]] || [[ ${UnsnoozedTemplates} -gt 0 ]]; } && [[ $(containers_only "${channel}") == "false" ]]; then
+        # Setting the MessageBody variable here.
+        printf -v MessageBody "${FormattedOutput}"
+
         printf "\nSending notify template update notification - ${channel}"
         exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
         printf "\nAttempted to send notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
@@ -359,13 +397,9 @@ notify_update_notification() {
     done
 
     if [[ "${Notified}" == "true" ]]; then
-      [[ -n "${snooze}" ]] && [[ "${NotifyError}" == "false" ]] && [[ "${FormattedOutput}" != "None" ]] && [[ "${Notified}" == "true" ]] && update_snooze "${NotifyUpdates[@]}"
+      [[ -n "${snooze}" ]] && [[ -n "${UpdToString}" ]] && [[ "${NotifyError}" == "false" ]] && update_snooze "${NotifyUpdates[@]}"
       printf "\n"
     fi
-
-    UpdatesPlusDockcheck=("${NotifyUpdates[@]}")
-    UpdatesPlusDockcheck+=("dockcheck.sh")
-    [[ -n "${snooze}" ]] && [[ "${FormattedOutput}" != "None" ]] && cleanup_snooze "${UpdatesPlusDockcheck[@]}"
   fi
 
   return 0

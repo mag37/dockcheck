@@ -38,7 +38,7 @@ trigger_smtp_notification() {
     printf "The ${smtp_channel} notification channel is enabled, but required configuration variables are missing. SMTP notifications will not be sent.\n"
 
     remove_channel smtp
-    return 1
+    return 0
   fi
 
   SendMailFrom="${!SendMailFromVar}" # e.g. MAIL_FROM=me@mydomain.tld

@@ -21,7 +21,7 @@ trigger_discord_notification() {
     printf "The ${discord_channel} notification channel is enabled, but required configuration variables are missing. Discord notifications will not be sent.\n"
 
     remove_channel discord
-    return 1
+    return 0
   fi
 
   DiscordWebhookUrl="${!DiscordWebhookUrlVar}" # e.g. DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/<token string>

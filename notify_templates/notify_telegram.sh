@@ -23,7 +23,7 @@ trigger_telegram_notification() {
     printf "The ${telegram_channel} notification channel is enabled, but required configuration variables are missing. Telegram notifications will not be sent.\n"
 
     remove_channel telegram
-    return 1
+    return 0
   fi
 
   if [[ "$PrintMarkdownURL" == true ]]; then

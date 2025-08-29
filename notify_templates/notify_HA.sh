@@ -24,7 +24,7 @@ trigger_HA_notification() {
     printf "The ${HA_channel} notification channel is enabled, but required configuration variables are missing. Home assistant notifications will not be sent.\n"
 
     remove_channel HA
-    return 1
+    return 0
   fi
 
   AccessToken="${!HATokenVar}"

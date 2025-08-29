@@ -24,7 +24,7 @@ trigger_pushover_notification() {
     printf "The ${pushover_channel} notification channel is enabled, but required configuration variables are missing. Pushover notifications will not be sent.\n"
 
     remove_channel pushover
-    return 1
+    return 0
   fi
 
   PushoverUrl="${!PushoverUrlVar}" # e.g. PUSHOVER_URL=https://api.pushover.net/1/messages.json
