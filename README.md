@@ -22,6 +22,16 @@
 ___
 ## :bell: Changelog
 
+- **v0.7.1**:
+    - Added support for multiple notifications using the same template
+    - Added support for notification output format
+    - Added support for file output
+    - Added optional configuration variables per channel to (replace &lt;channel&gt; with any channel name):
+      - &lt;channel&gt;\_TEMPLATE : Specify a template
+      - &lt;channel&gt;\_SKIPSNOOZE : Skip snooze
+      - &lt;channel&gt;\_CONTAINERSONLY : Only notify for docker container related updates
+      - &lt;channel&gt;\_ALLOWEMPTY : Always send notifications, even when empty
+      - &lt;channel&gt;\_OUTPUT : Define output format
 - **v0.7.0**:
     - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
     - Added authentication support to Ntfy.sh.
@@ -126,13 +136,15 @@ Alternatively create an alias where specific flags and values are set.
 Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
 ## :loudspeaker: Notifications
-Trigger with the `-i` flag.
-If `notify.sh` is present and configured, it will be used. Otherwise, `notify_v2.sh` will be enabled.
-Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
-Run it scheduled with `-ni` to only get notified when there's updates available!
+Triggered with the `-i` flag. Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
+`notify_templates/notify_v2.sh` is the default notification wrapper, if `notify.sh` is present and configured, it will override.
+
+Example of a cron scheduled job running non-interactive at 10'oclock excluding 1 container and sending notifications:
+`0 10 * * * /home/user123/.local/bin/dockcheck.sh -nix 10 -e excluded_container1`
 
 #### Installation and configuration:
-Make certain your project directory is laid out as below. You only need the notify_v2.sh file and any notification templates you wish to enable, but there is no harm in having all of them present.
+Set up a directory structure as below.
+You only need the `notify_templates/notify_v2.sh` file and any notification templates you wish to enable, but there is no harm in having all of them present.
 ```
  .
 ├── notify_templates/
@@ -154,27 +166,27 @@ Make certain your project directory is laid out as below. You only need the noti
 ├── dockcheck.sh
 └── urls.list         # optional
 ```
-Uncomment and set the NOTIFY_CHANNELS environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
-Uncomment and set the environment variables related to the enabled notification channels.  
-It is recommended to only edit the environmental variables in `dockcheck.config` and not make changes directly to the `notify_X.sh` template files within the `notify_templates` subdirectory.
-If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` script (where they will also be ignored by git).
+- Uncomment and set the `NOTIFY_CHANNELS=""` environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
+- Uncomment and set the environment variables related to the enabled notification channels. Eg. `GOTIFY_DOMAIN=""` + `GOTIFY_TOKEN=""`.
+
+It's recommended to only do configuration with variables within `dockcheck.config` and not modify `notify_templates/notify_X.sh` directly.
+If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` (where they're also ignored by git).
 Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` root directory.
 
 
-#### Legacy installation and configuration:
-Use a previous version of a `notify_X.sh` template file (tag v0.6.4 or earlier) from the **notify_templates** directory,
-copy it to `notify.sh` alongside the script, modify it to your needs! (notify.sh is added to .gitignore)
-
 #### Snooze feature:
-**Use case:** You wish to be notified of available updates in a timely manner, but do not require reminders after the initial notification with the same frequency.
-e.g. *Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.*  
-**Snooze enabled:** you will not receive another notification about updates for this container for a configurable period of time.  
-**Snooze disabled:** you will receive additional notifications every hour.
+Configure to receive scheduled notifications only if they're new since the last notification - within a set time frame.
 
-To enable snooze, uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` file and set it to the number of seconds you wish to prevent duplicate alerts.
-The true snooze duration will be 60 seconds less than your configure value to account for minor scheduling or script run time issues.
+**Example:** *Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.*
+**Snooze enabled:** You will not receive a repeated notification about an already notified update within the snooze duration.
+**Snooze disabled:** You will receive additional (possibly repeated) notifications every hour.
+
+To enable snooze uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` and set it to the number of seconds you wish to prevent duplicate alerts.
+Snooze is split into three categories; container updates, `dockcheck.sh` self updates and notification template updates.
+
 If an update becomes available for an item that is not snoozed, notifications will be sent and include all available updates for that item's category, even snoozed items.
-`dockcheck.sh` updates, notification template updates, and container updates are considered three separate categories.
+
+The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to account for minor scheduling or run time issues.
 
 
 #### Current notify templates:
@@ -193,15 +205,31 @@ If an update becomes available for an item that is not snoozed, notifications wi
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 - [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 
-Further additions are welcome - suggestions or PRs!  
-<sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>  
+Further additions are welcome - suggestions or PRs!
+<sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>
+
+#### Notification channel configuration:
+All required environment variables for each notification channel are provided in the default.config file as comments and must be uncommented and modified for your requirements.
+For advanced users, additional functionality is available via custom configurations and environment variables.
+Use cases - all configured in `dockcheck.config`:
+(replace `<channel>` with the upper case name of the of the channel as listed in `NOTIFY_CHANNELS` variable, eg `TELEGRAM_SKIPSNOOZE`)
+- To bypass the snooze feature, even when enabled, add the variable `<channel>_SKIPSNOOZE` and set it to `true`.
+- To configure the channel to only send container update notifications, add the variable `<channel>_CONTAINERSONLY` and set it to `true`.
+- To send notifications even when there are no updates available, add the variable `<channel>_ALLOWEMPTY`  and set it to `true`.
+- To use another notification output format, add the variable `<channel>_OUTPUT` and set it to `csv`, `json`, or `text`. If unset or set to an invalid value, defaults to `text`.
+- To send multiple notifications using the same notification template:
+  - Strings in the `NOTIFY_CHANNELS` list are now treated as unique names and do not necessarily refer to the notification template that will be called, though they do by default.
+  - Add another notification channel to `NOTIFY_CHANNELS` in `dockcheck.config`. The name can contain upper and lower case letters, numbers and underscores, but can't start with a number.
+  - Add the variable `<channel>_TEMPLATE` to `dockcheck.config` where `<channel>` is the name of the channel added above and set the value to an available notification template script (`slack`, `apprise`, `gotify`, etc.)
+  - Add all other environment variables required for the chosen template to function with `<channel>` in upper case as the prefix rather than the template name.
+    - For example, if `<channel>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
 
 ### :date: Release notes addon
-There's a function to use a lookup-file to add release note URL's to the notification message.  
-Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
-Modify it as necessary, the names of interest in the left column needs to match your container names.  
-To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.  
-For Markdown formatting also add the `-M` option. (**this requires the template to be compatible - see gotify for example**)  
+There's a function to use a lookup-file to add release note URL's to the notification message.
+Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.
+Modify it as necessary, the names of interest in the left column needs to match your container names.
+To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.
+For Markdown formatting also add the `-M` option. (**this requires the template to be compatible - see gotify for example**)
 
 The output of the notification will look something like this:
 ```

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.0"
-# ChangeNotes: Snooze bugfix, added auth support to ntfy.sh and sendmail support to SMTP
+VERSION="v0.7.1"
+# ChangeNotes: Add support for multiple notifications of the same type, output formatting, and file output
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -507,6 +507,8 @@ if [[ -n ${GotUpdates[*]:-} ]]; then
   if [[ -s "$ScriptWorkDir/urls.list" ]] && [[ "$PrintReleaseURL" == true ]]; then releasenotes; else Updates=("${GotUpdates[@]}"); fi
   [[ "$AutoMode" == false ]] && list_options || printf "%s\n" "${Updates[@]}"
   [[ "$Notify" == true ]] && { exec_if_exists_or_fail send_notification "${GotUpdates[@]}" || printf "\nCould not source notification function.\n"; }
+else
+  [[ "$Notify" == true ]] && [[ ! -s "${ScriptWorkDir}/notify.sh" ]] && { exec_if_exists_or_fail send_notification "${GotUpdates[@]}" || printf "\nCould not source notification function.\n"; }
 fi
 
 # Optionally get updates if there's any

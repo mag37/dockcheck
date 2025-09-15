@@ -1,5 +1,5 @@
 ### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-NOTIFY_DSM_VERSION="v0.4"
+NOTIFY_DSM_VERSION="v0.5"
 # INFO: ssmtp is deprecated - consider to use msmtp instead.
 #
 # mSMTP/sSMTP has to be installed and configured manually.
@@ -23,15 +23,26 @@ else
 fi
 
 trigger_DSM_notification() {
+  if [[ -n "$1" ]]; then
+    DSM_channel="$1"
+  else
+    DSM_channel="DSM"
+  fi
+
+UpperChannel="${DSM_channel^^}"
+
+DSMSendmailToVar="${UpperChannel}_SENDMAILTO"
+DSMSubjectTagVar="${UpperChannel}_SUBJECTTAG"
+
 CfgFile="/usr/syno/etc/synosmtp.conf"
 
 # User variables:
 # Automatically sends to your usual destination for synology DSM notification emails.
 # You can also manually override by assigning something else to DSM_SENDMAILTO in dockcheck.config.
-SendMailTo=${DSM_SENDMAILTO:-$(grep 'eventmail1' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')}
+SendMailTo=${!DSMSendmailToVar:-$(grep 'eventmail1' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')}
 # e.g. DSM_SENDMAILTO="me@mydomain.com"
 
-SubjectTag=${DSM_SUBJECTTAG:-$(grep 'eventsubjectprefix' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')}
+SubjectTag=${!DSMSubjectTagVar:-$(grep 'eventsubjectprefix' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')}
 # e.g. DSM_SUBJECTTAG="Email Subject Prefix"
 SenderName=$(grep 'smtp_from_name' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')
 SenderMail=$(grep 'smtp_from_mail' $CfgFile | sed -n 's/.*"\([^"]*\)".*/\1/p')
