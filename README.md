@@ -20,18 +20,18 @@
 <h5 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
 ___
-## :bell: Changelog
+## Changelog
 
 - **v0.7.1**:
     - Added support for multiple notifications using the same template
     - Added support for notification output format
     - Added support for file output
-    - Added optional configuration variables per channel to (replace &lt;channel&gt; with any channel name):
-      - &lt;channel&gt;\_TEMPLATE : Specify a template
-      - &lt;channel&gt;\_SKIPSNOOZE : Skip snooze
-      - &lt;channel&gt;\_CONTAINERSONLY : Only notify for docker container related updates
-      - &lt;channel&gt;\_ALLOWEMPTY : Always send notifications, even when empty
-      - &lt;channel&gt;\_OUTPUT : Define output format
+    - Added optional configuration variables per channel to (replace `<channel>` with any channel name):
+      - `<channel>_TEMPLATE` : Specify a template
+      - `<channel>_SKIPSNOOZE` : Skip snooze
+      - `<channel>_CONTAINERSONLY` : Only notify for docker container related updates
+      - `<channel>_ALLOWEMPTY` : Always send notifications, even when empty
+      - `<channel>_OUTPUT` : Define output format
 - **v0.7.0**:
     - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
     - Added authentication support to Ntfy.sh.
@@ -53,7 +53,7 @@ ___
 
 ![](extras/example.gif)
 
-## :mag_right: `dockcheck.sh`
+## `dockcheck.sh`
 ```
 $ ./dockcheck.sh -h
 Syntax:     dockcheck.sh [OPTION] [comma separated names to include]
@@ -103,7 +103,7 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 
 ___
 
-## :nut_and_bolt: Dependencies
+## Dependencies
 - Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
 - Bash shell or compatible shell of at least v4.3
   - POSIX `xargs`, usually default but can be installed with the `findutils` package - to enable async.
@@ -113,7 +113,7 @@ ___
   - User will be prompted to download `regctl` if not in `PATH` or `PWD`.  
   - regctl requires `amd64/arm64` - see [workaround](#roller_coaster-workaround-for-non-amd64--arm64) if other architecture is used.
 
-## :tent: Install Instructions
+## Install Instructions
 Download the script to a directory in **PATH**, I'd suggest using `~/.local/bin` as that's usually in **PATH**.  
 For OSX/macOS preferably use `/usr/local/bin`.
 ```sh
@@ -130,12 +130,12 @@ wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockc
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
-## :handbag: Configuration
+## Configuration
 To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/`.  
 Alternatively create an alias where specific flags and values are set.  
 Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
-## :loudspeaker: Notifications
+## Notifications
 Triggered with the `-i` flag. Will send a list of containers with updates available and a notification when `dockcheck.sh` itself has an update.
 `notify_templates/notify_v2.sh` is the default notification wrapper, if `notify.sh` is present and configured, it will override.
 
@@ -169,19 +169,18 @@ You only need the `notify_templates/notify_v2.sh` file and any notification temp
 - Uncomment and set the `NOTIFY_CHANNELS=""` environment variable in `dockcheck.config` to a space separated string of your desired notification channels to enable.
 - Uncomment and set the environment variables related to the enabled notification channels. Eg. `GOTIFY_DOMAIN=""` + `GOTIFY_TOKEN=""`.
 
-It's recommended to only do configuration with variables within `dockcheck.config` and not modify `notify_templates/notify_X.sh` directly.
-If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` (where they're also ignored by git).
-Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` root directory.
+It's recommended to only do configuration with variables within `dockcheck.config` and not modify `notify_templates/notify_X.sh` directly. If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` (where they're also ignored by git).  
+Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` root directory.  
 
 
 #### Snooze feature:
 Configure to receive scheduled notifications only if they're new since the last notification - within a set time frame.
 
-**Example:** *Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.*
-**Snooze enabled:** You will not receive a repeated notification about an already notified update within the snooze duration.
-**Snooze disabled:** You will receive additional (possibly repeated) notifications every hour.
+**Example:** *Dockcheck is scheduled to run every hour. You will receive an update notification within an hour of availability.*  
+**Snooze enabled:** You will not receive a repeated notification about an already notified update within the snooze duration.  
+**Snooze disabled:** You will receive additional (possibly repeated) notifications every hour.  
 
-To enable snooze uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` and set it to the number of seconds you wish to prevent duplicate alerts.
+To enable snooze uncomment the `SNOOZE_SECONDS` variable in your `dockcheck.config` and set it to the number of seconds you wish to prevent duplicate alerts.  
 Snooze is split into three categories; container updates, `dockcheck.sh` self updates and notification template updates.
 
 If an update becomes available for an item that is not snoozed, notifications will be sent and include all available updates for that item's category, even snoozed items.
@@ -209,9 +208,9 @@ Further additions are welcome - suggestions or PRs!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>
 
 #### Notification channel configuration:
-All required environment variables for each notification channel are provided in the default.config file as comments and must be uncommented and modified for your requirements.
-For advanced users, additional functionality is available via custom configurations and environment variables.
-Use cases - all configured in `dockcheck.config`:
+All required environment variables for each notification channel are provided in the default.config file as comments and must be uncommented and modified for your requirements.  
+For advanced users, additional functionality is available via custom configurations and environment variables.  
+Use cases - all configured in `dockcheck.config`:  
 (replace `<channel>` with the upper case name of the of the channel as listed in `NOTIFY_CHANNELS` variable, eg `TELEGRAM_SKIPSNOOZE`)
 - To bypass the snooze feature, even when enabled, add the variable `<channel>_SKIPSNOOZE` and set it to `true`.
 - To configure the channel to only send container update notifications, add the variable `<channel>_CONTAINERSONLY` and set it to `true`.
@@ -224,12 +223,12 @@ Use cases - all configured in `dockcheck.config`:
   - Add all other environment variables required for the chosen template to function with `<channel>` in upper case as the prefix rather than the template name.
     - For example, if `<channel>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
 
-### :date: Release notes addon
-There's a function to use a lookup-file to add release note URL's to the notification message.
-Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.
-Modify it as necessary, the names of interest in the left column needs to match your container names.
-To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.
-For Markdown formatting also add the `-M` option. (**this requires the template to be compatible - see gotify for example**)
+### Release notes addon
+There's a function to use a lookup-file to add release note URL's to the notification message.  
+Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
+Modify it as necessary, the names of interest in the left column needs to match your container names.  
+To also list the URL's in the CLI output (choose containers list) use the `-I` option or variable config.  
+For Markdown formatting also add the `-M` option. (**this requires the template to be compatible - see gotify for example**)  
 
 The output of the notification will look something like this:
 ```
@@ -241,19 +240,19 @@ nginx  ->  https://github.com/docker-library/official-images/blob/master/library
 ```
 The `urls.list` file is just an example and I'd gladly see that people contribute back when they add their preferred URLs to their lists.
 
-## :fast_forward: Asyncronous update checks with **xargs**; `-x N` option. (default=1)
+## Asyncronous update checks with **xargs**; `-x N` option. (default=1)
 Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!  
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
 
-## :chart_with_upwards_trend: Extra plugins and tools:
+## Extra plugins and tools:
 
-### :small_orange_diamond: Using dockcheck.sh with the Synology DSM
+### Using dockcheck.sh with the Synology DSM
 If you run your container through the *Container Manager GUI* - only notifications are supported.  
 While if running manual (vanilla docker compose CLI) will allow you to use the update function too.  
 Some extra setup to tie together with Synology DSM - check out the [addons/DSM/README.md](./addons/DSM/README.md).
 
-### :small_orange_diamond: Prometheus and node_exporter
+### Prometheus and node_exporter
 Dockcheck can be used together with [Prometheus](https://github.com/prometheus/prometheus) and [node_exporter](https://github.com/prometheus/node_exporter) to export metrics via the file collector, scheduled with cron or likely.
 This is done with the `-c` option, like this:
 ```
@@ -263,20 +262,20 @@ dockcheck.sh -c /path/to/exporter/directory
 See the [README.md](./addons/prometheus/README.md) for more detailed information on how to set it up!  
 <sub><sup>Contributed by [tdralle](https://github.com/tdralle).</sup></sub>  
 
-### :small_orange_diamond: Zabbix config to monitor docker image updates
+### Zabbix config to monitor docker image updates
 If you already use Zabbix - this config will show numbers of available docker image updates on host.  
 Example: *2 Docker Image updates on host-xyz*  
 See project: [thetorminal/zabbix-docker-image-updates](https://github.com/thetorminal/zabbix-docker-image-updates)
 
-### :small_orange_diamond: Serve REST API to list all available updates
+### Serve REST API to list all available updates
 A custom python script to serve a REST API to get pulled into other monitoring tools like [homepage](https://github.com/gethomepage/homepage).  
 See [discussion here](https://github.com/mag37/dockcheck/discussions/146).
 
-### :small_orange_diamond: Wrapper Script for Unraid's User Scripts
+### Wrapper Script for Unraid's User Scripts
 A custom bash wrapper script to allow the usage of dockcheck as a Unraid User Script plugin.  
 See [discussion here](https://github.com/mag37/dockcheck/discussions/145).
 
-## :bookmark: Labels
+## Labels
 Optionally add labels to compose-files. Currently these are the usable labels:
 ```
     labels:
@@ -288,7 +287,7 @@ Optionally add labels to compose-files. Currently these are the usable labels:
 - `mag37.dockcheck.only-specific-container: true` works instead of the `-F` option, specifying the updated container when doing compose up, like `docker compose up -d homer`.
 - `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
 
-## :roller_coaster: Workaround for non **amd64** / **arm64**
+## Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.
 Run regctl in a container wrapped in a shell script. Copied from [regclient/docs/install.md](https://github.com/regclient/regclient/blob/main/docs/install.md):
 
@@ -308,7 +307,7 @@ chmod 755 regctl
 ```
 Test it with `./regctl --help` and then either add the file to the same path as *dockcheck.sh* or in your path (eg. `~/.local/bin/regctl`).
 
-## :whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls
+## Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls
 Due to recent changes in [Docker Hub usage and limits](https://docs.docker.com/docker-hub/usage/)
 >Unauthenticated users: 10 pulls/hour  
 >Authenticated users with a free account: 100 pulls/hour
@@ -316,7 +315,7 @@ Due to recent changes in [Docker Hub usage and limits](https://docs.docker.com/d
 This is not an issue for registry checks. But if you have a large stack and pull more than 10 updates at once consider updating more often or to create a free account.
 You could use/modify the login-wrapper function in the example below to automate the login prior to running `dockcheck.sh`.
 
-### :guardsman: Function to auth with docker hub before running
+### Function to auth with docker hub before running
 **Example** - Change names, paths, and remove cat+password flag if you rather get prompted:
 ```sh
 function dchk {
@@ -325,31 +324,32 @@ function dchk {
 }
 ```
 
-## :warning: `-r flag` disclaimer and warning
+## `-r flag` disclaimer and warning
 **Wont auto-update the containers, only their images. (compose is recommended)**  
 `docker run` dont support using new images just by restarting a container.  
 Containers need to be manually stopped, removed and created again to run on the new image.  
 Using the `-r` option together with eg. `-i` and `-n` to just check for updates and send notifications and not update is safe though!
 
-## :hammer: Known issues
+## Known issues
 - No detailed error feedback (just skip + list what's skipped).
 - Not respecting `--profile` options when re-creating the container.
 - Not working well with containers created by **Portainer**.
 - **Watchtower** might cause issues due to retagging images when checking for updates (and thereby pulling new images).
 
-## :wrench: Debugging
+## Debugging
 If you hit issues, you could check the output of the `extras/errorCheck.sh` script for clues.
 Another option is to run the main script with debugging in a subshell `bash -x dockcheck.sh` - if there's a particular container/image that's causing issues you can filter for just that through `bash -x dockcheck.sh nginx`.
 
-## :scroll: License
+## License
 dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html) license.
 
-## :heartpulse: Sponsorlist
+## Sponsorlist
 
 - [avegy](https://github.com/avegy)
 - [eichhorn](https://github.com/eichhorn)
 - [stepdg](https://github.com/stepdg)
-
+- [acer2220](https://github.com/acer2220)
+- [shgew](https://github.com/shgew)
 ___
 
-### :floppy_disk: The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
+### The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
