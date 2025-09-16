@@ -68,19 +68,19 @@ Help() {
   echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
-  echo "-f     Force pod restart after update."
+  echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
   echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
   echo "-l     Only update if label is set. See readme."
-  echo "-m     Monochrome mode, no printf color codes and hides progress bar."
+  echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
-  echo "-n     No updates; only checking availability."
+  echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
-  echo "-r     Allow updating images for podman run; won't update the container."
-  echo "-s     Include stopped containers in the check."
-  echo "-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default."
+  echo "-r     Allow checking for updates/updating images for podman run containers. Won't update the container."
+  echo "-s     Include stopped containers in the check. (Logic: podman ps -a)."
+  echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
   echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
@@ -663,7 +663,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContImage=$(podman inspect "$i" --format='{{.Config.Image}}')
       ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       [[ "$ContPath" == "null" ]] && ContPath=""
-      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      ContUpdateLabel=$($jqbin -r '."sudo-kraken.podcheck.update"' <<< "$ContLabels")
       [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
       # Checking if Label Only -option is set, and if container got the label
       [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
@@ -698,11 +698,11 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContName" == "null" ]] && ContName=""
       ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
       [[ "$ContEnv" == "null" ]] && ContEnv=""
-      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+      ContUpdateLabel=$($jqbin -r '."sudo-kraken.podcheck.update"' <<< "$ContLabels")
       [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
-      ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
+      ContRestartStack=$($jqbin -r '."sudo-kraken.podcheck.restart-stack"' <<< "$ContLabels")
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
-      ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
+      ContOnlySpecific=$($jqbin -r '."sudo-kraken.podcheck.only-specific-container"' <<< "$ContLabels")
       [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
 
       printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
