@@ -34,6 +34,7 @@ ___
     - Added snooze functionality to prevent duplicate notifications
     - Improved dependency management with automatic downloads
     - Added helper functions: `releasenotes()`, `list_options()`, `progress_bar()`
+    - **Fixed Quadlet container detection**: Restored v0.6.0 behavior of checking ALL containers for updates, including systemd-managed Quadlet containers
 - **v0.6.0**:
     - **Grafana & Prometheus Integration:**  
       - Added a detailed Prometheus metrics exporter that now reports not only the number of containers with updates, no-updates, and errors, but also the total number of containers checked, the duration of the update check, and the epoch timestamp of the last check.
@@ -125,10 +126,24 @@ Then call the script anywhere with just `podcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
 ## Configuration
-To modify settings and have them persist through updates - copy the `default.config` to `podcheck.config` alongside the script or in `~/.config/`. 
+
+**For advanced features like notifications and custom settings**, you'll need to create a configuration file:
+
+1. **Copy the default configuration**: `cp default.config podcheck.config`
+2. **Place it alongside the script** or in `~/.config/`
+3. **Uncomment and modify** the settings you want to customize
+
+The `podcheck.config` file must be present and properly configured for:
+
+- Notification channels (`NOTIFY_CHANNELS`)
+- Custom timeout, async, and update behaviors  
+- Notification templates and credentials
+
+Without this config file, podcheck will run with default settings and notifications will be disabled.
 
 Alternatively create an alias where specific flags and values are set.  
 Example `alias pc=podcheck.sh -p -x 10 -t 3`.
+
 
 ## Notifications
 Triggered with the `-i` flag. Will send a list of containers with updates available and a notification when `podcheck.sh` itself has an update.

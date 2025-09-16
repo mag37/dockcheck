@@ -537,14 +537,8 @@ check_image() {
     fi
   done
 
-  # Skipping non-compose containers unless option is set
-  ContLabels=$(podman inspect "$i" --format '{{json .Config.Labels}}')
-  ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
-  [[ "$ContPath" == "null" ]] && ContPath=""
-  if [[ -z "$ContPath" ]] && [[ "$DRunUp" == false ]]; then
-    printf "%s\n" "NoUpdates !$i - not checked, no compose file"
-    return
-  fi
+  # Check ALL containers - original v0.6.0 behavior
+  # Filtering happens during update, not during check
 
   local NoUpdates GotUpdates GotErrors
   ImageId=$(podman inspect "$i" --format='{{.Image}}')
