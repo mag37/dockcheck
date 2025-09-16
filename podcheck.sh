@@ -3,16 +3,30 @@ set -euo pipefail
 shopt -s nullglob
 shopt -s failglob
 
-VERSION="v0.6.0"
+VERSION="v0.7.1-podman"
 
 # Variables for self-updating
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
-# ChangeNotes: Rewrite of dependency installer. jq can now be installed via package manager or static binary.
+# ChangeNotes: Sync with dockcheck v0.7.1 - Added advanced notifications, async processing, configuration system
 Github="https://github.com/sudo-kraken/podcheck"
 RawUrl="https://raw.githubusercontent.com/sudo-kraken/podcheck/main/podcheck.sh"
+
+# Source helper functions
+source_if_exists_or_fail() {
+  if [[ -s "$1" ]]; then
+    source "$1"
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# User customizable defaults
+source_if_exists_or_fail "${HOME}/.config/podcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/podcheck.config"
 
 cleanup() {
     # Temporarily disable failglob for cleanup
@@ -46,25 +60,30 @@ if [[ -n "$LatestRelease" && "$LatestRelease" != "$VERSION" ]]; then
 fi
 
 Help() {
-  echo "Syntax:     podcheck.sh [OPTION] [part of name to filter]"
-  echo "Example:    podcheck.sh -y -d 10 -e nextcloud,heimdall"
+  echo "Syntax:     podcheck.sh [OPTION] [comma separated names to include]"
+  echo "Example:    podcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall"
   echo
   echo "Options:"
   echo "-a|y   Automatic updates, without interaction."
-  echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
-  echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age."
+  echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
+  echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-f     Force pod restart after update."
+  echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
+  echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
   echo "-l     Only update if label is set. See readme."
-  echo "-m     Monochrome mode, no printf colour codes."
+  echo "-m     Monochrome mode, no printf color codes and hides progress bar."
+  echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability."
   echo "-p     Auto-prune dangling images after update."
   echo "-r     Allow updating images for podman run; won't update the container."
   echo "-s     Include stopped containers in the check."
-  echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
+  echo "-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default."
+  echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
+  echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
   echo
   echo "Project source: $Github"
 }
@@ -77,59 +96,112 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-# Initialise variables first
-AutoUp="no"
-AutoPrune=""
-Stopped=""
-Timeout=10
-NoUpdateMode=false
+# Initialise variables
+Timeout=${Timeout:-10}
+MaxAsync=${MaxAsync:-1}
+BarWidth=${BarWidth:-50}
+AutoMode=${AutoMode:-false}
+DontUpdate=${DontUpdate:-false}
+AutoPrune=${AutoPrune:-false}
+AutoSelfUpdate=${AutoSelfUpdate:-false}
+OnlyLabel=${OnlyLabel:-false}
+Notify=${Notify:-false}
+ForceRestartStacks=${ForceRestartStacks:-false}
+DRunUp=${DRunUp:-false}
+MonoMode=${MonoMode:-false}
+PrintReleaseURL=${PrintReleaseURL:-false}
+PrintMarkdownURL=${PrintMarkdownURL:-false}
+Stopped=${Stopped:-""}
+CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
+Exclude=${Exclude:-}
+DaysOld=${DaysOld:-}
+OnlySpecific=${OnlySpecific:-false}
+SpecificContainer=${SpecificContainer:-""}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
 GotErrors=()
-NotifyUpdates=()
 SelectedUpdates=()
-OnlyLabel=false
-ForceRestartPods=false
-
-# regbin will be set later.
+CurlArgs="--retry ${CurlRetryCount:-3} --retry-delay ${CurlRetryDelay:-1} --connect-timeout ${CurlConnectTimeout:-5} -sf"
 regbin=""
+jqbin=""
 
 set -euo pipefail
 
-while getopts "aynpfrhlisvmc:e:d:t:v" options; do
+while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
   case "${options}" in
-    a|y) AutoUp="yes" ;;
-    c)
-      CollectorTextFileDirectory="${OPTARG}"
-      if ! [[ -d $CollectorTextFileDirectory ]]; then
-        printf "The directory (%s) does not exist.\n" "${CollectorTextFileDirectory}"
-        exit 2
-      fi
-      ;;
-    n)   NoUpdateMode=true ;;
-    r)   DRunUp="yes" ;;
-    p)   AutoPrune="yes" ;;
+    a|y) AutoMode=true ;;
+    c)   CollectorTextFileDirectory="${OPTARG}" ;;
+    d)   DaysOld=${OPTARG} ;;
+    e)   Exclude=${OPTARG} ;;
+    f)   ForceRestartStacks=true ;;
+    F)   OnlySpecific=true ;;
+    i)   Notify=true ;;
+    I)   PrintReleaseURL=true ;;
     l)   OnlyLabel=true ;;
-    f)   ForceRestartPods=true ;;
-    i)   [ -s "$ScriptWorkDir/notify.sh" ] && { source "$ScriptWorkDir/notify.sh"; Notify="yes"; } ;;
-    e)   Exclude="${OPTARG}"
-          IFS=',' read -ra Excludes <<< "$Exclude"
-          ;;
-    m)   declare c_{red,green,yellow,blue,teal,reset}="" ;;
+    m)   MonoMode=true ;;
+    M)   PrintMarkdownURL=true ;;
+    n)   DontUpdate=true; AutoMode=true;;
+    p)   AutoPrune=true ;;
+    r)   DRunUp=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
-    d)   DaysOld="${OPTARG}"
-         if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
-           printf "Days -d argument given (%s) is not a number.\n" "${DaysOld}"
-           exit 2
-         fi
-         ;;
+    u)   AutoSelfUpdate=true ;;
     v)   printf "%s\n" "$VERSION"; exit 0 ;;
+    x)   MaxAsync=${OPTARG} ;;
     h|*) Help; exit 2 ;;
   esac
 done
 shift "$((OPTIND-1))"
+
+# Set $1 to a variable for name filtering later, rewriting if multiple
+SearchName="${1:-}"
+if [[ ! -z "$SearchName" ]]; then
+  SearchName="^(${SearchName//,/|})$"
+fi
+
+# Check if there's a new release of the script
+LatestSnippet="$(curl ${CurlArgs} -r 0-200 "$RawUrl" || printf "undefined")"
+LatestRelease="$(echo "${LatestSnippet}" | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
+LatestChanges="$(echo "${LatestSnippet}" | sed -n "/ChangeNotes/s/# ChangeNotes: //p")"
+
+# Basic notify configuration check
+if [[ "${Notify}" == true ]] && [[ ! -s "${ScriptWorkDir}/notify.sh" ]] && [[ -z "${NOTIFY_CHANNELS:-}" ]]; then
+  printf "Using v2 notifications with -i flag passed but no notify channels configured in podcheck.config. This will result in no notifications being sent.\n"
+fi
+
+# Setting up options and sourcing functions
+if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
+if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi
+if [[ "$Notify" == true ]]; then
+  source_if_exists_or_fail "${ScriptWorkDir}/notify.sh" || source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_v2.sh" || Notify=false
+fi
+if [[ -n "$Exclude" ]]; then
+  IFS=',' read -ra Excludes <<< "$Exclude"
+  unset IFS
+fi
+if [[ -n "$DaysOld" ]]; then
+  if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
+    printf "Days -d argument given (%s) is not a number.\n" "$DaysOld"
+    exit 2
+  fi
+fi
+if [[ -n "$CollectorTextFileDirectory" ]]; then
+  if ! [[ -d  $CollectorTextFileDirectory ]]; then
+    printf "The directory (%s) does not exist.\n" "$CollectorTextFileDirectory"
+    exit 2
+  else
+    source "${ScriptWorkDir}/addons/prometheus/prometheus_collector.sh"
+  fi
+fi
+
+exec_if_exists() {
+  if [[ $(type -t $1) == function ]]; then "$@"; fi
+}
+
+exec_if_exists_or_fail() {
+  [[ $(type -t $1) == function ]] && "$@"
+}
 
 # Now get the search name from the first remaining positional parameter
 SearchName="${1:-}"
