@@ -1,28 +1,49 @@
-### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-#
-# Copy/rename this file to notify.sh to enable the notification snippet.
-# Required receiving services must already be set up.
-# Modify to fit your setup - set DiscordWebhookUrl
+#!/usr/bin/env bash
 
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
+# Discord notification template for podcheck v2
+# Requires: DISCORD_WEBHOOK_URL
 
-    echo "$UpdToString"
-    FromHost=$(hostname)
+if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
+  echo "Error: DISCORD_WEBHOOK_URL not configured"
+  return 1
+fi
 
-    # platform specific notification code would go here
-    printf "\nSending Discord notification\n"
-
-    # Setting the MessageBody variable here.
-    MessageBody="🐋 Containers on $FromHost with updates available: \n$UpdToString"
-
-    # Modify to fit your setup:
-    DiscordWebhookUrl="PasteYourFullDiscordWebhookURL"
-
-    MsgBody="{\"username\":\"$FromHost\",\"content\":\"$MessageBody\"}"
-
-    curl -sS -o /dev/null --fail -X POST -H "Content-Type: application/json" -d "$MsgBody" "$DiscordWebhookUrl"
-
+# Prepare the Discord message
+if [[ -n "${NOTIFICATION_MESSAGE:-}" ]]; then
+  # Format message for Discord - escape quotes and newlines
+  discord_content="${NOTIFICATION_MESSAGE}"
+  discord_content="${discord_content//\"/\\\"}"
+  discord_content="${discord_content//$'\n'/\\n}"
+  
+  # Create Discord webhook payload
+  discord_payload=$(cat <<EOF
+{
+  "content": "${discord_content}",
+  "username": "Podcheck",
+  "embeds": [
+    {
+      "title": "${NOTIFICATION_TITLE:-Podcheck Notification}",
+      "description": "${discord_content}",
+      "color": 3447003,
+      "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+    }
+  ]
 }
+EOF
+)
+
+  # Send to Discord
+  if curl -H "Content-Type: application/json" \
+          -d "$discord_payload" \
+          "${DISCORD_WEBHOOK_URL}" \
+          ${CurlArgs:-} &>/dev/null; then
+    return 0
+  else
+    echo "Failed to send Discord notification"
+    return 1
+  fi
+else
+  echo "No notification message provided"
+  return 1
+fi
 

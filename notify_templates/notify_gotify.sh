@@ -1,29 +1,30 @@
-### DISCLAIMER: This is a third party addition to dockcheck - best effort testing.
-#
-# Copy/rename this file to notify.sh to enable the notification snippet.
-# Required receiving services must already be set up.
-# Modify to fit your setup - set GotifyUrl and GotifyToken.
+#!/usr/bin/env bash
 
-send_notification() {
-    [ -s "$ScriptWorkDir"/urls.list ] && releasenotes || Updates=("$@")
-    UpdToString=$( printf '%s\\n' "${Updates[@]}" )
-    FromHost=$(hostname)
+# Gotify notification template for podcheck v2
+# Requires: GOTIFY_DOMAIN, GOTIFY_TOKEN
 
-    # platform specific notification code would go here
-    printf "\nSending Gotify notification\n"
+if [[ -z "${GOTIFY_DOMAIN:-}" ]] || [[ -z "${GOTIFY_TOKEN:-}" ]]; then
+  echo "Error: GOTIFY_DOMAIN and GOTIFY_TOKEN must be configured"
+  return 1
+fi
 
-    # Setting the MessageTitle and MessageBody variable here.
-    MessageTitle="${FromHost} - updates available."
-    printf -v MessageBody "Containers on $FromHost with updates available:\n$UpdToString"
-
-    # Modify to fit your setup:
-    GotifyToken="Your Gotify token here"
-    GotifyUrl="https://api.gotify/message?token=${GotifyToken}"
-
-    curl \
-        -F "title=${MessageTitle}" \
-        -F "message=${MessageBody}" \
-        -F "priority=5" \
-        -X POST "${GotifyUrl}" 1> /dev/null
-
-}
+# Prepare the Gotify message
+if [[ -n "${NOTIFICATION_MESSAGE:-}" ]]; then
+  # Build Gotify URL
+  gotify_url="${GOTIFY_DOMAIN}/message?token=${GOTIFY_TOKEN}"
+  
+  # Send to Gotify
+  if curl -F "title=${NOTIFICATION_TITLE:-Podcheck Notification}" \
+          -F "message=${NOTIFICATION_MESSAGE}" \
+          -F "priority=5" \
+          -X POST "${gotify_url}" \
+          ${CurlArgs:-} &>/dev/null; then
+    return 0
+  else
+    echo "Failed to send Gotify notification"
+    return 1
+  fi
+else
+  echo "No notification message provided"
+  return 1
+fi

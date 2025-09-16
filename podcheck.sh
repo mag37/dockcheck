@@ -3,7 +3,7 @@ set -euo pipefail
 shopt -s nullglob
 shopt -s failglob
 
-VERSION="v0.7.1-podman"
+VERSION="v0.7.1"
 
 # Variables for self-updating
 ScriptArgs=( "$@" )
@@ -267,34 +267,66 @@ choosecontainers() {
   printf "\n"
 }
 
+# Function to add user-provided urls to releasenotes
+releasenotes() {
+  unset Updates
+  for update in "${GotUpdates[@]}"; do
+    found=false
+    while read -r container url; do
+      if [[ "$update" == "$container" ]] && [[ "$PrintMarkdownURL" == true ]]; then
+        Updates+=("- [$update]($url)"); found=true;
+      elif [[ "$update" == "$container" ]]; then
+        Updates+=("$update  ->  $url"); found=true;
+      fi
+    done < "${ScriptWorkDir}/urls.list"
+    if [[ "$found" == false ]] && [[ "$PrintMarkdownURL" == true ]]; then 
+      Updates+=("- $update  ->  url missing");
+    elif [[ "$found" == false ]]; then 
+      Updates+=("$update  ->  url missing");
+    else 
+      continue;
+    fi
+  done
+}
+
+# Numbered List function
+# if urls.list exists add release note url per line
+list_options() {
+  num=1
+  for update in "${Updates[@]}"; do
+    echo "$num) $update"
+    ((num++))
+  done
+}
+
+progress_bar() {
+  QueCurrent="$1"
+  QueTotal="$2"
+  BarWidth=${BarWidth:-50}
+  ((Percent=100*QueCurrent/QueTotal))
+  ((Complete=BarWidth*Percent/100))
+  ((Left=BarWidth-Complete)) || true # to not throw error when result is 0
+  BarComplete=$(printf "%${Complete}s" | tr " " "#")
+  BarLeft=$(printf "%${Left}s" | tr " " "-")
+  if [[ "$QueTotal" != "$QueCurrent" ]]; then
+    printf "\r[%s%s] %s/%s " "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal"
+  else
+    printf "\r[%b%s%b] %s/%s \n" "$c_teal" "$BarComplete" "$c_reset" "$QueCurrent" "$QueTotal"
+  fi
+}
+
 datecheck() {
-  if [[ -z "${DaysOld:-}" ]]; then
-    return 0
-  fi
-  if ! ImageDate=$($regbin -v error image inspect "$RepoUrl" --format='{{.Created}}' 2>/dev/null | cut -d" " -f1); then
-     return 1
-  fi
-  ImageAge=$(( ( $(date +%s) - $(date -d "$ImageDate" +%s) ) / 86400 ))
-  if [ "$ImageAge" -gt "$DaysOld" ]; then
+  ImageDate=$("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1)
+  ImageEpoch=$(date -d "$ImageDate" +%s 2>/dev/null) || ImageEpoch=$(date -f "%Y-%m-%d" -j "$ImageDate" +%s)
+  ImageAge=$(( ( $(date +%s) - ImageEpoch )/86400 ))
+  if [[ "$ImageAge" -gt "$DaysOld" ]]; then
     return 0
   else
     return 1
   fi
 }
 
-progress_bar() {
-  QueCurrent="$1"
-  QueTotal="$2"
-  ((Percent=100*QueCurrent/QueTotal))
-  ((Complete=50*Percent/100))
-  ((Left=50-Complete))
-  BarComplete=$(printf "%${Complete}s" | tr " " "#")
-  BarLeft=$(printf "%${Left}s" | tr " " "-")
-  # Remove the duplicate "Processing container" output
-  printf "\r[%s%s] %s/%s %bProcessing container: %s%b\n" \
-    "$BarComplete" "$BarLeft" "$QueCurrent" "$QueTotal" \
-    "$c_blue" "$container" "$c_reset"
-}
+
 
 t_out=$(command -v timeout 2>/dev/null || echo "")
 if [[ -n "$t_out" ]]; then
@@ -343,56 +375,91 @@ distro_checker() {
   fi
 }
 
-# Dependency check for jq
-if command -v jq &>/dev/null; then
-  jqbin="jq"
-elif [[ -f "$ScriptWorkDir/jq" ]]; then
-  jqbin="$ScriptWorkDir/jq"
-else
-  printf "%s\n" "Required dependency 'jq' missing, do you want to install it?"
-  read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetJq
-  GetJq=${GetJq:-no}
-  if [[ "$GetJq" =~ [yYsS] ]]; then
-    [[ "$GetJq" =~ [yY] ]] && distro_checker
-    if [[ -n "$PkgInstaller" && "$PkgInstaller" != "ERROR" ]]; then 
-      (sudo $PkgInstaller jq)
-      PkgExitcode="$?"
-      [[ "$PkgExitcode" == 0 ]] && jqbin="jq" || printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
-    fi
-    if [[ "$GetJq" =~ [nN] || "$PkgInstaller" == "ERROR" || "$PkgExitcode" != 0 ]]; then
-      binary_downloader "jq" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
-      [[ -f "$ScriptWorkDir/jq" ]] && jqbin="$ScriptWorkDir/jq"
-    fi
-  else
-    printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"
-    exit 1
+}
+
+# Static binary downloader for dependencies
+binary_downloader() {
+  BinaryName="$1"
+  BinaryUrl="$2"
+  case "$(uname -m)" in
+    x86_64|amd64) architecture="amd64" ;;
+    arm64|aarch64) architecture="arm64";;
+    *) printf "\n%bArchitecture not supported, exiting.%b\n" "$c_red" "$c_reset"; exit 1;;
+  esac
+  GetUrl="${BinaryUrl/TEMP/"$architecture"}"
+  if command -v curl &>/dev/null; then
+    curl ${CurlArgs} -L "$GetUrl" > "$ScriptWorkDir/$BinaryName" || { printf "ERROR: Failed to curl binary dependency. Rerun the script to retry.\n"; exit 1; }
+  elif command -v wget &>/dev/null; then 
+    wget --waitretry=1 --timeout=15 -t 10 "$GetUrl" -O "$ScriptWorkDir/$BinaryName";
+  else 
+    printf "\n%bcurl/wget not available - get %s manually from the repo link, exiting.%b" "$c_red" "$BinaryName" "$c_reset"; exit 1;
   fi
-fi
+  [[ -f "$ScriptWorkDir/$BinaryName" ]] && chmod +x "$ScriptWorkDir/$BinaryName"
+}
 
-$jqbin --version &>/dev/null || { printf "%s\n" "jq is not working - try to remove it and re-download it, exiting."; exit 1; }
-
-# Dependency check for regctl
-if command -v regctl &>/dev/null; then
-  regbin="regctl"
-elif [[ -f "$ScriptWorkDir/regctl" ]]; then
-  regbin="$ScriptWorkDir/regctl"
-else
-  read -r -p "Required dependency 'regctl' missing, do you want it downloaded? y/[n] " GetRegctl
-  if [[ "$GetRegctl" =~ [yY] ]]; then
-    binary_downloader "regctl" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
-    if [[ -f "$ScriptWorkDir/regctl" ]]; then
-      regbin="$ScriptWorkDir/regctl"
-    else
-      printf "\n%bFailed to download regctl, exiting.%b\n" "$c_red" "$c_reset"
-      exit 1
-    fi
-  else
-    printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"
-    exit 1
+distro_checker() {
+  isRoot=false
+  [[ ${EUID:-} == 0 ]] && isRoot=true
+  if [[ -f /etc/alpine-release ]] ; then
+    [[ "$isRoot" == true ]] && PkgInstaller="apk add" || PkgInstaller="doas apk add"
+  elif [[ -f /etc/arch-release ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="pacman -S" || PkgInstaller="sudo pacman -S"
+  elif [[ -f /etc/debian_version ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="apt-get install" || PkgInstaller="sudo apt-get install"
+  elif [[ -f /etc/redhat-release ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="dnf install" || PkgInstaller="sudo dnf install"
+  elif [[ -f /etc/SuSE-release ]]; then
+    [[ "$isRoot" == true ]] && PkgInstaller="zypper install" || PkgInstaller="sudo zypper install"
+  elif [[ $(uname -s) == "Darwin" ]]; then 
+    PkgInstaller="brew install"
+  else 
+    PkgInstaller="ERROR"; printf "\n%bNo distribution could be determined%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
   fi
-fi
+}
 
-$regbin version &>/dev/null || { printf "%s\n" "regctl is not working - try to remove it and re-download it, exiting."; exit 1; }
+# Dependency check + installer function
+dependency_check() {
+  AppName="$1"
+  AppVar="$2"
+  AppUrl="$3"
+  if command -v "$AppName" &>/dev/null; then 
+    export "$AppVar"="$AppName";
+  elif [[ -f "$ScriptWorkDir/$AppName" ]]; then 
+    export "$AppVar"="$ScriptWorkDir/$AppName";
+  else
+    printf "\nRequired dependency %b'%s'%b missing, do you want to install it?\n" "$c_teal" "$AppName" "$c_reset"
+    read -r -p "y: With packagemanager (sudo). / s: Download static binary. y/s/[n] " GetBin
+    GetBin=${GetBin:-no} # set default to no if nothing is given
+    if [[ "$GetBin" =~ [yYsS] ]]; then
+      [[ "$GetBin" =~ [yY] ]] && distro_checker
+      if [[ -n "${PkgInstaller:-}" && "${PkgInstaller:-}" != "ERROR" ]]; then
+        [[ $(uname -s) == "Darwin" && "$AppName" == "regctl" ]] && AppName="regclient"
+        if $PkgInstaller "$AppName"; then
+          AppName="$1"
+          export "$AppVar"="$AppName"
+          printf "\n%b%b installed.%b\n" "$c_green" "$AppName" "$c_reset"
+        else
+          PkgInstaller="ERROR"
+          printf "\n%bPackagemanager install failed%b, falling back to static binary.\n" "$c_yellow" "$c_reset"
+        fi
+      fi
+      if [[ "$GetBin" =~ [sS] ]] || [[ "$PkgInstaller" == "ERROR" ]]; then
+          binary_downloader "$AppName" "$AppUrl"
+          [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%s downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
+      fi
+    else 
+      printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"; exit 1;
+    fi
+  fi
+  # Final check if binary is correct
+  [[ "$1" == "jq" ]] && VerFlag="--version"
+  [[ "$1" == "regctl" ]] && VerFlag="version"
+  ${!AppVar} "$VerFlag" &> /dev/null  || { printf "%s\n" "$AppName is not working - try to remove it and re-download it, exiting."; exit 1; }
+}
+
+# Use the new dependency management system
+dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
+dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
 # Check podman compose binary
 if podman compose version &>/dev/null; then
