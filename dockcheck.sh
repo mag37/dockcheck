@@ -423,6 +423,10 @@ check_image() {
     printf "%s\n" "NoUpdates !$i - not checked, no compose file"
     return
   fi
+  # Checking if Label Only -option is set, and if container got the label
+  ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+  [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
+  [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "Skip $i"; return; } }
 
   local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
@@ -448,7 +452,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld DRunUp jqbin
+export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
@@ -477,6 +481,8 @@ done < <( \
   docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
   xargs $XargsAsync -I {} bash -c 'check_image "{}"' \
 )
+
+[[ "$OnlyLabel" == true ]] && printf "\n%bLabel option set:%b Only checking containers with labels set.\n" "$c_blue" "$c_reset"
 
 # Sort arrays alphabetically
 IFS=$'\n'
@@ -533,10 +539,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       [[ "$ContPath" == "null" ]] && ContPath=""
-      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
-      [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
-      # Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
 
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
@@ -568,8 +570,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContName" == "null" ]] && ContName=""
       ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
       [[ "$ContEnv" == "null" ]] && ContEnv=""
-      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
-      [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
       ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
       ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
@@ -578,8 +578,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Checking if compose-values are empty - hence started with docker run
       [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
-      # Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
 
       # cd to the compose-file directory to account for people who use relative volumes
       cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
