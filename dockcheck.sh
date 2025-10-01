@@ -347,7 +347,7 @@ dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/down
 list_options() {
   num=1
   for update in "${Updates[@]}"; do
-    echo "$num) $update"
+    printf "%02d - %s\n" "$num" "$update"
     ((num++))
   done
 }
