@@ -69,7 +69,7 @@ Options:
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
 -I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list).
--l     Only update if label is set. See readme.
+-l     Only include containers with label set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
@@ -283,9 +283,11 @@ Optionally add labels to compose-files. Currently these are the usable labels:
       mag37.dockcheck.only-specific-container: true
       mag37.dockcheck.restart-stack: true
 ```
-- `mag37.dockcheck.update: true` will when used with the `-l` option only update containers with this label and skip the rest. Will still list updates as usual.
+- `mag37.dockcheck.update: true` will when used with the `-l` option only check and update containers with this label set and skip the rest.  
 - `mag37.dockcheck.only-specific-container: true` works instead of the `-F` option, specifying the updated container when doing compose up, like `docker compose up -d homer`.
 - `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
+
+Adding or modifying labels in compose-files requires a restart of the container to take effect.
 
 ## Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.

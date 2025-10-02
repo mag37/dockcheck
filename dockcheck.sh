@@ -600,7 +600,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
-    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
+    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
