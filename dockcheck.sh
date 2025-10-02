@@ -482,7 +482,7 @@ done < <( \
   xargs $XargsAsync -I {} bash -c 'check_image "{}"' \
 )
 
-[[ "$OnlyLabel" == true ]] && printf "\n%bLabel option set:%b Only checking containers with labels set.\n" "$c_blue" "$c_reset"
+[[ "$OnlyLabel" == true ]] && printf "\n%bLabel option active:%b Only checking containers with labels set.\n" "$c_blue" "$c_reset"
 
 # Sort arrays alphabetically
 IFS=$'\n'
