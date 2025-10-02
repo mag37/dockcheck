@@ -42,7 +42,7 @@ Help() {
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
-  echo "-l     Only update if label is set. See readme."
+  echo "-l     Only include containers with label set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
