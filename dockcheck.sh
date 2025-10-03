@@ -342,12 +342,13 @@ dependency_check() {
 dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
-# Numbered List function
-# if urls.list exists add release note url per line
+# Numbered List function - pads with zero
 list_options() {
-  num=1
+  local total="${#Updates[@]}"
+  [[ ${#total} < 2 ]] && local pads=2 || local pads="${#total}"
+  local num=1
   for update in "${Updates[@]}"; do
-    printf "%02d - %s\n" "$num" "$update"
+    printf "%0*d - %s\n" $pads $num $update
     ((num++))
   done
 }
