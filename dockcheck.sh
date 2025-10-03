@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.1"
-# ChangeNotes: Add support for multiple notifications of the same type, output formatting, and file output
+VERSION="v0.7.2"
+# ChangeNotes: Reformatted updates list, rewrote label logic to work globally when used with `-l`.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 

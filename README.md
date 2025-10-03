@@ -22,6 +22,15 @@
 ___
 ## Changelog
 
+
+- **v0.7.2**:
+    - Label rework:
+      - Moved up label logic to work globally on the current run.
+      - Only iterating on labeled containers when used with `-l` option, not listing others.
+      - Clarified messaging and readme/help texts.
+    - List reformatting for "available updates" numbering to easier highlight and copy:
+      - Padded with zero, changed `)` to `-`, example: `02 - homer`
+      - Can be selected by writing `2,3,4` or `02,03,04`.
 - **v0.7.1**:
     - Added support for multiple notifications using the same template
     - Added support for notification output format
@@ -36,18 +45,6 @@ ___
     - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
     - Added authentication support to Ntfy.sh.
     - Added suport for sendmail in the SMTP-template.
-- **v0.6.9**:
-    - Bugfix: label logic didn't skip recreation (skipped pulling).
-    - Added comma separated search filtering so you can selectively search exactly which containers to check/update.
-      - eg: `dockcheck.sh -yp homer,dozzle`
-- **v0.6.8**:
-    - Bugfix: Unbound variable in notify_v2.sh
-    - New option: "DisplaySourcedFiles" *config* added to list what files get sourced
-- **v0.6.7**: Snooze feature, curl, and consolidation
-    - Added snooze feature to delay notifications
-    - Added configurable default curl arguments
-    - Consolidated and standardized notify template update notifications
-    - Added curl error handling
 ___
 
 
