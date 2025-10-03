@@ -22,6 +22,15 @@
 ___
 ## Changelog
 
+
+- **v0.7.2**:
+    - Label rework:
+      - Moved up label logic to work globally on the current run.
+      - Only iterating on labeled containers when used with `-l` option, not listing others.
+      - Clarified messaging and readme/help texts.
+    - List reformatting for "available updates" numbering to easier highlight and copy:
+      - Padded with zero, changed `)` to `-`, example: `02 - homer`
+      - Can be selected by writing `2,3,4` or `02,03,04`.
 - **v0.7.1**:
     - Added support for multiple notifications using the same template
     - Added support for notification output format
@@ -36,18 +45,6 @@ ___
     - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
     - Added authentication support to Ntfy.sh.
     - Added suport for sendmail in the SMTP-template.
-- **v0.6.9**:
-    - Bugfix: label logic didn't skip recreation (skipped pulling).
-    - Added comma separated search filtering so you can selectively search exactly which containers to check/update.
-      - eg: `dockcheck.sh -yp homer,dozzle`
-- **v0.6.8**:
-    - Bugfix: Unbound variable in notify_v2.sh
-    - New option: "DisplaySourcedFiles" *config* added to list what files get sourced
-- **v0.6.7**: Snooze feature, curl, and consolidation
-    - Added snooze feature to delay notifications
-    - Added configurable default curl arguments
-    - Consolidated and standardized notify template update notifications
-    - Added curl error handling
 ___
 
 
@@ -69,7 +66,7 @@ Options:
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
 -I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list).
--l     Only update if label is set. See readme.
+-l     Only include containers with label set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
@@ -283,9 +280,11 @@ Optionally add labels to compose-files. Currently these are the usable labels:
       mag37.dockcheck.only-specific-container: true
       mag37.dockcheck.restart-stack: true
 ```
-- `mag37.dockcheck.update: true` will when used with the `-l` option only update containers with this label and skip the rest. Will still list updates as usual.
+- `mag37.dockcheck.update: true` will when used with the `-l` option only check and update containers with this label set and skip the rest.  
 - `mag37.dockcheck.only-specific-container: true` works instead of the `-F` option, specifying the updated container when doing compose up, like `docker compose up -d homer`.
 - `mag37.dockcheck.restart-stack: true` works instead of the `-f` option, forcing stop+restart on the whole compose-stack (Caution: Will restart on every updated container within stack).
+
+Adding or modifying labels in compose-files requires a restart of the container to take effect.
 
 ## Workaround for non **amd64** / **arm64**
 `regctl` provides binaries for amd64/arm64, to use on other architecture you could try this workaround.

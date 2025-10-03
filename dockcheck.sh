@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.1"
-# ChangeNotes: Add support for multiple notifications of the same type, output formatting, and file output
+VERSION="v0.7.2"
+# ChangeNotes: Reformatted updates list, rewrote label logic to work globally when used with `-l`.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -42,7 +42,7 @@ Help() {
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
-  echo "-l     Only update if label is set. See readme."
+  echo "-l     Only include containers with label set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
@@ -342,12 +342,13 @@ dependency_check() {
 dependency_check "regctl" "regbin" "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-TEMP"
 dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/download/jq-linux-TEMP"
 
-# Numbered List function
-# if urls.list exists add release note url per line
+# Numbered List function - pads with zero
 list_options() {
-  num=1
+  local total="${#Updates[@]}"
+  [[ ${#total} < 2 ]] && local pads=2 || local pads="${#total}"
+  local num=1
   for update in "${Updates[@]}"; do
-    echo "$num) $update"
+    printf "%0*d - %s\n" $pads $num $update
     ((num++))
   done
 }
@@ -423,6 +424,10 @@ check_image() {
     printf "%s\n" "NoUpdates !$i - not checked, no compose file"
     return
   fi
+  # Checking if Label Only -option is set, and if container got the label
+  ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
+  [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
+  [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "Skip $i"; return; } }
 
   local NoUpdates GotUpdates GotErrors
   ImageId=$(docker inspect "$i" --format='{{.Image}}')
@@ -448,7 +453,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld DRunUp jqbin
+export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
@@ -477,6 +482,8 @@ done < <( \
   docker ps $Stopped --filter "name=$SearchName" --format '{{.Names}}' | \
   xargs $XargsAsync -I {} bash -c 'check_image "{}"' \
 )
+
+[[ "$OnlyLabel" == true ]] && printf "\n%bLabel option active:%b Only checking containers with labels set.\n" "$c_blue" "$c_reset"
 
 # Sort arrays alphabetically
 IFS=$'\n'
@@ -533,10 +540,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
       ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       [[ "$ContPath" == "null" ]] && ContPath=""
-      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
-      [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
-      # Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
 
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
@@ -568,8 +571,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContName" == "null" ]] && ContName=""
       ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
       [[ "$ContEnv" == "null" ]] && ContEnv=""
-      ContUpdateLabel=$($jqbin -r '."mag37.dockcheck.update"' <<< "$ContLabels")
-      [[ "$ContUpdateLabel" == "null" ]] && ContUpdateLabel=""
       ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
       [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
       ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
@@ -578,8 +579,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
       printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
       # Checking if compose-values are empty - hence started with docker run
       [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
-      # Checking if Label Only -option is set, and if container got the label
-      [[ "$OnlyLabel" == true ]] && { [[ "$ContUpdateLabel" != true ]] && { echo "No update label, skipping."; continue; } }
 
       # cd to the compose-file directory to account for people who use relative volumes
       cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
@@ -602,7 +601,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
       fi
     done
-    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune dangling images? y/[n]: " AutoPrune; fi
+    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
   else
