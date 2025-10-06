@@ -348,7 +348,7 @@ list_options() {
   [[ ${#total} < 2 ]] && local pads=2 || local pads="${#total}"
   local num=1
   for update in "${Updates[@]}"; do
-    printf "%0*d - %s\n" $pads $num $update
+    printf "%0*d - %s\n" "$pads" "$num" "$update"
     ((num++))
   done
 }
