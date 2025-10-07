@@ -22,7 +22,7 @@
 ___
 ## Changelog
 
-
+- **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues. 
 - **v0.7.2**:
     - Label rework:
       - Moved up label logic to work globally on the current run.
