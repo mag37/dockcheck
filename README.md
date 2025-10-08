@@ -344,11 +344,15 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 
 ## Sponsorlist
 
-- [avegy](https://github.com/avegy)
-- [eichhorn](https://github.com/eichhorn)
-- [stepdg](https://github.com/stepdg)
-- [acer2220](https://github.com/acer2220)
-- [shgew](https://github.com/shgew)
+:small_orange_diamond: [avegy](https://github.com/avegy)
+:small_orange_diamond: [eichhorn](https://github.com/eichhorn)
+:small_orange_diamond: [stepdg](https://github.com/stepdg)
+:small_orange_diamond: [acer2220](https://github.com/acer2220)
+:small_orange_diamond: [shgew](https://github.com/shgew)
+:small_orange_diamond: [jonas3456](https://github.com/jonas3456)
+:small_orange_diamond: [4ndreasH](https://github.com/4ndreasH)
+:small_orange_diamond:
+
 ___
 
 ### The [story](https://mag37.org/posts/project_dockcheck/) behind it. 1 year in retrospect.
