@@ -351,7 +351,9 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 :small_orange_diamond: [shgew](https://github.com/shgew)
 :small_orange_diamond: [jonas3456](https://github.com/jonas3456)
 :small_orange_diamond: [4ndreasH](https://github.com/4ndreasH)
-:small_orange_diamond:
+:small_orange_diamond: [markoe01](https://github.com/markoe01)
+:small_orange_diamond: [mushrowan](https://github.com/mushrowan)
+:small_orange_diamond: 
 
 ___
 
