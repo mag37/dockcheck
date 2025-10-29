@@ -47,6 +47,7 @@ Help() {
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
+  echo "-R     Skip container recreation after pulling images."
   echo "-r     Allow checking for updates/updating images for docker run containers. Won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
   echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
@@ -78,6 +79,7 @@ Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
+SkipRecreate=${SkipRecreate:-false}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
@@ -95,7 +97,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
+while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
@@ -110,6 +112,7 @@ while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:" options; do
     M)   PrintMarkdownURL=true ;;
     n)   DontUpdate=true; AutoMode=true;;
     p)   AutoPrune=true ;;
+    R)   SkipRecreate=true ;;
     r)   DRunUp=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
@@ -555,6 +558,13 @@ if [[ -n "${GotUpdates:-}" ]]; then
       docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
     printf "\n%bDone pulling updates. %bRecreating updated containers.%b\n" "$c_green" "$c_blue" "$c_reset"
+    if [[ "$SkipRecreate" == true ]]; then
+      # Optional prune even when skipping recreation
+      if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
+      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
+      printf "\n%bSkipping container recreation due to -R.%b\n%bAll done!%b\n" "$c_yellow" "$c_reset" "$c_green" "$c_reset"
+      exit 0
+    fi
 
     CurrentQue=0
     for i in "${SelectedUpdates[@]}"; do
