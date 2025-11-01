@@ -557,12 +557,12 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
       docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
-    printf "\n%bDone pulling updates.%b \n" "$c_green" "$c_reset"
+    printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
 
     if [[ "$SkipRecreate" == true ]]; then
-      printf "%bSkipping container recreation due to -R. \n" "$c_yellow" "$c_reset"
+      printf "%bSkipping container recreation due to -R.\n" "$c_yellow" "$c_reset"
     else
-    printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
+      printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
       CurrentQue=0
       for i in "${SelectedUpdates[@]}"; do
         ((CurrentQue+=1))
@@ -608,6 +608,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
           ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         fi
       done
+    fi
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
