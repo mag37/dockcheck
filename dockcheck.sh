@@ -216,6 +216,7 @@ choosecontainers() {
     else
       ChoiceClean=${Choice//[,.:;]/ }
       for CC in $ChoiceClean; do
+        CC=$((10#$CC)) # Base 10 interpretation to strip leading zeroes
         if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]]; then # Reset choice if out of bounds
           echo "Number not in list: $CC"; unset ChoiceClean; break 1
         else
