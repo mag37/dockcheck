@@ -560,7 +560,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
     printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
 
     if [[ "$SkipRecreate" == true ]]; then
-      printf "%bSkipping container recreation due to -R.\n" "$c_yellow" "$c_reset"
+      printf "%bSkipping container recreation due to -R.%b\n" "$c_yellow" "$c_reset"
     else
       printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
       CurrentQue=0
