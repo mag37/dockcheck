@@ -558,9 +558,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
       docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
     printf "\n%bDone pulling updates.%b \n" "$c_green" "$c_reset"
-    
+
     if [[ "$SkipRecreate" == true ]]; then
-      printf "\n%bSkipping container recreation due to -R. \n%bAll done!%b\n" "$c_yellow" "$c_green" "$c_reset"
+      printf "%bSkipping container recreation due to -R. \n" "$c_yellow" "$c_reset"
     else
     printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
       CurrentQue=0

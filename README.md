@@ -22,7 +22,7 @@
 ___
 ## Changelog
 
-- **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues. 
+- **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues.
 - **v0.7.2**:
     - Label rework:
       - Moved up label logic to work globally on the current run.
@@ -72,6 +72,7 @@ Options:
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
 -r     Allow checking for updates/updating images for docker run containers. Won't update the container.
+-R     Skip container recreation after pulling images.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -u     Allow automatic self updates - caution as this will pull new code and autorun it.
@@ -353,7 +354,7 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 :small_orange_diamond: [4ndreasH](https://github.com/4ndreasH)
 :small_orange_diamond: [markoe01](https://github.com/markoe01)
 :small_orange_diamond: [mushrowan](https://github.com/mushrowan)
-:small_orange_diamond: 
+:small_orange_diamond:
 
 ___
 
