@@ -38,35 +38,15 @@ You can also use the [caronc/apprise-api](https://github.com/caronc/apprise-api)
 
 
 ### Customize the **notify.sh** file.
-After you're done with the setup of the container and tried your notifications, you can copy the `notify_apprise.sh` file to `notify.sh` and start editing it.
+After you're done with the setup of the container and tried your notifications, you need to follow the configuration setup (explained in detail in the README).
+Briefly: Copy `default.config` to `dockcheck.config` then edit it to change the following, `APPRISE_URL` matching your environment:
 
-Comment out/remove the bare metal apprise-command (starting with `apprise -vv -t...`).
-Uncomment and edit the `AppriseURL` variable and *curl* line
-It should look something like this when curling the API:
 ```bash
-send_notification() {
-Updates=("$@")
-UpdToString=$( printf "%s\n" "${Updates[@]}" )
-FromHost=$(hostname)
-
-printf "\nSending Apprise notification\n"
-
-MessageTitle="$FromHost - updates available."
-# Setting the MessageBody variable here.
-read -d '\n' MessageBody << __EOF
-Containers on $FromHost with updates available:
-
-$UpdToString
-
-__EOF
-
-AppriseURL="http://IP.or.mydomain.tld:8000/notify/apprise"
-curl -X POST -F "title=$MessageTitle" -F "body=$MessageBody" -F "tags=all" $AppriseURL
-
-}
+NOTIFY_CHANNELS="apprise"
+APPRISE_URL="http://apprise.mydomain.tld:1234/notify/apprise"
 ```
 
-That's all!
+That's it!
 ___
 ___
 

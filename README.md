@@ -22,7 +22,14 @@
 ___
 ## Changelog
 
-- **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues. 
+- **v0.7.4**:
+    - Added new option `-R`:
+      - Will skip container recreation after pulling images.
+      - Allows for more control and possible pipeline integration.
+    - Fixes:
+      - Bugfix for *value too great* error due to leading zeroes - solved with base10 conversion.
+      - Clean up of some legacy readme sections.
+- **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues.
 - **v0.7.2**:
     - Label rework:
       - Moved up label logic to work globally on the current run.
@@ -41,10 +48,6 @@ ___
       - `<channel>_CONTAINERSONLY` : Only notify for docker container related updates
       - `<channel>_ALLOWEMPTY` : Always send notifications, even when empty
       - `<channel>_OUTPUT` : Define output format
-- **v0.7.0**:
-    - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
-    - Added authentication support to Ntfy.sh.
-    - Added suport for sendmail in the SMTP-template.
 ___
 
 
@@ -72,6 +75,7 @@ Options:
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
 -r     Allow checking for updates/updating images for docker run containers. Won't update the container.
+-R     Skip container recreation after pulling images.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -u     Allow automatic self updates - caution as this will pull new code and autorun it.
@@ -353,7 +357,7 @@ dockcheck is created and released under the [GNU GPL v3.0](https://www.gnu.org/l
 :small_orange_diamond: [4ndreasH](https://github.com/4ndreasH)
 :small_orange_diamond: [markoe01](https://github.com/markoe01)
 :small_orange_diamond: [mushrowan](https://github.com/mushrowan)
-:small_orange_diamond: 
+:small_orange_diamond:
 
 ___
 
