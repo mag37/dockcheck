@@ -22,6 +22,13 @@
 ___
 ## Changelog
 
+- **v0.7.4**:
+    - Added new option `-R`:
+      - Will skip container recreation after pulling images.
+      - Allows for more control and possible pipeline integration.
+    - Fixes:
+      - Bugfix for *value too great* error due to leading zeroes - solved with base10 conversion.
+      - Clean up of some legacy readme sections.
 - **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues.
 - **v0.7.2**:
     - Label rework:
@@ -41,10 +48,6 @@ ___
       - `<channel>_CONTAINERSONLY` : Only notify for docker container related updates
       - `<channel>_ALLOWEMPTY` : Always send notifications, even when empty
       - `<channel>_OUTPUT` : Define output format
-- **v0.7.0**:
-    - Bugfix: snooze dockcheck.sh-self-notification and some config clarification.
-    - Added authentication support to Ntfy.sh.
-    - Added suport for sendmail in the SMTP-template.
 ___
 
 

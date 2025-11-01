@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.3"
-# ChangeNotes: Bugfix - unquoted variable in list. Also: Please consider donating.
+VERSION="v0.7.4"
+# ChangeNotes: New option -R to pull without recreation. Fixes: value too great error, legacy cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
