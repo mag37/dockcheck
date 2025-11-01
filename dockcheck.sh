@@ -557,60 +557,57 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
       docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
-    printf "\n%bDone pulling updates. %bRecreating updated containers.%b\n" "$c_green" "$c_blue" "$c_reset"
+    printf "\n%bDone pulling updates.%b \n" "$c_green" "$c_reset"
+    
     if [[ "$SkipRecreate" == true ]]; then
-      # Optional prune even when skipping recreation
-      if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
-      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
-      printf "\n%bSkipping container recreation due to -R.%b\n%bAll done!%b\n" "$c_yellow" "$c_reset" "$c_green" "$c_reset"
-      exit 0
-    fi
+      printf "\n%bSkipping container recreation due to -R. \n%bAll done!%b\n" "$c_yellow" "$c_green" "$c_reset"
+    else
+    printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
+      CurrentQue=0
+      for i in "${SelectedUpdates[@]}"; do
+        ((CurrentQue+=1))
+        unset CompleteConfs
+        # Extract labels and metadata
+        ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
+        ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+        ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+        [[ "$ContPath" == "null" ]] && ContPath=""
+        ContConfigFile=$($jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
+        [[ "$ContConfigFile" == "null" ]] && ContConfigFile=""
+        ContName=$($jqbin -r '."com.docker.compose.service"' <<< "$ContLabels")
+        [[ "$ContName" == "null" ]] && ContName=""
+        ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
+        [[ "$ContEnv" == "null" ]] && ContEnv=""
+        ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
+        [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
+        ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
+        [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
 
-    CurrentQue=0
-    for i in "${SelectedUpdates[@]}"; do
-      ((CurrentQue+=1))
-      unset CompleteConfs
-      # Extract labels and metadata
-      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
-      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
-      [[ "$ContPath" == "null" ]] && ContPath=""
-      ContConfigFile=$($jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
-      [[ "$ContConfigFile" == "null" ]] && ContConfigFile=""
-      ContName=$($jqbin -r '."com.docker.compose.service"' <<< "$ContLabels")
-      [[ "$ContName" == "null" ]] && ContName=""
-      ContEnv=$($jqbin -r '."com.docker.compose.project.environment_file"' <<< "$ContLabels")
-      [[ "$ContEnv" == "null" ]] && ContEnv=""
-      ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
-      [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
-      ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
-      [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
+        printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+        # Checking if compose-values are empty - hence started with docker run
+        [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
 
-      printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-      # Checking if compose-values are empty - hence started with docker run
-      [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
+        # cd to the compose-file directory to account for people who use relative volumes
+        cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
+        ## Reformatting path + multi compose
+        if [[ $ContConfigFile == '/'* ]]; then
+          CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
+        else
+          CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s/%s " "$ContPath" "$conf"; done)
+        fi
+        # Check if the container got an environment file set and reformat it
+        ContEnvs=""
+        if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
+        # Set variable when compose up should only target the specific container, not the stack
+        if [[ $OnlySpecific == true ]] || [[ $ContOnlySpecific == true ]]; then SpecificContainer="$ContName"; fi
 
-      # cd to the compose-file directory to account for people who use relative volumes
-      cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
-      ## Reformatting path + multi compose
-      if [[ $ContConfigFile == '/'* ]]; then
-        CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
-      else
-        CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s/%s " "$ContPath" "$conf"; done)
-      fi
-      # Check if the container got an environment file set and reformat it
-      ContEnvs=""
-      if [[ -n "$ContEnv" ]]; then ContEnvs=$(for env in ${ContEnv//,/ }; do printf -- "--env-file %s " "$env"; done); fi
-      # Set variable when compose up should only target the specific container, not the stack
-      if [[ $OnlySpecific == true ]] || [[ $ContOnlySpecific == true ]]; then SpecificContainer="$ContName"; fi
-
-      # Check if the whole stack should be restarted
-      if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-        ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
-      else
-        ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
-      fi
-    done
+        # Check if the whole stack should be restarted
+        if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
+          ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        else
+          ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        fi
+      done
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
     printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
