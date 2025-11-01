@@ -105,7 +105,7 @@ After the updates are complete, you'll get prompted if you'd like to prune dangl
 ___
 
 ## Dependencies
-- Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck)  
+- Running docker (duh) and compose, either standalone or plugin. (see [Podman fork](https://github.com/sudo-kraken/podcheck))
 - Bash shell or compatible shell of at least v4.3
   - POSIX `xargs`, usually default but can be installed with the `findutils` package - to enable async.
 - [jq](https://github.com/jqlang/jq)
