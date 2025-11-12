@@ -358,7 +358,7 @@ list_options() {
 }
 
 # Version check & initiate self update
-if [[ "$LatestRelease" != "undefined" ]]; then
+if [[ "$LatestSnippet" != "undefined" ]]; then
   if [[ "$VERSION" != "$LatestRelease" ]]; then
     printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
     if [[ "$AutoMode" == false ]]; then
