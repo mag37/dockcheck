@@ -550,15 +550,30 @@ if [[ -n "${GotUpdates:-}" ]]; then
     for i in "${SelectedUpdates[@]}"; do
       ((CurrentQue+=1))
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
-      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+#      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
+#      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+#      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      ContConfig=$(docker inspect "$i" --format '{{json .}}')
+      ContImage=$($jqbin -r '."Config"."Image"' <<< "$ContConfig") # OLD? Remove if replaced with ContFull
+      ImageId=$($jqbin -r '."Image"' <<< "$ContConfig")
+      ContFull=$(docker image inspect "$ImageId" --format "{{index .RepoTags 0}}")
+      ContPath=$($jqbin -r '."Config"."Labels"."com.docker.compose.project.working_dir"' <<< "$ContConfig")
       [[ "$ContPath" == "null" ]] && ContPath=""
+
+      # Add new backup tag prior to pulling if option is set
+      if [[ -n "${DaysKept:-}" ]]; then
+        ContRepo=${ContFull%:*}
+        ContApp=${ContRepo#*/}
+        ContTag=${ContFull#*:}
+        BackupName="dockcheck/$ContApp:$(date +'%Y-%m-%d_%H%M')_$ContTag"
+        docker tag "$ImageId" "$BackupName"
+        printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
+      fi
 
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
         if [[ "$DRunUp" == true ]]; then
-          docker pull "$ContImage"
+          docker pull "$ContFull"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
           printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
@@ -619,6 +634,21 @@ if [[ -n "${GotUpdates:-}" ]]; then
           ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         fi
       done
+
+      # Clean up old backup image tags if -k is used
+      if [[ -n "${DaysKept:-}" ]]; then
+        IFS=$'\n'
+        for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" dockcheck/\*); do
+          repo_name=${backup_img% *}
+          backup_tag=${backup_img#* }
+          backup_date=${backup_tag%%_*}
+          # UNTAGGING HERE
+          if datecheck "$backup_date" "$DaysKept"; then
+            docker rmi "${repo_name}:${backup_tag}" # || printf "\n%bError removing %s:%s. %b\n" "$c_red" "$repo_name" "$backup_tag" "$c_reset"
+          fi
+        done
+        unset IFS
+      fi
     fi
     if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
     if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
