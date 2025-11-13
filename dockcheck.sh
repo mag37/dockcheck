@@ -237,10 +237,11 @@ choosecontainers() {
 }
 
 datecheck() {
-  ImageDate=$("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1)
+  ImageDate="$1"
+  DaysMax="$2"
   ImageEpoch=$(date -d "$ImageDate" +%s 2>/dev/null) || ImageEpoch=$(date -f "%Y-%m-%d" -j "$ImageDate" +%s)
-  ImageAge=$(( ( $(date +%s) - ImageEpoch )/86400 ))
-  if [[ "$ImageAge" -gt "$DaysOld" ]]; then
+  ImageAge=$(( ( RunEpoch - ImageEpoch )/86400 ))
+  if [[ "$ImageAge" -gt "$DaysMax" ]]; then
     return 0
   else
     return 1
@@ -452,7 +453,7 @@ check_image() {
     if [[ "$LocalHash" == *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
     else
-      if [[ -n "${DaysOld:-}" ]] && ! datecheck; then
+      if [[ -n "${DaysOld:-}" ]] && ! datecheck $("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1) "$DaysOld" ; then
         printf "%s\n" "NoUpdates +$i ${ImageAge}d"
       else
         printf "%s\n" "GotUpdates $i"
