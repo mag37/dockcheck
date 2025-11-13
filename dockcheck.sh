@@ -42,6 +42,7 @@ Help() {
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
+  echo "-k N   Number of days to store image backups before pruning - this also enables the backup function."
   echo "-l     Only include containers with label set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
@@ -77,6 +78,7 @@ Stopped=${Stopped:-""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
+DaysKept=${DaysKept:-}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
@@ -97,7 +99,7 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:R" options; do
+while getopts "ayfFhiIlmMnprsuvc:e:d:k:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
@@ -107,6 +109,7 @@ while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:R" options; do
     F)   OnlySpecific=true ;;
     i)   Notify=true ;;
     I)   PrintReleaseURL=true ;;
+    k)   DaysKept="${OPTARG}" ;;
     l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
@@ -153,6 +156,12 @@ fi
 if [[ -n "$DaysOld" ]]; then
   if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
     printf "Days -d argument given (%s) is not a number.\n" "$DaysOld"
+    exit 2
+  fi
+fi
+if [[ -n "$DaysKept" ]]; then
+  if ! [[ $DaysKept =~ ^[0-9]+$ ]]; then
+    printf "-k argument given (%s) is not a number.\n" "$DaysKept"
     exit 2
   fi
 fi
