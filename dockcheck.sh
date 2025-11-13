@@ -569,7 +569,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ContRepo=${ContFull%:*}
         ContApp=${ContRepo#*/}
         ContTag=${ContFull#*:}
-        BackupName="dockcheck/$ContApp:$RunTimestamp_$ContTag"
+        BackupName="dockcheck/${ContApp}:${RunTimestamp}_${ContTag}"
         docker tag "$ImageId" "$BackupName"
         printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
       fi
@@ -648,7 +648,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
           backup_date=${backup_tag%%_*}
           # UNTAGGING HERE
           if datecheck "$backup_date" "$DaysKept"; then
-            docker rmi "$repo_name:$backup_tag"
+            docker rmi "${repo_name}:${backup_tag}"
           fi
         done
         unset IFS
