@@ -99,6 +99,10 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
+# Timestamps
+RunTimestamp=$(date +'%Y-%m-%d_%H%M')
+RunEpoch=$(date +'%s')
+
 while getopts "ayfFhiIlmMnprsuvc:e:d:k:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
@@ -565,7 +569,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ContRepo=${ContFull%:*}
         ContApp=${ContRepo#*/}
         ContTag=${ContFull#*:}
-        BackupName="dockcheck/$ContApp:$(date +'%Y-%m-%d_%H%M')_$ContTag"
+        BackupName="dockcheck/$ContApp:$RunTimestamp_$ContTag"
         docker tag "$ImageId" "$BackupName"
         printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
       fi
@@ -581,7 +585,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         continue
       fi
 
-      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+      docker pull "$ContFull" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
     printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
 
@@ -644,7 +648,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
           backup_date=${backup_tag%%_*}
           # UNTAGGING HERE
           if datecheck "$backup_date" "$DaysKept"; then
-            docker rmi "${repo_name}:${backup_tag}" # || printf "\n%bError removing %s:%s. %b\n" "$c_red" "$repo_name" "$backup_tag" "$c_reset"
+            docker rmi "$repo_name:$backup_tag"
           fi
         done
         unset IFS
