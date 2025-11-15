@@ -651,7 +651,7 @@ fi
 if [[ -n "${DaysKept:-}" ]]; then
   IFS=$'\n'
   CleanupCount=0
-  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" dockcheck/\*); do
+  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
     repo_name=${backup_img% *}
     backup_tag=${backup_img#* }
     backup_date=${backup_tag%%_*}
