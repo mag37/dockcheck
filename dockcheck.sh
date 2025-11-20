@@ -566,9 +566,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
       # Add new backup tag prior to pulling if option is set
       if [[ -n "${DaysKept:-}" ]]; then
-        ContRepo=${ContFull%:*}
+        ContRepo=${ContImage%:*}
         ContApp=${ContRepo#*/}
-        ContTag=${ContFull#*:}
+        ContTag=${ContImage#*:}
         BackupName="dockcheck/${ContApp}:${RunTimestamp}_${ContTag}"
         docker tag "$ImageId" "$BackupName"
         printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
@@ -577,7 +577,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
         if [[ "$DRunUp" == true ]]; then
-          docker pull "$ContFull"
+          docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
         else
           printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
@@ -585,7 +585,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         continue
       fi
 
-      docker pull "$ContFull" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
     done
     printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
 
@@ -660,8 +660,8 @@ if [[ -n "${DaysKept:-}" ]]; then
       [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $DaysKept days."
       docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
     fi
-    [[ "$CleanupCount" == 0 ]] && printf "No backup images to remove.%b\n" || printf "%b%s%b backup images removed." "$c_blue" "$c_teal" "$CleanupCount" "$c_reset"
   done
+  [[ "$CleanupCount" == 0 ]] && printf "No backup images to remove.%b\n" || printf "%b%s%b backup images removed." "$c_blue" "$CleanupCount" "$c_teal" "$c_reset"
   unset IFS
 fi
 
