@@ -560,7 +560,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContConfig=$(docker inspect "$i" --format '{{json .}}')
       ContImage=$($jqbin -r '."Config"."Image"' <<< "$ContConfig") # OLD? Remove if replaced with ContFull
       ImageId=$($jqbin -r '."Image"' <<< "$ContConfig")
-      ContFull=$(docker image inspect "$ImageId" --format "{{index .RepoTags 0}}")
+#      ContFull=$(docker image inspect "$ImageId" --format "{{index .RepoTags 0}}")
       ContPath=$($jqbin -r '."Config"."Labels"."com.docker.compose.project.working_dir"' <<< "$ContConfig")
       [[ "$ContPath" == "null" ]] && ContPath=""
 
@@ -568,7 +568,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if [[ -n "${DaysKept:-}" ]]; then
         ContRepo=${ContImage%:*}
         ContApp=${ContRepo#*/}
-        ContTag=${ContImage#*:}
+        [[ "$ContImage" =~ ":" ]] && ContTag=${ContImage#*:} || ContTag="latest"
         BackupName="dockcheck/${ContApp}:${RunTimestamp}_${ContTag}"
         docker tag "$ImageId" "$BackupName"
         printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
