@@ -209,11 +209,11 @@ self_update() {
     printf "\n%s\n" "Pulling the latest version."
     git pull --force || { printf "%bGit error,%b manually pull/clone.\n" "$c_red" "$c_reset"; return; }
     printf "\n%s\n" "--- starting over with the updated version ---"
-    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red" "$c_reset"; return; }
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
   else
-    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red" "$c_reset"; return; }
     self_update_curl
   fi
 }
@@ -661,7 +661,7 @@ if [[ -n "${DaysKept:-}" ]]; then
       docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
     fi
   done
-  [[ "$CleanupCount" == 0 ]] && printf "No backup images to remove.%b\n" || printf "%b%s%b backup images removed." "$c_blue" "$CleanupCount" "$c_teal" "$c_reset"
+  [[ "$CleanupCount" == 0 ]] && printf "No backup images to remove.\n" || printf "%b%s%b backup images removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
   unset IFS
 fi
 
