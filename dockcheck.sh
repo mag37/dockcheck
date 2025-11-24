@@ -554,13 +554,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
     for i in "${SelectedUpdates[@]}"; do
       ((CurrentQue+=1))
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-#      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
-#      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-#      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
       ContConfig=$(docker inspect "$i" --format '{{json .}}')
-      ContImage=$($jqbin -r '."Config"."Image"' <<< "$ContConfig") # OLD? Remove if replaced with ContFull
+      ContImage=$($jqbin -r '."Config"."Image"' <<< "$ContConfig")
       ImageId=$($jqbin -r '."Image"' <<< "$ContConfig")
-#      ContFull=$(docker image inspect "$ImageId" --format "{{index .RepoTags 0}}")
       ContPath=$($jqbin -r '."Config"."Labels"."com.docker.compose.project.working_dir"' <<< "$ContConfig")
       [[ "$ContPath" == "null" ]] && ContPath=""
 
@@ -598,8 +594,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ((CurrentQue+=1))
         unset CompleteConfs
         # Extract labels and metadata
-        ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
-        ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+        ContConfig=$(docker inspect "$i" --format '{{json .}}')
+        ContLabels=$($jqbin -r '."Config"."Labels"' <<< "$ContConfig")
         ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
         [[ "$ContPath" == "null" ]] && ContPath=""
         ContConfigFile=$($jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
