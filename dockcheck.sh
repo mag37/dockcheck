@@ -636,32 +636,38 @@ if [[ -n "${GotUpdates:-}" ]]; then
       done
     fi
     printf "\n%bAll updates done!%b\n" "$c_green" "$c_reset"
+
+    # Clean up old backup image tags if -k is used
+    if [[ -n "${DaysKept:-}" ]]; then
+      IFS=$'\n'
+      CleanupCount=0
+      for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
+        repo_name=${backup_img% *}
+        backup_tag=${backup_img#* }
+        backup_date=${backup_tag%%_*}
+        # UNTAGGING HERE
+        if datecheck "$backup_date" "$DaysKept"; then
+          [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $DaysKept days."
+          docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
+        fi
+      done
+      unset IFS
+      if [[ "$CleanupCount" == 0 ]]; then
+        printf "No backup images to remove.\n"
+      else
+        printf "%b%s%b backup images removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
+        docker image prune -f
+      fi
+    else
+      if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
+      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
+    fi
+
   else
     printf "\nNo updates installed.\n"
   fi
 else
   printf "\nNo updates available.\n"
 fi
-
-# Clean up old backup image tags if -k is used
-if [[ -n "${DaysKept:-}" ]]; then
-  IFS=$'\n'
-  CleanupCount=0
-  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
-    repo_name=${backup_img% *}
-    backup_tag=${backup_img#* }
-    backup_date=${backup_tag%%_*}
-    # UNTAGGING HERE
-    if datecheck "$backup_date" "$DaysKept"; then
-      [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $DaysKept days."
-      docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
-    fi
-  done
-  [[ "$CleanupCount" == 0 ]] && printf "No backup images to remove.\n" || printf "%b%s%b backup images removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
-  unset IFS
-fi
-
-if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
-if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
 
 exit 0
