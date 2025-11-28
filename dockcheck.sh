@@ -471,7 +471,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel
+export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
@@ -653,9 +653,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
       done
       unset IFS
       if [[ "$CleanupCount" == 0 ]]; then
-        printf "No backup images to remove.\n"
+        printf "\nNo backup images to remove.\n"
       else
-        printf "%b%s%b backup images removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
+        printf "\n%b%s%b backup images removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
         docker image prune -f
       fi
     else
