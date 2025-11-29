@@ -562,6 +562,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
       # Add new backup tag prior to pulling if option is set
       if [[ -n "${DaysKept:-}" ]]; then
+        ContRepoDigests=$(docker image inspect "$ImageId" --format "{{index .RepoDigests 0}}")
         ContRepo=${ContImage%:*}
         ContApp=${ContRepo#*/}
         [[ "$ContImage" =~ ":" ]] && ContTag=${ContImage#*:} || ContTag="latest"
@@ -581,7 +582,13 @@ if [[ -n "${GotUpdates:-}" ]]; then
         continue
       fi
 
-      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+      if docker pull "$ContImage"; then
+        # Removal of the <none>-tag image left behind from backup
+        [[ -n "${DaysKept:-}" ]] && docker rmi "$ContRepoDigests"
+      else
+        printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1
+      fi
+
     done
     printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
 
