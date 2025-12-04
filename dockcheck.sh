@@ -60,6 +60,12 @@ Help() {
   echo "Project source: $Github"
 }
 
+# Print current backups function
+print_backups() {
+  printf "\n%b---%b Currently backed up images %b---%b\n\n" "$c_teal" "$c_blue" "$c_teal" "$c_reset"
+  docker images | sed -ne '/^REPOSITORY/p' -ne '/^dockcheck/p'
+}
+
 # Initialise variables
 Timeout=${Timeout:-10}
 MaxAsync=${MaxAsync:-1}
@@ -104,7 +110,7 @@ c_reset="\033[0m"
 RunTimestamp=$(date +'%Y-%m-%d_%H%M')
 RunEpoch=$(date +'%s')
 
-while getopts "ayfFhiIlmMnprsuvc:e:d:k:t:x:R" options; do
+while getopts "ayfFhiIlmMnprsuvc:e:d:k:Kt:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
@@ -115,6 +121,7 @@ while getopts "ayfFhiIlmMnprsuvc:e:d:k:t:x:R" options; do
     i)   Notify=true ;;
     I)   PrintReleaseURL=true ;;
     k)   DaysKept="${OPTARG}" ;;
+    K)   print_backups; exit 0 ;;
     l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
