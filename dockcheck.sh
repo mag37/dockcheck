@@ -624,14 +624,22 @@ if [[ -n "${GotUpdates:-}" ]]; then
         [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
         ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
         [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
+        ContStateRunning=$($jqbin -r '."State"."Running"' <<< "$ContConfig")
+        [[ "$ContStateRunning" == "null" ]] && ContStateRunning=""
 
-        printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+        if [[ "$ContStateRunning" == "true" ]]; then
+          printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+        else
+          printf  "\n%bSkipping recreation of %b%s%b as it's not running.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
+          continue
+        fi
+
         # Checking if compose-values are empty - hence started with docker run
         [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
 
         # cd to the compose-file directory to account for people who use relative volumes
         cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
-        ## Reformatting path + multi compose
+        # Reformatting path + multi compose
         if [[ $ContConfigFile == '/'* ]]; then
           CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
         else
