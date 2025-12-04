@@ -43,6 +43,7 @@ Help() {
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
   echo "-k N   Number of days to store image backups before pruning - this also enables the backup function."
+  echo "-K     List currently backed up images, then exit."
   echo "-l     Only include containers with label set. See readme."
   echo "-k N   DaysKept - enable backups of images prior to update and prunes backups older than N days."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."

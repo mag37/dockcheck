@@ -22,6 +22,11 @@
 ___
 ## Changelog
 
+- **v0.7.5**:
+    - Added new option **DaysKept**; `-k N` and `-K`:
+      - Backup an image before pulling a new version for easy rollback in case of breakage.
+      - Removes backed up images older than *N* days.
+      - List currently backed up images with `-K`.
 - **v0.7.4**:
     - Added new option `-R`:
       - Will skip container recreation after pulling images.
@@ -38,16 +43,6 @@ ___
     - List reformatting for "available updates" numbering to easier highlight and copy:
       - Padded with zero, changed `)` to `-`, example: `02 - homer`
       - Can be selected by writing `2,3,4` or `02,03,04`.
-- **v0.7.1**:
-    - Added support for multiple notifications using the same template
-    - Added support for notification output format
-    - Added support for file output
-    - Added optional configuration variables per channel to (replace `<channel>` with any channel name):
-      - `<channel>_TEMPLATE` : Specify a template
-      - `<channel>_SKIPSNOOZE` : Skip snooze
-      - `<channel>_CONTAINERSONLY` : Only notify for docker container related updates
-      - `<channel>_ALLOWEMPTY` : Always send notifications, even when empty
-      - `<channel>_OUTPUT` : Define output format
 ___
 
 
@@ -69,6 +64,7 @@ Options:
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
 -k N   DaysKept - enable backups of images prior to update and prunes backups older than N days.
+-K     List currently backed up images, then exit.
 -I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list).
 -l     Only include containers with label set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
@@ -246,21 +242,21 @@ The `urls.list` file is just an example and I'd gladly see that people contribut
 Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!  
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
-## Image Backups `-k` backup previous images as custom (retagged) images for easy rollback
-When the option `DaysKept` is set **dockcheck** will store the image being updated as a backup, retagged with a different name and stored for the amount of days configured (*DaysKept*) before being pruned.
+## Image Backups; `-k N` to backup previous images as custom (retagged) images for easy rollback
+When the option `DaysKept` is set **dockcheck** will store the image being updated as a backup, retagged with a different name and removed due to age configured (*DaysKept*) in a future run.  
 Let's say we're updating `b4bz/homer:latest` - then before replacing the current image it will be retagged with the name `dockcheck/homer:2025-10-26_1132_latest`
 - `dockcheck` as repo name to not interfere with others.
 - `homer` is the image.
 - `2025-10-26_1132` is the time when running the script.
 - `latest` is the tag of the image.
 
-Then if an update breaks, you could temporarily roll back to the previoius working state by changing the docker compose image to `image: dockcheck/homer:2025-10-26_1132_latest` and get it up and running again, then continue troubleshooting the breaking update.  
+Then if an update breaks you could temporarily roll back to the previoius working state by changing the docker compose image to `image: dockcheck/homer:2025-10-26_1132_latest` and get it up and running again, then continue troubleshooting the breaking update.  
 
 The backed up images will be removed if they're older than *DaysKept* value (passed as `-k N` or set in the `dockcheck.config` with `DaysKept=N`) and then pruned.  
 If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-k 2` to clean everything older than 2 days.  
 Backed up images will not be removed if neither `-k` flag nor `DaysKept` config variable is set.
 
-The `docker images` or `docker image ls` commands will show all currently backed up images.  
+Use the capital option `-K` to list currently backed up images. Or list all images with `docker images`.  
 To manually remove any backed up images, do `docker rmi dockcheck/homer:2025-10-26_1132_latest`.  
 
 ## Extra plugins and tools:
