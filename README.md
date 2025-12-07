@@ -23,7 +23,7 @@ ___
 ## Changelog
 
 - **v0.7.5**:
-    - Added new option **DaysKept**; `-k N` and `-K`:
+    - Added new option **BackupForDays**; `-b N` and `-B`:
       - Backup an image before pulling a new version for easy rollback in case of breakage.
       - Removes backed up images older than *N* days.
       - List currently backed up images with `-K`.
@@ -56,6 +56,8 @@ Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall
 
 Options:
 -a|y   Automatic updates, without interaction.
+-b N   Enable image backups and sets number of days to keep from pruning.
+-B     List currently backed up images, then exit.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
@@ -63,8 +65,6 @@ Options:
 -F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure).
 -h     Print this Help.
 -i     Inform - send a preconfigured notification.
--k N   DaysKept - enable backups of images prior to update and prunes backups older than N days.
--K     List currently backed up images, then exit.
 -I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list).
 -l     Only include containers with label set. See readme.
 -m     Monochrome mode, no printf colour codes and hides progress bar.
@@ -83,18 +83,19 @@ Options:
 ### Basic example:
 ```
 $ ./dockcheck.sh
-. . .
+[##################################################] 5/5
+
 Containers on latest version:
 glances
 homer
 
 Containers with updates available:
-1) adguardhome
-2) syncthing
-3) whoogle-search
+01) adguardhome
+02) syncthing
+03) whoogle-search
 
 Choose what containers to update:
-Enter number(s) separated by comma, [a] for all - [q] to quit:
+Enter number(s) separated by comma, [a] for all - [q] to quit: 1,2
 ```
 Then it proceeds to run `pull` and `up -d` on every container with updates.  
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
@@ -242,21 +243,22 @@ The `urls.list` file is just an example and I'd gladly see that people contribut
 Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!  
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
-## Image Backups; `-k N` to backup previous images as custom (retagged) images for easy rollback
-When the option `DaysKept` is set **dockcheck** will store the image being updated as a backup, retagged with a different name and removed due to age configured (*DaysKept*) in a future run.  
+## Image Backups; `-b N` to backup previous images as custom (retagged) images for easy rollback
+When the option `BackupForDays` is set **dockcheck** will store the image being updated as a backup, retagged with a different name and removed due to age configured (*BackupForDays*) in a future run.  
 Let's say we're updating `b4bz/homer:latest` - then before replacing the current image it will be retagged with the name `dockcheck/homer:2025-10-26_1132_latest`
 - `dockcheck` as repo name to not interfere with others.
 - `homer` is the image.
 - `2025-10-26_1132` is the time when running the script.
 - `latest` is the tag of the image.
 
-Then if an update breaks you could temporarily roll back to the previoius working state by changing the docker compose image to `image: dockcheck/homer:2025-10-26_1132_latest` and get it up and running again, then continue troubleshooting the breaking update.  
+Then if an update breaks, you could restore the image by stopping the container, delete the new image, eg. `docker rmi b4bz/homer:latest`, then retag the backup as latest `docker tag dockcheck/homer:<date>_latest b4bz/homer:latest`.  
+After that, start the container again (now with the backup image active) and it will be updated as usual next time you run dockcheck or other updates.
 
-The backed up images will be removed if they're older than *DaysKept* value (passed as `-k N` or set in the `dockcheck.config` with `DaysKept=N`) and then pruned.  
-If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-k 2` to clean everything older than 2 days.  
-Backed up images will not be removed if neither `-k` flag nor `DaysKept` config variable is set.
+The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
+If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  
+Backed up images will not be removed if neither `-b` flag nor `BackupForDays` config variable is set.
 
-Use the capital option `-K` to list currently backed up images. Or list all images with `docker images`.  
+Use the capital option `-B` to list currently backed up images. Or list all images with `docker images`.  
 To manually remove any backed up images, do `docker rmi dockcheck/homer:2025-10-26_1132_latest`.  
 
 ## Extra plugins and tools:

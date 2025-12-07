@@ -34,6 +34,8 @@ Help() {
   echo
   echo "Options:"
   echo "-a|y   Automatic updates, without interaction."
+  echo "-b N   Enable image backups and sets number of days to keep from pruning."
+  echo "-B     List currently backed up images, then exit."
   echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
@@ -42,10 +44,7 @@ Help() {
   echo "-h     Print this Help."
   echo "-i     Inform - send a preconfigured notification."
   echo "-I     Prints custom releasenote urls alongside each container with updates in CLI output (requires urls.list)."
-  echo "-k N   Number of days to store image backups before pruning - this also enables the backup function."
-  echo "-K     List currently backed up images, then exit."
   echo "-l     Only include containers with label set. See readme."
-  echo "-k N   DaysKept - enable backups of images prior to update and prunes backups older than N days."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
@@ -86,7 +85,7 @@ Stopped=${Stopped:-""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
-DaysKept=${DaysKept:-}
+BackupForDays=${BackupForDays:-}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
@@ -111,9 +110,11 @@ c_reset="\033[0m"
 RunTimestamp=$(date +'%Y-%m-%d_%H%M')
 RunEpoch=$(date +'%s')
 
-while getopts "ayfFhiIlmMnprsuvc:e:d:k:Kt:x:R" options; do
+while getopts "ayb:BfFhiIlmMnprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
+    b)   BackupForDays="${OPTARG}" ;;
+    B)   print_backups; exit 0 ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
@@ -121,8 +122,6 @@ while getopts "ayfFhiIlmMnprsuvc:e:d:k:Kt:x:R" options; do
     F)   OnlySpecific=true ;;
     i)   Notify=true ;;
     I)   PrintReleaseURL=true ;;
-    k)   DaysKept="${OPTARG}" ;;
-    K)   print_backups; exit 0 ;;
     l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
@@ -172,9 +171,9 @@ if [[ -n "$DaysOld" ]]; then
     exit 2
   fi
 fi
-if [[ -n "$DaysKept" ]]; then
-  if ! [[ $DaysKept =~ ^[0-9]+$ ]]; then
-    printf "-k argument given (%s) is not a number.\n" "$DaysKept"
+if [[ -n "$BackupForDays" ]]; then
+  if ! [[ $BackupForDays =~ ^[0-9]+$ ]]; then
+    printf "-b argument given (%s) is not a number.\n" "$BackupForDays"
     exit 2
   fi
 fi
@@ -570,7 +569,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       [[ "$ContPath" == "null" ]] && ContPath=""
 
       # Add new backup tag prior to pulling if option is set
-      if [[ -n "${DaysKept:-}" ]]; then
+      if [[ -n "${BackupForDays:-}" ]]; then
         ImageConfig=$(docker image inspect "$ImageId" --format '{{ json . }}')
         ContRepoDigests=$($jqbin -r '.RepoDigests[0]' <<< "$ImageConfig")
         [[ "$ContRepoDigests" == "null" ]] && ContRepoDigests=""
@@ -595,7 +594,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
       if docker pull "$ContImage"; then
         # Removal of the <none>-tag image left behind from backup
-        if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${DaysKept:-}" ]]; then docker rmi "$ContRepoDigests"; fi
+        if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
       else
         printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1
       fi
@@ -663,8 +662,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
     fi
     printf "\n%bAll updates done!%b\n" "$c_green" "$c_reset"
 
-    # Clean up old backup image tags if -k is used
-    if [[ -n "${DaysKept:-}" ]]; then
+    # Clean up old backup image tags if -b is used
+    if [[ -n "${BackupForDays:-}" ]]; then
       IFS=$'\n'
       CleanupCount=0
       for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
@@ -672,8 +671,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
         backup_tag=${backup_img#* }
         backup_date=${backup_tag%%_*}
         # UNTAGGING HERE
-        if datecheck "$backup_date" "$DaysKept"; then
-          [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $DaysKept days."
+        if datecheck "$backup_date" "$BackupForDays"; then
+          [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $BackupForDays days."
           docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
         fi
       done
