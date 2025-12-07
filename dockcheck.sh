@@ -176,6 +176,7 @@ if [[ -n "$BackupForDays" ]]; then
     printf "-b argument given (%s) is not a number.\n" "$BackupForDays"
     exit 2
   fi
+  [[ "$AutoPrune" == true ]] && printf "%bWARNING: When -b option is used, -p has no function.%b\n" "$c_yellow" "$c_reset"
 fi
 if [[ -n "$CollectorTextFileDirectory" ]]; then
   if ! [[ -d  $CollectorTextFileDirectory ]]; then
@@ -662,28 +663,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
     fi
     printf "\n%bAll updates done!%b\n" "$c_green" "$c_reset"
 
-    # Clean up old backup image tags if -b is used
-    if [[ -n "${BackupForDays:-}" ]]; then
-      IFS=$'\n'
-      CleanupCount=0
-      for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
-        repo_name=${backup_img% *}
-        backup_tag=${backup_img#* }
-        backup_date=${backup_tag%%_*}
-        # UNTAGGING HERE
-        if datecheck "$backup_date" "$BackupForDays"; then
-          [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $BackupForDays days."
-          docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
-        fi
-      done
-      unset IFS
-      if [[ "$CleanupCount" == 0 ]]; then
-        printf "\nNo backup images to remove.\n"
-      else
-        printf "\n%b%s%b backup images removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
-        docker image prune -f
-      fi
-    else
+    # Trigger pruning only when backup-function is not used
+    if [[ -z "${BackupForDays:-}" ]]; then
       if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
       if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
     fi
@@ -693,6 +674,28 @@ if [[ -n "${GotUpdates:-}" ]]; then
   fi
 else
   printf "\nNo updates available.\n"
+fi
+
+# Clean up old backup image tags if -b is used
+if [[ -n "${BackupForDays:-}" ]]; then
+  IFS=$'\n'
+  CleanupCount=0
+  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
+    repo_name=${backup_img% *}
+    backup_tag=${backup_img#* }
+    backup_date=${backup_tag%%_*}
+    # UNTAGGING HERE
+    if datecheck "$backup_date" "$BackupForDays"; then
+      [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $BackupForDays days."
+      docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
+    fi
+  done
+  unset IFS
+  if [[ "$CleanupCount" == 0 ]]; then
+    printf "\nNo backup images to remove.\n"
+  else
+    printf "\n%b%s%b backup removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
+  fi
 fi
 
 exit 0
