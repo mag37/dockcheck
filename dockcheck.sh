@@ -231,6 +231,7 @@ choosecontainers() {
   while [[ -z "${ChoiceClean:-}" ]]; do
     read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
     if [[ "$Choice" =~ [qQnN] ]]; then
+      [[ -n "${BackupForDays:-}" ]] && remove_backups
       exit 0
     elif [[ "$Choice" =~ [aAyY] ]]; then
       SelectedUpdates=( "${GotUpdates[@]}" )
@@ -258,6 +259,27 @@ datecheck() {
     return 0
   else
     return 1
+  fi
+}
+
+remove_backups() {
+  IFS=$'\n'
+  CleanupCount=0
+  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
+    repo_name=${backup_img% *}
+    backup_tag=${backup_img#* }
+    backup_date=${backup_tag%%_*}
+    # UNTAGGING HERE
+    if datecheck "$backup_date" "$BackupForDays"; then
+      [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $BackupForDays days."
+      docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
+    fi
+  done
+  unset IFS
+  if [[ "$CleanupCount" == 0 ]]; then
+    printf "\nNo backup images to remove.\n"
+  else
+    printf "\n%b%s%b backup removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
   fi
 }
 
@@ -677,25 +699,6 @@ else
 fi
 
 # Clean up old backup image tags if -b is used
-if [[ -n "${BackupForDays:-}" ]]; then
-  IFS=$'\n'
-  CleanupCount=0
-  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
-    repo_name=${backup_img% *}
-    backup_tag=${backup_img#* }
-    backup_date=${backup_tag%%_*}
-    # UNTAGGING HERE
-    if datecheck "$backup_date" "$BackupForDays"; then
-      [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $BackupForDays days."
-      docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
-    fi
-  done
-  unset IFS
-  if [[ "$CleanupCount" == 0 ]]; then
-    printf "\nNo backup images to remove.\n"
-  else
-    printf "\n%b%s%b backup removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
-  fi
-fi
+[[ -n "${BackupForDays:-}" ]] && remove_backups
 
 exit 0
