@@ -271,7 +271,7 @@ remove_backups() {
     backup_date=${backup_tag%%_*}
     # UNTAGGING HERE
     if datecheck "$backup_date" "$BackupForDays"; then
-      [[ "$CleanupCount" == 0 ]] && echo "Removing backed up images older then $BackupForDays days."
+      [[ "$CleanupCount" == 0 ]] && printf "\n%bRemoving backed up images older then %s days.%b\n" "$c_blue" "$BackupForDays" "$c_reset"
       docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
     fi
   done
