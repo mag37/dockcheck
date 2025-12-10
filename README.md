@@ -13,9 +13,9 @@
 </p>
 
 <h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
-<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done etc.</h3>
+<h3 align="center">selective updates, include/exclude containers, image backups, custom labels, notification plugins, prune when done etc.</h3>
 
-<h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
+<h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks only for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
 
 <h5 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
@@ -26,7 +26,7 @@ ___
     - Added new option **BackupForDays**; `-b N` and `-B`:
       - Backup an image before pulling a new version for easy rollback in case of breakage.
       - Removes backed up images older than *N* days.
-      - List currently backed up images with `-K`.
+      - List currently backed up images with `-B`.
 - **v0.7.4**:
     - Added new option `-R`:
       - Will skip container recreation after pulling images.
