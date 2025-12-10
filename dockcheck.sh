@@ -279,7 +279,8 @@ remove_backups() {
   if [[ "$CleanupCount" == 0 ]]; then
     printf "\nNo backup images to remove.\n"
   else
-    printf "\n%b%s%b backup removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$c_reset"
+    [[ "$CleanupCount" -gt 1 ]] && b_phrase="backups" || b_phrase="backup"
+    printf "\n%b%s%b %s removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$b_phrase" "$c_reset"
   fi
 }
 
