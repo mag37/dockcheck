@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.4"
-# ChangeNotes: New option -R to pull without recreation. Fixes: value too great error, legacy cleanups.
+VERSION="v0.7.5"
+# ChangeNotes: New option -b N to backup image before pulling for easy rollback.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 

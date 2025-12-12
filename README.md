@@ -27,6 +27,8 @@ ___
       - Backup an image before pulling a new version for easy rollback in case of breakage.
       - Removes backed up images older than *N* days.
       - List currently backed up images with `-B`.
+    - Fixes:
+      - Bugfix for `-s` *Stopped* to not recreate stopped containers after update.
 - **v0.7.4**:
     - Added new option `-R`:
       - Will skip container recreation after pulling images.
