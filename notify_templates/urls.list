@@ -15,12 +15,14 @@ calibre https://github.com/linuxserver/docker-calibre/releases
 calibre-web https://github.com/linuxserver/docker-calibre-web/releases
 cleanuperr https://github.com/flmorg/cleanuperr/releases
 cross-seed https://github.com/cross-seed/cross-seed/releases
+crowdsec https://github.com/crowdsecurity/crowdsec/releases
 cup https://github.com/sergi0g/cup/releases
 dockge https://github.com/louislam/dockge/releases
 dozzle https://github.com/amir20/dozzle/releases
 flatnotes https://github.com/dullage/flatnotes/releases
 forgejo https://codeberg.org/forgejo/forgejo/releases
 fressrss https://github.com/FreshRSS/FreshRSS/releases
+gerbil https://github.com/fosrl/gerbil/releases
 gluetun https://github.com/qdm12/gluetun/releases
 go2rtc https://github.com/AlexxIT/go2rtc/releases
 gotify https://github.com/gotify/server/releases
@@ -45,9 +47,11 @@ mealie https://github.com/mealie-recipes/mealie/releases
 meilisearch https://github.com/meilisearch/meilisearch/releases
 monica https://github.com/monicahq/monica/releases
 mqtt https://github.com/eclipse/mosquitto/tags
+newt https://github.com/fosrl/newt/releases
 nextcloud-aio-mastercontainer https://github.com/nextcloud/all-in-one/releases
 nginx https://github.com/docker-library/official-images/blob/master/library/nginx
 owncast https://github.com/owncast/owncast/releases
+pangolin https://github.com/fosrl/pangolin/releases
 prowlarr https://github.com/Prowlarr/Prowlarr/releases
 prowlarr-ls https://github.com/linuxserver/docker-prowlarr/releases
 qbittorrent https://www.qbittorrent.org/news
@@ -66,6 +70,7 @@ snappymail https://github.com/the-djmaze/snappymail/releases
 sonarr https://github.com/Sonarr/Sonarr/releases/
 sonarr-ls https://github.com/linuxserver/docker-sonarr/releases
 syncthing https://github.com/syncthing/syncthing/releases
+tailscale https://github.com/tailscale/tailscale/releases
 tautulli https://github.com/Tautulli/Tautulli/releases
 thelounge https://github.com/thelounge/thelounge/releases
 traefik https://github.com/traefik/traefik/releases
