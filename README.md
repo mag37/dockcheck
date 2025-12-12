@@ -13,15 +13,22 @@
 </p>
 
 <h2 align="center">CLI tool to automate docker image updates or notifying when updates are available.</h2>
-<h3 align="center">selective updates, exclude containers, custom labels, notification plugins, prune when done etc.</h3>
+<h3 align="center">selective updates, include/exclude containers, image backups, custom labels, notification plugins, prune when done etc.</h3>
 
-<h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks but for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
+<h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks only for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
 
 <h5 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
 
 ___
 ## Changelog
 
+- **v0.7.5**:
+    - Added new option **BackupForDays**; `-b N` and `-B`:
+      - Backup an image before pulling a new version for easy rollback in case of breakage.
+      - Removes backed up images older than *N* days.
+      - List currently backed up images with `-B`.
+    - Fixes:
+      - Bugfix for `-s` *Stopped* to not recreate stopped containers after update.
 - **v0.7.4**:
     - Added new option `-R`:
       - Will skip container recreation after pulling images.
@@ -38,16 +45,6 @@ ___
     - List reformatting for "available updates" numbering to easier highlight and copy:
       - Padded with zero, changed `)` to `-`, example: `02 - homer`
       - Can be selected by writing `2,3,4` or `02,03,04`.
-- **v0.7.1**:
-    - Added support for multiple notifications using the same template
-    - Added support for notification output format
-    - Added support for file output
-    - Added optional configuration variables per channel to (replace `<channel>` with any channel name):
-      - `<channel>_TEMPLATE` : Specify a template
-      - `<channel>_SKIPSNOOZE` : Skip snooze
-      - `<channel>_CONTAINERSONLY` : Only notify for docker container related updates
-      - `<channel>_ALLOWEMPTY` : Always send notifications, even when empty
-      - `<channel>_OUTPUT` : Define output format
 ___
 
 
@@ -61,6 +58,8 @@ Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall
 
 Options:
 -a|y   Automatic updates, without interaction.
+-b N   Enable image backups and sets number of days to keep from pruning.
+-B     List currently backed up images, then exit.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
@@ -86,18 +85,19 @@ Options:
 ### Basic example:
 ```
 $ ./dockcheck.sh
-. . .
+[##################################################] 5/5
+
 Containers on latest version:
 glances
 homer
 
 Containers with updates available:
-1) adguardhome
-2) syncthing
-3) whoogle-search
+01) adguardhome
+02) syncthing
+03) whoogle-search
 
 Choose what containers to update:
-Enter number(s) separated by comma, [a] for all - [q] to quit:
+Enter number(s) separated by comma, [a] for all - [q] to quit: 1,2
 ```
 Then it proceeds to run `pull` and `up -d` on every container with updates.  
 After the updates are complete, you'll get prompted if you'd like to prune dangling images.
@@ -245,6 +245,23 @@ The `urls.list` file is just an example and I'd gladly see that people contribut
 Pass `-x N` where N is number of subprocesses allowed, experiment in your environment to find a suitable max!  
 Change the default value by editing the `MaxAsync=N` variable in `dockcheck.sh`. To disable the subprocess function set `MaxAsync=0`.
 
+## Image Backups; `-b N` to backup previous images as custom (retagged) images for easy rollback
+When the option `BackupForDays` is set **dockcheck** will store the image being updated as a backup, retagged with a different name and removed due to age configured (*BackupForDays*) in a future run.  
+Let's say we're updating `b4bz/homer:latest` - then before replacing the current image it will be retagged with the name `dockcheck/homer:2025-10-26_1132_latest`
+- `dockcheck` as repo name to not interfere with others.
+- `homer` is the image.
+- `2025-10-26_1132` is the time when running the script.
+- `latest` is the tag of the image.
+
+Then if an update breaks, you could restore the image by stopping the container, delete the new image, eg. `docker rmi b4bz/homer:latest`, then retag the backup as latest `docker tag dockcheck/homer:<date>_latest b4bz/homer:latest`.  
+After that, start the container again (now with the backup image active) and it will be updated as usual next time you run dockcheck or other updates.
+
+The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
+If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  
+Backed up images will not be removed if neither `-b` flag nor `BackupForDays` config variable is set.
+
+Use the capital option `-B` to list currently backed up images. Or list all images with `docker images`.  
+To manually remove any backed up images, do `docker rmi dockcheck/homer:2025-10-26_1132_latest`.  
 
 ## Extra plugins and tools:
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.4"
-# ChangeNotes: New option -R to pull without recreation. Fixes: value too great error, legacy cleanups.
+VERSION="v0.7.5"
+# ChangeNotes: New option -b N to backup image before pulling for easy rollback.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -34,6 +34,8 @@ Help() {
   echo
   echo "Options:"
   echo "-a|y   Automatic updates, without interaction."
+  echo "-b N   Enable image backups and sets number of days to keep from pruning."
+  echo "-B     List currently backed up images, then exit."
   echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
@@ -58,6 +60,12 @@ Help() {
   echo "Project source: $Github"
 }
 
+# Print current backups function
+print_backups() {
+  printf "\n%b---%b Currently backed up images %b---%b\n\n" "$c_teal" "$c_blue" "$c_teal" "$c_reset"
+  docker images | sed -ne '/^REPOSITORY/p' -ne '/^dockcheck/p'
+}
+
 # Initialise variables
 Timeout=${Timeout:-10}
 MaxAsync=${MaxAsync:-1}
@@ -77,6 +85,7 @@ Stopped=${Stopped:-""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
+BackupForDays=${BackupForDays:-}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
@@ -97,9 +106,15 @@ c_blue="\033[0;34m"
 c_teal="\033[0;36m"
 c_reset="\033[0m"
 
-while getopts "ayfFhiIlmMnprsuvc:e:d:t:x:R" options; do
+# Timestamps
+RunTimestamp=$(date +'%Y-%m-%d_%H%M')
+RunEpoch=$(date +'%s')
+
+while getopts "ayb:BfFhiIlmMnprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
+    b)   BackupForDays="${OPTARG}" ;;
+    B)   print_backups; exit 0 ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
@@ -156,6 +171,13 @@ if [[ -n "$DaysOld" ]]; then
     exit 2
   fi
 fi
+if [[ -n "$BackupForDays" ]]; then
+  if ! [[ $BackupForDays =~ ^[0-9]+$ ]]; then
+    printf "-b argument given (%s) is not a number.\n" "$BackupForDays"
+    exit 2
+  fi
+  [[ "$AutoPrune" == true ]] && printf "%bWARNING: When -b option is used, -p has no function.%b\n" "$c_yellow" "$c_reset"
+fi
 if [[ -n "$CollectorTextFileDirectory" ]]; then
   if ! [[ -d  $CollectorTextFileDirectory ]]; then
     printf "The directory (%s) does not exist.\n" "$CollectorTextFileDirectory"
@@ -196,11 +218,11 @@ self_update() {
     printf "\n%s\n" "Pulling the latest version."
     git pull --force || { printf "%bGit error,%b manually pull/clone.\n" "$c_red" "$c_reset"; return; }
     printf "\n%s\n" "--- starting over with the updated version ---"
-    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red" "$c_reset"; return; }
     exec "$ScriptPath" "${ScriptArgs[@]}" # run the new script with old arguments
     exit 0 # exit the old instance
   else
-    cd - || { printf "%bPath error.%b\n" "$c_red"; return; }
+    cd - || { printf "%bPath error.%b\n" "$c_red" "$c_reset"; return; }
     self_update_curl
   fi
 }
@@ -209,6 +231,7 @@ choosecontainers() {
   while [[ -z "${ChoiceClean:-}" ]]; do
     read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
     if [[ "$Choice" =~ [qQnN] ]]; then
+      [[ -n "${BackupForDays:-}" ]] && remove_backups
       exit 0
     elif [[ "$Choice" =~ [aAyY] ]]; then
       SelectedUpdates=( "${GotUpdates[@]}" )
@@ -228,13 +251,36 @@ choosecontainers() {
 }
 
 datecheck() {
-  ImageDate=$("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1)
+  ImageDate="$1"
+  DaysMax="$2"
   ImageEpoch=$(date -d "$ImageDate" +%s 2>/dev/null) || ImageEpoch=$(date -f "%Y-%m-%d" -j "$ImageDate" +%s)
-  ImageAge=$(( ( $(date +%s) - ImageEpoch )/86400 ))
-  if [[ "$ImageAge" -gt "$DaysOld" ]]; then
+  ImageAge=$(( ( RunEpoch - ImageEpoch )/86400 ))
+  if [[ "$ImageAge" -gt "$DaysMax" ]]; then
     return 0
   else
     return 1
+  fi
+}
+
+remove_backups() {
+  IFS=$'\n'
+  CleanupCount=0
+  for backup_img in $(docker images --format "{{.Repository}} {{.Tag}}" | sed -n '/^dockcheck/p'); do
+    repo_name=${backup_img% *}
+    backup_tag=${backup_img#* }
+    backup_date=${backup_tag%%_*}
+    # UNTAGGING HERE
+    if datecheck "$backup_date" "$BackupForDays"; then
+      [[ "$CleanupCount" == 0 ]] && printf "\n%bRemoving backed up images older then %s days.%b\n" "$c_blue" "$BackupForDays" "$c_reset"
+      docker rmi "${repo_name}:${backup_tag}" && ((CleanupCount+=1))
+    fi
+  done
+  unset IFS
+  if [[ "$CleanupCount" == 0 ]]; then
+    printf "\nNo backup images to remove.\n"
+  else
+    [[ "$CleanupCount" -gt 1 ]] && b_phrase="backups" || b_phrase="backup"
+    printf "\n%b%s%b %s removed.%b\n" "$c_green" "$CleanupCount" "$c_teal" "$b_phrase" "$c_reset"
   fi
 }
 
@@ -443,7 +489,7 @@ check_image() {
     if [[ "$LocalHash" == *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
     else
-      if [[ -n "${DaysOld:-}" ]] && ! datecheck; then
+      if [[ -n "${DaysOld:-}" ]] && ! datecheck $("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1) "$DaysOld" ; then
         printf "%s\n" "NoUpdates +$i ${ImageAge}d"
       else
         printf "%s\n" "GotUpdates $i"
@@ -457,7 +503,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel
+export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
@@ -540,10 +586,24 @@ if [[ -n "${GotUpdates:-}" ]]; then
     for i in "${SelectedUpdates[@]}"; do
       ((CurrentQue+=1))
       printf "\n%bNow updating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-      ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
-      ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
-      ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
+      ContConfig=$(docker inspect "$i" --format '{{json .}}')
+      ContImage=$($jqbin -r '."Config"."Image"' <<< "$ContConfig")
+      ImageId=$($jqbin -r '."Image"' <<< "$ContConfig")
+      ContPath=$($jqbin -r '."Config"."Labels"."com.docker.compose.project.working_dir"' <<< "$ContConfig")
       [[ "$ContPath" == "null" ]] && ContPath=""
+
+      # Add new backup tag prior to pulling if option is set
+      if [[ -n "${BackupForDays:-}" ]]; then
+        ImageConfig=$(docker image inspect "$ImageId" --format '{{ json . }}')
+        ContRepoDigests=$($jqbin -r '.RepoDigests[0]' <<< "$ImageConfig")
+        [[ "$ContRepoDigests" == "null" ]] && ContRepoDigests=""
+        ContRepo=${ContImage%:*}
+        ContApp=${ContRepo#*/}
+        [[ "$ContImage" =~ ":" ]] && ContTag=${ContImage#*:} || ContTag="latest"
+        BackupName="dockcheck/${ContApp}:${RunTimestamp}_${ContTag}"
+        docker tag "$ImageId" "$BackupName"
+        printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
+      fi
 
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
@@ -556,7 +616,13 @@ if [[ -n "${GotUpdates:-}" ]]; then
         continue
       fi
 
-      docker pull "$ContImage" || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+      if docker pull "$ContImage"; then
+        # Removal of the <none>-tag image left behind from backup
+        if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
+      else
+        printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1
+      fi
+
     done
     printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
 
@@ -569,8 +635,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ((CurrentQue+=1))
         unset CompleteConfs
         # Extract labels and metadata
-        ContLabels=$(docker inspect "$i" --format '{{json .Config.Labels}}')
-        ContImage=$(docker inspect "$i" --format='{{.Config.Image}}')
+        ContConfig=$(docker inspect "$i" --format '{{json .}}')
+        ContLabels=$($jqbin -r '."Config"."Labels"' <<< "$ContConfig")
         ContPath=$($jqbin -r '."com.docker.compose.project.working_dir"' <<< "$ContLabels")
         [[ "$ContPath" == "null" ]] && ContPath=""
         ContConfigFile=$($jqbin -r '."com.docker.compose.project.config_files"' <<< "$ContLabels")
@@ -583,14 +649,22 @@ if [[ -n "${GotUpdates:-}" ]]; then
         [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
         ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
         [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
+        ContStateRunning=$($jqbin -r '."State"."Running"' <<< "$ContConfig")
+        [[ "$ContStateRunning" == "null" ]] && ContStateRunning=""
 
-        printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+        if [[ "$ContStateRunning" == "true" ]]; then
+          printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+        else
+          printf  "\n%bSkipping recreation of %b%s%b as it's not running.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
+          continue
+        fi
+
         # Checking if compose-values are empty - hence started with docker run
         [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
 
         # cd to the compose-file directory to account for people who use relative volumes
         cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
-        ## Reformatting path + multi compose
+        # Reformatting path + multi compose
         if [[ $ContConfigFile == '/'* ]]; then
           CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
         else
@@ -610,14 +684,22 @@ if [[ -n "${GotUpdates:-}" ]]; then
         fi
       done
     fi
-    if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
-    if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
-    printf "\n%bAll done!%b\n" "$c_green" "$c_reset"
+    printf "\n%bAll updates done!%b\n" "$c_green" "$c_reset"
+
+    # Trigger pruning only when backup-function is not used
+    if [[ -z "${BackupForDays:-}" ]]; then
+      if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
+      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
+    fi
+
   else
-    printf "\nNo updates installed, exiting.\n"
+    printf "\nNo updates installed.\n"
   fi
 else
-  printf "\nNo updates available, exiting.\n"
+  printf "\nNo updates available.\n"
 fi
+
+# Clean up old backup image tags if -b is used
+[[ -n "${BackupForDays:-}" ]] && remove_backups
 
 exit 0
