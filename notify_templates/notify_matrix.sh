@@ -29,7 +29,7 @@ trigger_matrix_notification() {
   AccessToken="${!AccessTokenVar}" # e.g. MATRIX_ACCESS_TOKEN=token-value
   RoomId="${!RoomIdVar}" # e.g. MATRIX_ROOM_ID=myroom
   MatrixServer="${!MatrixServerVar}" # e.g. MATRIX_SERVER_URL=http://matrix.yourdomain.tld
-  MsgBody="{\"msgtype\":\"m.text\",\"body\":\"$MessageBody\"}"
+  MsgBody=$(jq -Rn --arg body "$MessageBody" '{msgtype:"m.text", body:$body}')
 
   # URL Example:  https://matrix.org/_matrix/client/r0/rooms/!xxxxxx:example.com/send/m.room.message?access_token=xxxxxxxx
   curl -S -o /dev/null ${CurlArgs} -X POST "$MatrixServer/_matrix/client/r0/rooms/$RoomId/send/m.room.message?access_token=$AccessToken" -H 'Content-Type: application/json' -d "$MsgBody"
