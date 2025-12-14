@@ -582,6 +582,25 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
     NumberofUpdates="${#SelectedUpdates[@]}"
 
+    # TODO: move this to proper place + setup optarg etc.
+    # Digest log setup
+    LogDigestChanges="true"
+    LogPath="$ScriptWorkDir/updatelog"
+    if [[ -n "${LogDigestChanges}" ]]; then
+      LogStore=()
+      LogStore+=("$(printf "%-30s %s > %s\n" "IMAGE:TAG" "OLD DIGEST" "NEW DIGEST")")
+    fi
+
+    # TODO: move this to proper place
+    get_image_facts(){
+      ImageConfig=$(docker image inspect "$ImageId" --format '{{ json . }}')
+      ContRepoDigests=$($jqbin -r '.RepoDigests[0]' <<< "$ImageConfig")
+      [[ "$ContRepoDigests" == "null" ]] && ContRepoDigests=""
+      ContRepo=${ContImage%:*}
+      ContApp=${ContRepo#*/}
+      [[ "$ContImage" =~ ":" ]] && ContTag=${ContImage#*:} || ContTag="latest"
+    }
+
     CurrentQue=0
     for i in "${SelectedUpdates[@]}"; do
       ((CurrentQue+=1))
@@ -592,18 +611,16 @@ if [[ -n "${GotUpdates:-}" ]]; then
       ContPath=$($jqbin -r '."Config"."Labels"."com.docker.compose.project.working_dir"' <<< "$ContConfig")
       [[ "$ContPath" == "null" ]] && ContPath=""
 
+
       # Add new backup tag prior to pulling if option is set
       if [[ -n "${BackupForDays:-}" ]]; then
-        ImageConfig=$(docker image inspect "$ImageId" --format '{{ json . }}')
-        ContRepoDigests=$($jqbin -r '.RepoDigests[0]' <<< "$ImageConfig")
-        [[ "$ContRepoDigests" == "null" ]] && ContRepoDigests=""
-        ContRepo=${ContImage%:*}
-        ContApp=${ContRepo#*/}
-        [[ "$ContImage" =~ ":" ]] && ContTag=${ContImage#*:} || ContTag="latest"
+        get_image_facts
         BackupName="dockcheck/${ContApp}:${RunTimestamp}_${ContTag}"
         docker tag "$ImageId" "$BackupName"
         printf "%b%s backed up as %s%b\n" "$c_teal" "$i" "$BackupName" "$c_reset"
       fi
+
+      [[ -n "${LogDigestChanges}" ]] && get_image_facts
 
       # Checking if compose-values are empty - hence started with docker run
       if [[ -z "$ContPath" ]]; then
@@ -619,12 +636,17 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if docker pull "$ContImage"; then
         # Removal of the <none>-tag image left behind from backup
         if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
+        if [[ -n "${LogDigestChanges}" ]]; then
+          NewDigest=$(docker image inspect "$ContImage" --format '{{index .RepoDigests 0 }}')
+          LogStore+=("$(printf "%-30s %s > %s\n" "$i:$ContTag" "$ContRepoDigests" "$NewDigest")")
+        fi
       else
         printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1
       fi
 
     done
     printf "\n%bDone pulling updates.%b\n" "$c_green" "$c_reset"
+    [[ -n "${LogDigestChanges}" ]] && { printf "%s\n" "${LogStore[@]}" > "${LogPath}_$(date +'%Y-%m-%d_%H%M')"; }
 
     if [[ "$SkipRecreate" == true ]]; then
       printf "%bSkipping container recreation due to -R.%b\n" "$c_yellow" "$c_reset"
