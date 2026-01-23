@@ -40,7 +40,7 @@ done
 
 enabled_notify_templates=( "${!unique_templates[@]}" )
 
-FromHost=$(cat /etc/[hH][oO][sS][tT][nN][aA][mM][eE] 2>/dev/null)
+FromHost=$(cat /etc/[hH][oO][sS][tT][nN][aA][mM][eE] 2>/dev/null | head -n 1)
 
 CurrentEpochTime=$(date +"%Y-%m-%dT%H:%M:%S")
 CurrentEpochSeconds=$(date +%s)
