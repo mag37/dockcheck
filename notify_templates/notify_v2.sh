@@ -1,4 +1,4 @@
-NOTIFY_V2_VERSION="v0.6"
+NOTIFY_V2_VERSION="v0.7"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -40,7 +40,7 @@ done
 
 enabled_notify_templates=( "${!unique_templates[@]}" )
 
-FromHost=$(cat /etc/[hH][oO][sS][tT][nN][aA][mM][eE] 2>/dev/null | head -n 1)
+FromHost="$(cat /etc/hostname 2>/dev/null)" || FromHost="$(hostname 2>/dev/null)" || FromHost="UNKNOWN"
 
 CurrentEpochTime=$(date +"%Y-%m-%dT%H:%M:%S")
 CurrentEpochSeconds=$(date +%s)
