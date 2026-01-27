@@ -18,6 +18,7 @@
 <h4 align="center">:whale: Docker Hub pull limit :chart_with_downwards_trend: not an issue for checks only for actual pulls - <a href="#whale-docker-hub-pull-limit-chart_with_downwards_trend-not-an-issue-for-checks-but-for-actual-pulls">read more</a></h4>
 
 <h5 align="center">For Podman - see the fork <a href="https://github.com/sudo-kraken/podcheck">sudo-kraken/podcheck</a>!</h4>
+
 ___
 
 ## Changelog
@@ -152,7 +153,7 @@ Triggered with the `-i` flag. Will send a list of containers with updates availa
 Example of a cron scheduled job running non-interactive at 10'oclock excluding 1 container and sending notifications:
 `0 10 * * * /home/user123/.local/bin/dockcheck.sh -nix 10 -e excluded_container1`
 
-## Installation and configuration
+#### Installation and configuration
 
 Set up a directory structure as below.
 You only need the `notify_templates/notify_v2.sh` file and any notification templates
@@ -186,7 +187,7 @@ you wish to enable, but there is no harm in having all of them present.
 It's recommended to only do configuration with variables within `dockcheck.config` and not modify `notify_templates/notify_X.sh` directly. If you wish to customize the notify templates yourself, you may copy them to your project root directory alongside the main `dockcheck.sh` (where they're also ignored by git).  
 Customizing `notify_v2.sh` is handled the same as customizing the templates, but it must be renamed to `notify.sh` within the `dockcheck.sh` root directory.  
 
-### Snooze feature
+#### Snooze feature
 
 Configure to receive scheduled notifications only if they're new since the last notification - within a set time frame.
 
@@ -201,7 +202,7 @@ If an update becomes available for an item that is not snoozed, notifications wi
 
 The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to account for minor scheduling or run time issues.
 
-### Current notify templates
+#### Current notify templates
 
 - Synology [DSM](https://www.synology.com/en-global/dsm)
 - Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
@@ -221,7 +222,7 @@ The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to acco
 Further additions are welcome - suggestions or PRs!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>
 
-### Notification channel configuration
+#### Notification channel configuration
 
 All required environment variables for each notification channel are provided in the default.config file as comments and must be uncommented and modified for your requirements.  
 For advanced users, additional functionality is available via custom configurations and environment variables.  
@@ -240,7 +241,7 @@ Use cases - all configured in `dockcheck.config`:
   - Add all other environment variables required for the chosen template to function with `<channel>` in upper case as the prefix rather than the template name.
     - For example, if `<channel>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
 
-## Release notes addon
+#### Release notes addon
 
 There's a function to use a lookup-file to add release note URL's to the notification message.  
 Copy the notify_templates/`urls.list` file to the script directory, it will be used automatically if it's there.  
