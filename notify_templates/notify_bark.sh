@@ -12,7 +12,7 @@ trigger_bark_notification() {
     fi
     [[ -z "$jqbin" ]] && { echo "Error: jq missing"; return 1; }
 
-    [[ -z "$NOTIFY_BARK_KEY" ]] && { echo "Error: Key not set"; return 1; }
+    [[ -z "$BARK_KEY" ]] && { echo "Error: Key not set"; return 1; }
 
     local sound="${BARK_SOUND:-hello}"
     local group="${BARK_GROUP:-Dockcheck}"
@@ -38,7 +38,7 @@ trigger_bark_notification() {
         }' )
 
 
-    if curl -s -f -X POST "https://api.day.app/$NOTIFY_BARK_KEY" \
+    if curl -s -f -X POST "https://api.day.app/$BARK_KEY" \
         -H "Content-Type: application/json; charset=utf-8" \
         -d "$json_payload" > /dev/null 2>&1; then
         echo "Bark notification sent successfully (Markdown): $title"
