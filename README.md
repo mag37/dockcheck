@@ -75,7 +75,7 @@ Options:
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
 -p     Auto-Prune dangling images after update.
--r     Allow checking for updates/updating images for docker run containers. Won't update the container.
+-r     Allow checking/updating images created by `docker run`, containers need to be recreated manually.
 -R     Skip container recreation after pulling images.
 -s     Include stopped containers in the check. (Logic: docker ps -a).
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
