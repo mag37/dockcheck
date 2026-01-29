@@ -23,6 +23,14 @@ ___
 
 ## Changelog
 
+- **v0.7.6**:
+  - New:
+    - Added Bark notify-template.
+  - Fixes:
+    - Sanitized message for Matrix notification.
+    - Fixed hostname fallback for notifications.
+    - Clenaed up README.md some.
+    - Sorted and clarified `default.config` - migrate your settings manually (optional).
 - **v0.7.5**:
   - Added new option **BackupForDays**; `-b N` and `-B`:
     - Backup an image before pulling a new version for easy rollback in case of breakage.
@@ -37,15 +45,6 @@ ___
   - Fixes:
     - Bugfix for *value too great* error due to leading zeroes - solved with base10 conversion.
     - Clean up of some legacy readme sections.
-- **v0.7.3**: Bugfix - unquoted variable in printf list caused occasional issues.
-- **v0.7.2**:
-  - Label rework:
-    - Moved up label logic to work globally on the current run.
-    - Only iterating on labeled containers when used with `-l` option, not listing others.
-    - Clarified messaging and readme/help texts.
-  - List reformatting for "available updates" numbering to easier highlight and copy:
-    - Padded with zero, changed `)` to `-`, example: `02 - homer`
-    - Can be selected by writing `2,3,4` or `02,03,04`.
 
 ___
 

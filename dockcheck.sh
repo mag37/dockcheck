@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.5"
-# ChangeNotes: New option -b N to backup image before pulling for easy rollback.
+VERSION="v0.7.6"
+# ChangeNotes: Bugfixes and sanitation. Cleanup of default.config - migrate settings manually (optional).
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
