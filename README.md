@@ -164,6 +164,7 @@ you wish to enable, but there is no harm in having all of them present.
 ├── notify_templates/
 │   ├── notify_DSM.sh
 │   ├── notify_apprise.sh
+│   ├── notify_bark.sh
 │   ├── notify_discord.sh
 │   ├── notify_generic.sh
 │   ├── notify_gotify.sh
@@ -204,20 +205,21 @@ The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to acco
 
 #### Current notify templates
 
-- Synology [DSM](https://www.synology.com/en-global/dsm)
-- Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
 - Apprise (with it's [multitude](https://github.com/caronc/apprise#supported-notifications) of notifications)
   - both native [caronc/apprise](https://github.com/caronc/apprise) and the standalone [linuxserver/docker-apprise-api](https://github.com/linuxserver/docker-apprise-api)
   - Read the [QuickStart](extras/apprise_quickstart.md)
-- [ntfy](https://ntfy.sh/) - HTTP-based pub-sub notifications.
+- [Bark](https://bark.day.app/) - iOS Push notifications.
+- [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
+- [DSM](https://www.synology.com/en-global/dsm) - Synology.
 - [Gotify](https://gotify.net/) - a simple server for sending and receiving messages.
 - [Home Assistant](https://www.home-assistant.io/integrations/notify/) - Connection to the notify [integrations](https://www.home-assistant.io/integrations/#notifications).
-- [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
-- [Telegram](https://telegram.org/) - Telegram chat API.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
+- [ntfy](https://ntfy.sh/) - HTTP-based pub-sub notifications.
+- [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
 - [Pushover](https://pushover.net/) - Simple Notifications (to your phone, wearables, desktops)
-- [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 - [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
+- SMTP Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
+- [Telegram](https://telegram.org/) - Telegram chat API.
 
 Further additions are welcome - suggestions or PRs!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>
