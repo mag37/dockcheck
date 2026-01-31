@@ -9,3 +9,8 @@ regctl
 snooze.list
 # ignore updates file
 updates_available.txt
+# ignore user compose files
+compose.yaml
+compose.yml
+docker-compose.yaml
+docker-compose.yml
