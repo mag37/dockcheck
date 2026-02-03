@@ -6,7 +6,12 @@ set -e
 # If the CRON_SCHEDULE and DOCKCHECK_ARGS environment variables are set, create the crontab entry for the dockcheck user
 if [ -n "$CRON_SCHEDULE" ] && [ -n "$DOCKCHECK_ARGS" ]; then
   # Write the environment variable content to a temporary file, ensuring a newline at the end
-  echo "$CRON_SCHEDULE" /app/dockcheck.sh "$DOCKCHECK_ARGS" > /app/crontab
+  echo "$CRON_SCHEDULE" /app/dockcheck.sh $DOCKCHECK_ARGS > /app/crontab
+
+  if [ -n "$DOCKCHECK_ONSTART" ]; then
+    echo "Executing: dockcheck $DOCKCHECK_ARGS"
+    /app/dockcheck.sh $DOCKCHECK_ARGS
+  fi
 
   # Support additional schedule variables
   for schedule_var in "${!CRON_SCHEDULE_@}"; do
@@ -14,7 +19,13 @@ if [ -n "$CRON_SCHEDULE" ] && [ -n "$DOCKCHECK_ARGS" ]; then
     schedule_value="${!schedule_var}"
     args_var="DOCKCHECK_ARGS_${suffix}"
     args_value="${!args_var}"
-    echo "$schedule_value" /app/dockcheck.sh "$args_value" >> /app/crontab
+    echo "$schedule_value" /app/dockcheck.sh $args_value >> /app/crontab
+
+    onstart_var="DOCKCHECK_ONSTART_${suffix}"
+    if [ -n "${!onstart_var}" ]; then
+      echo "Executing: dockcheck $args_value"
+      /app/dockcheck.sh $args_value
+    fi
   done
 
   echo "Crontab created."
