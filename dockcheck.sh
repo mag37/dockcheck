@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.5"
-# ChangeNotes: New option -b N to backup image before pulling for easy rollback.
+VERSION="v0.7.6"
+# ChangeNotes: Bugfixes and sanitation. Cleanup of default.config - migrate settings manually (optional).
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -36,7 +36,7 @@ Help() {
   echo "-a|y   Automatic updates, without interaction."
   echo "-b N   Enable image backups and sets number of days to keep from pruning."
   echo "-B     List currently backed up images, then exit."
-  echo "-c     Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
+  echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
@@ -49,10 +49,10 @@ Help() {
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
+  echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
-  echo "-r     Allow checking for updates/updating images for docker run containers. Won't update the container."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
-  echo "-t     Set a timeout (in seconds) per container for registry checkups, 10 is default."
+  echo "-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
   echo "-x N   Set max asynchronous subprocesses, 1 default, 0 to disable, 32+ tested."
