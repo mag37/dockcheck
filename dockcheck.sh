@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.6"
-# ChangeNotes: Bugfixes and sanitation. Cleanup of default.config - migrate settings manually (optional).
+VERSION="v0.7.7"
+# ChangeNotes: Start/restart stacks once. Skip failed pulls. Final summary notification.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -94,6 +94,7 @@ GotUpdates=()
 NoUpdates=()
 GotErrors=()
 SelectedUpdates=()
+Actions=()
 CurlArgs="--retry ${CurlRetryCount:=3} --retry-delay ${CurlRetryDelay:=1}  --connect-timeout ${CurlConnectTimeout:=5} -sf"
 regbin=""
 jqbin=""
@@ -159,6 +160,7 @@ fi
 if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
 if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi
 if [[ "$Notify" == true ]]; then
+  source "${ScriptWorkDir}/notify_templates/notify_v2.sh"
   source_if_exists_or_fail "${ScriptWorkDir}/notify.sh" || source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_v2.sh" || Notify=false
 fi
 if [[ -n "$Exclude" ]]; then
@@ -610,8 +612,10 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ "$DRunUp" == true ]]; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
+	  Actions+=("Pull $ContImage;Success;Manual rebuild with 'docker run'-parameters required")
         else
           printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
+	  Actions+=("Pull $ContImage;Skipped;Started with docker run")
         fi
         continue
       fi
@@ -619,8 +623,12 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if docker pull "$ContImage"; then
         # Removal of the <none>-tag image left behind from backup
         if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
+	SuccessfulUpdates+=("$i")
+	Actions+=("Pull $ContImage;Success")
       else
-        printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1
+	printf "\n%bError pulling update for %S. Skipping. %b\n" "$c_red" "$i" "$c_reset"
+        FailedUpdates+=("$i")
+	Actions+=("Pull $ContImage;Error")
       fi
 
     done
@@ -630,8 +638,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
       printf "%bSkipping container recreation due to -R.%b\n" "$c_yellow" "$c_reset"
     else
       printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
+      RestartedStacks=()
       CurrentQue=0
-      for i in "${SelectedUpdates[@]}"; do
+      for i in "${SuccessfulUpdates[@]}"; do
         ((CurrentQue+=1))
         unset CompleteConfs
         # Extract labels and metadata
@@ -654,16 +663,18 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
         if [[ "$ContStateRunning" == "true" ]]; then
           printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
+	  { [[ "${RestartedStacks[@]}" == *"$ContPath"* ]] && { [[ $OnlySpecific != true ]] || [[ $ContOnlySpecific != true ]] } } && printf "%bStack already restarted. Skipping.%b\n" "$c_yellow" "$c_reset"
         else
           printf  "\n%bSkipping recreation of %b%s%b as it's not running.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
+	  Actions+=("Recreate $i;Skipped;Not Running")
           continue
         fi
 
         # Checking if compose-values are empty - hence started with docker run
-        [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; continue; }
+	[[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; Actions+=("Recreate $i;Skipped;Not compose") ; continue; }
 
         # cd to the compose-file directory to account for people who use relative volumes
-        cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; continue; }
+	cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; Actions+=("Recreate $i;Skipped;Path error") ; continue; }
         # Reformatting path + multi compose
         if [[ $ContConfigFile == '/'* ]]; then
           CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
@@ -678,9 +689,13 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-          ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+          [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] && { ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d && Actions+=("Recreate $i;Success;Full stack restart") || { printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset" ; Actions+=("Recreate $i;Error;Failed to start stack") ; } }
+	  RestartedStacks+=("$ContPath")
         else
-          ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+          { [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]] } && { ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} && Actions+=("Recreate $i;Success;${SpecificContainer:-Stack}") || { printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset" ; Actions+=("Recreate $i;Error;Failed to start ${SpecificContainer:-Stack}") ; } }
+	  if [[ -z "${SpecificContainer:-}" ]]; then
+            RestartedStacks+=("$ContPath")
+	  fi
         fi
       done
     fi
@@ -689,7 +704,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
     # Trigger pruning only when backup-function is not used
     if [[ -z "${BackupForDays:-}" ]]; then
       if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
-      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
+      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f && Actions+=("Prune images;Success"); fi
     fi
 
   else
@@ -701,5 +716,8 @@ fi
 
 # Clean up old backup image tags if -b is used
 [[ -n "${BackupForDays:-}" ]] && remove_backups
+
+# Send final summary notification if enabled
+[[ "${Notify}" == true ]] && [[ "${ENABLE_SUMMARY_NOTIFICATION:-}" == true ]] && [[ "${#Actions[@]} -gt 0" ]] && { exec_if_exists_or_fail send_summary_notification || printf "Could not source summary notification function.\n"; }
 
 exit 0
