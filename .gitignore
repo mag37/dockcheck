@@ -14,3 +14,5 @@ compose.yaml
 compose.yml
 docker-compose.yaml
 docker-compose.yml
+# ignore log directory
+/log/

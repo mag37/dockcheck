@@ -13,20 +13,6 @@ ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
-# Source helper functions
-source_if_exists_or_fail() {
-  if [[ -s "$1" ]]; then
-    source "$1"
-    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
-    return 0
-  else
-    return 1
-  fi
-}
-
-# User customizable defaults
-source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
-
 # Help Function
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [comma separated names to include]"
@@ -49,6 +35,7 @@ Help() {
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
   echo "-p     Auto-prune dangling images after update."
+  echo "-q     Quiet mode. Minmal text output. Does not effect file based logging, if enabled."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
   echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
@@ -60,11 +47,50 @@ Help() {
   echo "Project source: $Github"
 }
 
-# Print current backups function
-print_backups() {
-  printf "\n%b---%b Currently backed up images %b---%b\n\n" "$c_teal" "$c_blue" "$c_teal" "$c_reset"
-  docker images | sed -ne '/^REPOSITORY/p' -ne '/^dockcheck/p'
+while getopts "ayb:BfFhiIlmMnpqrsuvc:e:d:t:x:R" options; do
+  case "${options}" in
+    a|y) AutoMode=true ;;
+    b)   BackupForDays="${OPTARG}" ;;
+    B)   PrintBackups=true ;;
+    c)   CollectorTextFileDirectory="${OPTARG}" ;;
+    d)   DaysOld=${OPTARG} ;;
+    e)   Exclude=${OPTARG} ;;
+    f)   ForceRestartStacks=true ;;
+    F)   OnlySpecific=true ;;
+    i)   Notify=true ;;
+    I)   PrintReleaseURL=true ;;
+    l)   OnlyLabel=true ;;
+    m)   MonoMode=true ;;
+    M)   PrintMarkdownURL=true ;;
+    n)   DontUpdate=true; AutoMode=true;;
+    p)   AutoPrune=true ;;
+    q)   Quiet=true ;;
+    R)   SkipRecreate=true ;;
+    r)   DRunUp=true ;;
+    s)   Stopped="-a" ;;
+    t)   Timeout="${OPTARG}" ;;
+    u)   AutoSelfUpdate=true ;;
+    v)   printf "%s\n" "$VERSION"; exit 0 ;;
+    x)   MaxAsync=${OPTARG} ;;
+    h|*) Help; exit 2 ;;
+  esac
+done
+shift "$((OPTIND-1))"
+
+# Source helper function
+source_if_exists_or_fail() {
+  if [[ -s "$1" ]]; then
+    source "$1"
+    # DisplaySourcedFiles used for debugging purposes only
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
+    return 0
+  else
+    return 1
+  fi
 }
+
+# User customizable defaults
+source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
 
 # Initialise variables
 Timeout=${Timeout:-10}
@@ -89,13 +115,17 @@ BackupForDays=${BackupForDays:-}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
+LogToFile=${LogToFile:-false}
+LogDaysToKeep=${LogDaysToKeep:-14}
+LOG_LEVEL=${LOG_LEVEL:-INFO}
+Quiet=${Quiet:-false}
 Excludes=()
 GotUpdates=()
 NoUpdates=()
 GotErrors=()
 SelectedUpdates=()
-Actions=()
 CurlArgs="--retry ${CurlRetryCount:=3} --retry-delay ${CurlRetryDelay:=1}  --connect-timeout ${CurlConnectTimeout:=5} -sf"
+LatestOutput=""
 regbin=""
 jqbin=""
 
@@ -111,34 +141,132 @@ c_reset="\033[0m"
 RunTimestamp=$(date +'%Y-%m-%d_%H%M')
 RunEpoch=$(date +'%s')
 
-while getopts "ayb:BfFhiIlmMnprsuvc:e:d:t:x:R" options; do
-  case "${options}" in
-    a|y) AutoMode=true ;;
-    b)   BackupForDays="${OPTARG}" ;;
-    B)   print_backups; exit 0 ;;
-    c)   CollectorTextFileDirectory="${OPTARG}" ;;
-    d)   DaysOld=${OPTARG} ;;
-    e)   Exclude=${OPTARG} ;;
-    f)   ForceRestartStacks=true ;;
-    F)   OnlySpecific=true ;;
-    i)   Notify=true ;;
-    I)   PrintReleaseURL=true ;;
-    l)   OnlyLabel=true ;;
-    m)   MonoMode=true ;;
-    M)   PrintMarkdownURL=true ;;
-    n)   DontUpdate=true; AutoMode=true;;
-    p)   AutoPrune=true ;;
-    R)   SkipRecreate=true ;;
-    r)   DRunUp=true ;;
-    s)   Stopped="-a" ;;
-    t)   Timeout="${OPTARG}" ;;
-    u)   AutoSelfUpdate=true ;;
-    v)   printf "%s\n" "$VERSION"; exit 0 ;;
-    x)   MaxAsync=${OPTARG} ;;
-    h|*) Help; exit 2 ;;
+# Duplicate stdout file descriptor for command output purposes
+exec 5>&1
+
+# Exec helper function
+# Executes the command and arguments passed while both outputting and capturing output to the LatestOutput variable while maintaining return status code
+exec_command() {
+  LatestOutput=""
+  if [[ "${Quiet}" == "false" ]]; then
+    LatestOutput=$("$@" | tee >(cat - >&5))
+  else
+    LatestOutput=$("$@")
+  fi
+
+  return $?
+}
+
+# File Log Path
+LogFile="${ScriptWorkDir}/log/${RunTimestamp}.log"
+[[ "${LogToFile}" == "true" ]] && mkdir -p $(dirname "${LogFile}")
+
+# Assign log level to number (based on OpenTelemetry log severity values)
+# Acceptable values are recognized strings or an integer between 0 and 24
+log_severity() {
+  local loglevel="$1"
+  local levelnum=0
+
+  case "${loglevel}" in
+    TRACE)
+        levelnum=1
+        ;;
+    DEBUG)
+        levelnum=5
+        ;;
+    INFO)
+        levelnum=9
+        ;;
+    WARN)
+        levelnum=13
+        ;;
+    ERROR)
+        levelnum=17
+        ;;
+    FATAL)
+        levelnum=21
+        ;;
+    *)
+        if [[ "${loglevel}" =~ ^[0-9]+$ ]]; then
+          if [[ $loglevel -ge 0 ]] && [[ $loglevel -le 24 ]]; then
+            levelnum=${loglevel}
+          else
+            levelnum=0
+          fi
+        else
+          levelnum=0
+        fi
+        ;;
   esac
-done
-shift "$((OPTIND-1))"
+
+  echo ${levelnum}
+}
+
+LOG_LEVEL_NUM=$(log_severity $LOG_LEVEL)
+
+# Logger helper functions
+# Log and print out. For script managed output.
+log_print() {
+  local logvar="$1"
+  local loglevel="$2"
+  local format="$3"
+  shift 3
+
+  levelnum=$(log_severity ${loglevel})
+
+  local buffer=""
+
+  if [[ $levelnum -ge $LOG_LEVEL_NUM ]]; then
+    # Don't print if in quiet mode
+    [[ "$Quiet" == "false" ]] && printf "${format}\n" "$@"
+    # Also log to buffer and file if configured
+    log "$logvar" "$loglevel" "$format" "$@"
+  fi
+}
+
+# Log only. For use with command executions that already send output or when no stdout is desired.
+log() {
+  local logvar="$1"
+  local loglevel="$2"
+  local format="$3"
+  shift 3
+
+  levelnum=$(log_severity ${loglevel})
+
+  local buffer=""
+
+  if [[ $levelnum -ge $LOG_LEVEL_NUM ]]; then
+    printf -v buffer "${format}" "$@" # store in buffer
+
+    # optionally output to file if enabled
+    # Replace all newlines with literal \n and remove all color codes
+    [[ "${LogToFile}" == "true" ]] && { printf "[%(%Y-%m-%d %H:%M:%S)T] [%-5s] ${format}" -1 "$loglevel" "$@" | awk '{printf "%s\\n", $0}' | sed -r 's/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g'; echo; } >> "${LogFile}" # write to file
+
+    declare -n out_array="${logvar}"
+    out_array+=("${buffer}")
+  fi
+}
+
+log_cleanup() {
+  find "$(dirname "${LogFile}")" -type f -name '*.log' -mtime +${LogDaysToKeep} -exec rm {} \;
+}
+
+print_buffer() {
+  declare -n buffer="$1"
+  local BufToString
+
+  if [[ "${#buffer[@]}" -gt 0 ]]; then
+    BufToString=$( printf '%s' "${buffer[@]}" )
+    echo "${BufToString}"
+  fi
+}
+
+# Print current backups function
+print_backups() {
+  printf "\n%b---%b Currently backed up images %b---%b\n\n" "$c_teal" "$c_blue" "$c_teal" "$c_reset"
+  docker images --format table | sed -ne '/^REPOSITORY/p' -ne '/^dockcheck/p'
+}
+[[ "${PrintBackups:-false}" == "true" ]] && { exec_command print_backups; log backupbuf INFO "$LatestOutput"; exit 0; }
 
 # Set $1 to a variable for name filtering later, rewriting if multiple
 SearchName="${1:-}"
@@ -160,7 +288,6 @@ fi
 if [[ "$DontUpdate" == true ]]; then AutoMode=true; fi
 if [[ "$MonoMode" == true ]]; then declare c_{red,green,yellow,blue,teal,reset}=""; fi
 if [[ "$Notify" == true ]]; then
-  source "${ScriptWorkDir}/notify_templates/notify_v2.sh"
   source_if_exists_or_fail "${ScriptWorkDir}/notify.sh" || source_if_exists_or_fail "${ScriptWorkDir}/notify_templates/notify_v2.sh" || Notify=false
 fi
 if [[ -n "$Exclude" ]]; then
@@ -408,7 +535,7 @@ list_options() {
 # Version check & initiate self update
 if [[ "$LatestSnippet" != "undefined" ]]; then
   if [[ "$VERSION" != "$LatestRelease" ]]; then
-    printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+    log_print mainbuf INFO "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
     if [[ "$AutoMode" == false ]]; then
       read -r -p "Would you like to update? y/[n]: " SelfUpdate
       [[ "$SelfUpdate" =~ [yY] ]] && self_update
@@ -518,7 +645,7 @@ fi
 # Asynchronously check the image-hash of every running container VS the registry
 while read -r line; do
   ((RegCheckQue+=1))
-  if [[ "$MonoMode" == false ]]; then progress_bar "$RegCheckQue" "$ContCount"; fi
+  if [[ "$MonoMode" == false ]]; then exec_command progress_bar "$RegCheckQue" "$ContCount"; fi
 
   Got=${line%% *}  # Extracts the first word (NoUpdates, GotUpdates, GotErrors)
   item=${line#* }
@@ -612,23 +739,23 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ "$DRunUp" == true ]]; then
           docker pull "$ContImage"
           printf "%s\n" "$i got a new image downloaded, rebuild manually with preferred 'docker run'-parameters"
-	  Actions+=("Pull $ContImage;Success;Manual rebuild with 'docker run'-parameters required")
+          log actionbuf INFO "Pull $ContImage;Success;Manual rebuild with 'docker run'-parameters required"
         else
           printf "\n%b%s%b has no compose labels, probably started with docker run - %bskipping%b\n\n" "$c_yellow" "$i" "$c_reset" "$c_yellow" "$c_reset"
-	  Actions+=("Pull $ContImage;Skipped;Started with docker run")
+          log actionbuf INFO "Pull $ContImage;Skipped;Started with docker run"
         fi
         continue
       fi
 
-      if docker pull "$ContImage"; then
+      if exec_command docker pull "$ContImage"; then
         # Removal of the <none>-tag image left behind from backup
         if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
-	SuccessfulUpdates+=("$i")
-	Actions+=("Pull $ContImage;Success")
+          SuccessfulUpdates+=("$i")
+          log actionbuf INFO "Pull $ContImage;Success"
       else
-	printf "\n%bError pulling update for %S. Skipping. %b\n" "$c_red" "$i" "$c_reset"
+        printf "\n%bError pulling update for %S. Skipping. %b\n" "$c_red" "$i" "$c_reset"
         FailedUpdates+=("$i")
-	Actions+=("Pull $ContImage;Error")
+        log actionbuf ERROR "Pull $ContImage;Error"
       fi
 
     done
@@ -663,18 +790,17 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
         if [[ "$ContStateRunning" == "true" ]]; then
           printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
-	  { [[ "${RestartedStacks[@]}" == *"$ContPath"* ]] && { [[ $OnlySpecific != true ]] || [[ $ContOnlySpecific != true ]] } } && printf "%bStack already restarted. Skipping.%b\n" "$c_yellow" "$c_reset"
         else
           printf  "\n%bSkipping recreation of %b%s%b as it's not running.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
-	  Actions+=("Recreate $i;Skipped;Not Running")
+          log actionbuf INFO "Recreate $i;Skipped;Not Running"
           continue
         fi
 
         # Checking if compose-values are empty - hence started with docker run
-	[[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; Actions+=("Recreate $i;Skipped;Not compose") ; continue; }
+        [[ -z "$ContPath" ]] && { echo "Not a compose container, skipping."; log actionbuf INFO "Recreate $i;Skipped;Not compose" ; continue; }
 
         # cd to the compose-file directory to account for people who use relative volumes
-	cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; Actions+=("Recreate $i;Skipped;Path error") ; continue; }
+        cd "$ContPath" || { printf "\n%bPath error - skipping%b %s" "$c_red" "$c_reset" "$i"; log actionbuf INFO "Recreate $i;Skipped;Path error" ; continue; }
         # Reformatting path + multi compose
         if [[ $ContConfigFile == '/'* ]]; then
           CompleteConfs=$(for conf in ${ContConfigFile//,/ }; do printf -- "-f %s " "$conf"; done)
@@ -689,13 +815,34 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-          [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] && { ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d && Actions+=("Recreate $i;Success;Full stack restart") || { printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset" ; Actions+=("Recreate $i;Error;Failed to start stack") ; } }
-	  RestartedStacks+=("$ContPath")
+          # Restart if compose path has not already been restarted
+          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]]; then # Restart if stack has not already been restarted
+            if ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d; then
+              log actionbuf INFO "Recreate $i;Success;Full stack restart"
+              RestartedStacks+=("$ContPath")
+            else
+              printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
+              log actionbuf INFO "Recreate $i;Error;Failed to start stack"
+            fi
+          else
+            printf "%bStack already restarted. Skipping.%b\n" "$c_yellow" "$c_reset"
+          fi
         else
-          { [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]] } && { ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} && Actions+=("Recreate $i;Success;${SpecificContainer:-Stack}") || { printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset" ; Actions+=("Recreate $i;Error;Failed to start ${SpecificContainer:-Stack}") ; } }
-	  if [[ -z "${SpecificContainer:-}" ]]; then
-            RestartedStacks+=("$ContPath")
-	  fi
+          # Restart if compose path has not already been restarted or specific container(s) are configured to be restarted individually
+          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
+            if ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer}; then
+              log actionbuf INFO "Recreate $i;Success;${SpecificContainer:-Stack}"
+              # Consider stack restarted only if specific container is not set
+              if [[ -z "${SpecificContainer:-}" ]]; then
+                RestartedStacks+=("$ContPath")
+              fi
+            else
+              printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
+              log actionbuf INFO "Recreate $i;Error;Failed to start ${SpecificContainer:-Stack}"
+            fi
+          else
+            printf "%bStack already restarted. Skipping.%b\n" "$c_yellow" "$c_reset"
+          fi
         fi
       done
     fi
@@ -704,7 +851,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
     # Trigger pruning only when backup-function is not used
     if [[ -z "${BackupForDays:-}" ]]; then
       if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
-      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f && Actions+=("Prune images;Success"); fi
+      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f && log actionbuf INFO "Prune images;Success"; fi
     fi
 
   else
@@ -718,6 +865,10 @@ fi
 [[ -n "${BackupForDays:-}" ]] && remove_backups
 
 # Send final summary notification if enabled
-[[ "${Notify}" == true ]] && [[ "${ENABLE_SUMMARY_NOTIFICATION:-}" == true ]] && [[ "${#Actions[@]} -gt 0" ]] && { exec_if_exists_or_fail send_summary_notification || printf "Could not source summary notification function.\n"; }
+[[ "${Notify}" == true ]] && [[ "${ENABLE_SUMMARY_NOTIFICATION:-}" == true ]] && [[ -n "${actionbuf:-}" ]] && [[ "${#actionbuf[@]} -gt 0" ]] && { exec_if_exists_or_fail send_summary_notification || printf "Could not source summary notification function.\n"; }
+
+if [[ -d $(dirname "${LogFile}") ]]; then
+  log_cleanup
+fi
 
 exit 0

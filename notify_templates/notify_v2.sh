@@ -317,7 +317,7 @@ send_summary_notification() {
 
   MessageTitle="$FromHost - Action summary"
 
-  UpdToString=$( printf '%s\\n' "${Actions[@]}" )
+  UpdToString=$( printf '%s\\n' "${actionbuf[@]}" )
   UpdToString="${UpdToString%, }"
   UpdToString=${UpdToString%\\n}
 
