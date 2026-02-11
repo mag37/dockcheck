@@ -180,7 +180,7 @@ format_output() {
   local FormattedTextTemplate="$3"
   local tempcsv=""
 
-  if [[ "${UpdateType}" == "summary" ]]; then
+  if [[ "${UpdateType}" == "buffer" ]]; then
     tempcsv="${UpdToString//;/,}"
   elif [[ ! "${UpdateType}" == "dockcheck_update" ]]; then
     tempcsv="${UpdToString//  ->  /,}"
@@ -196,17 +196,17 @@ format_output() {
       FormattedOutput="${tempcsv}"
     fi
   elif [[ "${OutputFormat}" == "json" ]]; then
-    if [[ "${UpdateType}" == "summary" ]] && [[ -z "${UpdToString}" ]]; then
-      FormattedOutput='{"actions": []}'
+    if [[ "${UpdateType}" == "buffer" ]] && [[ -z "${UpdToString}" ]]; then
+      FormattedOutput='{"buffer": []}'
     elif [[ -z "${UpdToString}" ]]; then
       FormattedOutput='{"updates": []}'
     else
       if [[ "${UpdateType}" == "container_update" ]]; then
         # container updates case
         FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"container_name": .[0], "release_notes": .[1]})} | del(..|nulls)')
-      elif [[ "${UpdateType}" == "summary" ]]; then
-        # final summary notification case
-	FormattedOutput=$(jq --compact-output --null-input --arg actions "${tempcsv}" '($actions | split("\\n")) | map(split(",")) | {"actions": map({"action": .[0], "result": .[1], "description": .[2]})} | del(..|nulls)')
+      elif [[ "${UpdateType}" == "buffer" ]]; then
+        # buffer notification case
+        FormattedOutput=$(jq --compact-output --null-input --arg buffer "${tempcsv}" '($buffer | split("\\n")) | map(split(",")) | {"events": map({"event": .[0], "result": .[1], "description": .[2]})} | del(..|nulls)')
       elif [[ "${UpdateType}" == "notify_update" ]]; then
         # script updates case
         FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2]})}')
@@ -223,7 +223,7 @@ format_output() {
     else
       if [[ "${UpdateType}" == "container_update" ]]; then
         FormattedOutput="${FormattedTextTemplate/<insert_text_cu>/${UpdToString}}"
-      elif [[ "${UpdateType}" == "summary" ]]; then
+      elif [[ "${UpdateType}" == "buffer" ]]; then
         FormattedOutput="${FormattedTextTemplate/<insert_text_sn>/${UpdToString}}"
       elif [[ "${UpdateType}" == "notify_update" ]]; then
         FormattedOutput="${FormattedTextTemplate/<insert_text_nu>/${UpdToString}}"
@@ -310,31 +310,31 @@ send_notification() {
   return 0
 }
 
-### Set ENABLE_SUMMARY_NOTIFICATION=true in dockcheck.config
-### to send a final action summary notification
-send_summary_notification() {
+### Set notification settings in dockcheck.config
+### to send buffer notifications
+send_buffer_notification() {
   Notified="false"
 
-  MessageTitle="$FromHost - Action summary"
+  declare -n buffer="$1"
 
-  UpdToString=$( printf '%s\\n' "${actionbuf[@]}" )
-  UpdToString="${UpdToString%, }"
-  UpdToString=${UpdToString%\\n}
+  MessageTitle="$FromHost - ${2:-$1}"
+
+  UpdToString=$( printf '%s' "${buffer[@]}" )
 
   for channel in "${enabled_notify_channels[@]}"; do
-    local SkipNotification=$(skip_notification "${channel}" "1" "summary")
+    local SkipNotification=$(skip_notification "${channel}" "1" "buffer")
     if [[ "${SkipNotification}" == "false" ]]; then
       local template=$(get_channel_template "${channel}")
 
       # Formats UpdToString variable per channel settings
-      format_output "summary" "$(output_format "${channel}")" "🐋 Actions taken by $FromHost:\n<insert_text_sn>\n"
+      format_output "buffer" "$(output_format "${channel}")" "🐋 ${2:-Events} on $FromHost:\n<insert_text_sn>\n"
 
       # Setting the MessageBody variable here.
       printf -v MessageBody "${FormattedOutput}"
 
-      printf "\nSending ${channel} summary notification"
+      printf "\nSending ${channel} buffer notification"
       exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
-      printf "\nAttempted to send summary notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
+      printf "\nAttempted to send buffer notification to channel ${channel}, but the function was not found. Make sure notify_${template}.sh is available in the ${ScriptWorkDir} directory or notify_templates subdirectory."
       Notified="true"
     fi
   done

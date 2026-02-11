@@ -218,7 +218,7 @@ log_print() {
 
   if [[ $levelnum -ge $LOG_LEVEL_NUM ]]; then
     # Don't print if in quiet mode
-    [[ "$Quiet" == "false" ]] && printf "${format}\n" "$@"
+    [[ "$Quiet" == "false" ]] && printf "${format}" "$@"
     # Also log to buffer and file if configured
     log "$logvar" "$loglevel" "$format" "$@"
   fi
@@ -240,7 +240,10 @@ log() {
 
     # optionally output to file if enabled
     # Replace all newlines with literal \n and remove all color codes
-    [[ "${LogToFile}" == "true" ]] && { printf "[%(%Y-%m-%d %H:%M:%S)T] [%-5s] ${format}" -1 "$loglevel" "$@" | awk '{printf "%s\\n", $0}' | sed -r 's/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g'; echo; } >> "${LogFile}" # write to file
+    [[ "${LogToFile}" == "true" ]] && \
+      { printf "[%(%Y-%m-%d %H:%M:%S)T] [%-5s] ${format}" -1 "$loglevel" "$@" | \
+        awk 'NR > 1 {printf "%s\\n", prev} {prev = $0} END {printf "%s\n", prev}' | \
+        sed -r 's/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g'; } >> "${LogFile}"
 
     declare -n out_array="${logvar}"
     out_array+=("${buffer}")
@@ -255,9 +258,15 @@ print_buffer() {
   declare -n buffer="$1"
   local BufToString
 
-  if [[ "${#buffer[@]}" -gt 0 ]]; then
-    BufToString=$( printf '%s' "${buffer[@]}" )
-    echo "${BufToString}"
+  if [[ -n "${buffer:-}" ]] && [[ "${#buffer[@]}" -gt 0 ]]; then
+    if [[ "${2:-}" != "notifyonly" ]]; then
+      BufToString=$( printf '%s' "${buffer[@]}" )
+      echo "${BufToString}"
+    fi
+
+    if [[ "${2:-}" == "notify" ]] || [[ "${2:-}" == "notifyonly" ]]; then
+      exec_if_exists_or_fail send_buffer_notification $1 ${3:-} || printf "Could not source buffer notification function.\n";
+    fi
   fi
 }
 
@@ -865,7 +874,7 @@ fi
 [[ -n "${BackupForDays:-}" ]] && remove_backups
 
 # Send final summary notification if enabled
-[[ "${Notify}" == true ]] && [[ "${ENABLE_SUMMARY_NOTIFICATION:-}" == true ]] && [[ -n "${actionbuf:-}" ]] && [[ "${#actionbuf[@]} -gt 0" ]] && { exec_if_exists_or_fail send_summary_notification || printf "Could not source summary notification function.\n"; }
+[[ "${Notify}" == true ]] && [[ "${ENABLE_SUMMARY_NOTIFICATION:-}" == true ]] && print_buffer actionbuf notifyonly Actions;
 
 if [[ -d $(dirname "${LogFile}") ]]; then
   log_cleanup
