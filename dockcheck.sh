@@ -648,7 +648,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         ContRestartStack=$($jqbin -r '."mag37.dockcheck.restart-stack"' <<< "$ContLabels")
         [[ "$ContRestartStack" == "null" ]] && ContRestartStack=""
         ContOnlySpecific=$($jqbin -r '."mag37.dockcheck.only-specific-container"' <<< "$ContLabels")
-        [[ "$ContOnlySpecific" == "null" ]] && ContRestartStack=""
+        [[ "$ContOnlySpecific" == "null" ]] && ContOnlySpecific=""
         ContStateRunning=$($jqbin -r '."State"."Running"' <<< "$ContConfig")
         [[ "$ContStateRunning" == "null" ]] && ContStateRunning=""
 
@@ -678,7 +678,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-          ${DockerBin} ${CompleteConfs} stop; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+          ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         else
           ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         fi
