@@ -99,7 +99,7 @@ Containers with updates available:
 03) whoogle-search
 
 Choose what containers to update:
-Enter number(s) separated by comma or ranges (e.g. 1-2,4-5), [a] for all - [q] to quit: 1-2
+Enter number(s) separated by comma or range(s) (e.g. 1-2,4-5), [a] for all - [q] to quit: 1-2
 ```
 
 Then it proceeds to run `pull` and `up -d` on every container with updates.  

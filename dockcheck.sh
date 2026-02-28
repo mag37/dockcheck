@@ -229,7 +229,7 @@ self_update() {
 
 choosecontainers() {
   while [[ -z "${ChoiceClean:-}" ]]; do
-    read -r -p "Enter number(s) separated by comma or ranges (e.g. 1-2,4-5), [a] for all - [q] to quit: " Choice
+    read -r -p "Enter number(s) separated by comma or range(s) (e.g. 1-2,4-5), [a] for all - [q] to quit: " Choice
     if [[ "$Choice" =~ [qQnN] ]]; then
       [[ -n "${BackupForDays:-}" ]] && remove_backups
       exit 0
