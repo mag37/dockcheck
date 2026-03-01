@@ -705,7 +705,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
     # Trigger pruning only when backup-function is not used
     if [[ -z "${BackupForDays:-}" ]]; then
       if [[ "$AutoPrune" == false ]] && [[ "$AutoMode" == false ]]; then printf "\n"; read -rep "Would you like to prune all dangling images? y/[n]: " AutoPrune; fi
-      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
+      if [[ "$AutoPrune" == true ]] || [[ "$AutoPrune" =~ [yY] ]]; then printf "\nAuto pruning.."; docker image prune -f && AlreadyPruned="true" ; fi
     fi
 
   else
@@ -715,7 +715,11 @@ else
   printf "\nNo updates available.\n"
 fi
 
-# Clean up old backup image tags if -b is used
-[[ -n "${BackupForDays:-}" ]] && remove_backups
+# Clean up old backup image tags if -b is used otherwise prune if auto-prune is set
+if [[ -n "${BackupForDays:-}" ]]; then
+  remove_backups
+else
+  if [[ "$AutoPrune" == true ]] && [[ "${AlreadyPruned:=false}" != true ]]; then printf "\nAuto pruning.."; docker image prune -f; fi
+fi
 
 exit 0
