@@ -229,7 +229,7 @@ self_update() {
 
 choosecontainers() {
   while [[ -z "${ChoiceClean:-}" ]]; do
-    read -r -p "Enter number(s) separated by comma, [a] for all - [q] to quit: " Choice
+    read -r -p "Enter number(s) or range(s) separated by comma (e.g. 1-2,4-5,09), [a] for all - [q] to quit: " Choice
     if [[ "$Choice" =~ [qQnN] ]]; then
       [[ -n "${BackupForDays:-}" ]] && remove_backups
       exit 0
@@ -238,12 +238,28 @@ choosecontainers() {
       ChoiceClean=${Choice//[,.:;]/ }
     else
       ChoiceClean=${Choice//[,.:;]/ }
+      SelectedUpdates=()
       for CC in $ChoiceClean; do
-        CC=$((10#$CC)) # Base 10 interpretation to strip leading zeroes
-        if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]]; then # Reset choice if out of bounds
-          echo "Number not in list: $CC"; unset ChoiceClean; break 1
+        if [[ "$CC" == *-* ]]; then
+          if [[ "$CC" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+            # Enforce base 10 to avoid octal parsing of leading zeroes
+            RangeStart=$((10#${BASH_REMATCH[1]}))
+            RangeEnd=$((10#${BASH_REMATCH[2]}))
+            if [[ "$RangeStart" -lt 1 || "$RangeEnd" -gt $UpdCount || "$RangeStart" -gt "$RangeEnd" ]]; then
+              echo "Entered list is out of bounds: $CC"; unset ChoiceClean; break 1
+            else
+              for ((idx=RangeStart; idx<=RangeEnd; idx++)); do SelectedUpdates+=( "${GotUpdates[$idx-1]}" ); done
+            fi
+          else
+            echo "Invalid range: $CC"; unset ChoiceClean; break 1
+          fi
         else
-          SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
+          CC=$((10#$CC)) # Base 10 interpretation to strip leading zeroes
+          if [[ "$CC" -lt 1 || "$CC" -gt $UpdCount ]]; then # Reset choice if out of bounds
+            echo "Number not in list: $CC"; unset ChoiceClean; break 1
+          else
+            SelectedUpdates+=( "${GotUpdates[$CC-1]}" )
+          fi
         fi
       done
     fi
