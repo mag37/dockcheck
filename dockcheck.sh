@@ -396,7 +396,7 @@ dependency_check() {
           binary_downloader "$AppName" "$AppUrl"
           [[ -f "$ScriptWorkDir/$AppName" ]] && { export "$AppVar"="$ScriptWorkDir/$1" && printf "\n%b%s downloaded.%b\n" "$c_green" "$AppName" "$c_reset"; }
       fi
-    else printf "\n%bDependency missing, exiting.%b\n" "$c_red" "$c_reset"; exit 1;
+    else printf "\n%bDependency '%s' missing, exiting.%b\n" "$c_red" "$AppName" "$c_reset"; exit 1;
     fi
   fi
   # Final check if binary is correct
