@@ -671,8 +671,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ "$ContStateRunning" == "true" ]]; then
           printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
         else
-          printf  "\n%bSkipping recreation of %b%s%b as it's not running.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
-          continue
+          printf  "\n%bStarting %b%s%b to apply update.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
         fi
 
         # Checking if compose-values are empty - hence started with docker run
