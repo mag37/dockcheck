@@ -650,6 +650,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       for i in "${SelectedUpdates[@]}"; do
         ((CurrentQue+=1))
         unset CompleteConfs
+        ContStopAfter=false
         # Extract labels and metadata
         ContConfig=$(docker inspect "$i" --format '{{json .}}')
         ContLabels=$($jqbin -r '."Config"."Labels"' <<< "$ContConfig")
@@ -671,8 +672,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ "$ContStateRunning" == "true" ]]; then
           printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
         else
-          printf  "\n%bSkipping recreation of %b%s%b as it's not running.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
-          continue
+          ContStopAfter=true
+          printf  "\n%bRecreating %b%s%b to apply update - then stopping to return to current state.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
         fi
 
         # Checking if compose-values are empty - hence started with docker run
@@ -697,6 +698,11 @@ if [[ -n "${GotUpdates:-}" ]]; then
           ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         else
           ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        fi
+
+        # Restore the stopped state of updated cotainers
+        if [[ "$ContStopAfter" == true ]]; then
+          ${DockerBin} ${CompleteConfs} stop ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         fi
       done
     fi
