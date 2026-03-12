@@ -23,6 +23,14 @@ ___
 
 ## Changelog
 
+- **v0.7.7**:
+  - New:
+    - More URLs to urls.list.
+    - Allowing ranges to be used when selecting containers to update.
+    - Added XMPP notification template.
+  - Fixes:
+    - Changed "restart-stack" behavior to down+up instead of stop+up.
+    - `-s` option now recreates stopped containers and then stops them again.
 - **v0.7.6**:
   - New:
     - Added Bark notify-template.
@@ -76,7 +84,7 @@ Options:
 -p     Auto-Prune dangling images after update.
 -r     Allow checking/updating images created by `docker run`, containers need to be recreated manually.
 -R     Skip container recreation after pulling images.
--s     Include stopped containers in the check. (Logic: docker ps -a).
+-s     Include stopped containers, returns to stopped state after recreation.
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -u     Allow automatic self updates - caution as this will pull new code and autorun it.
 -v     Prints current version.
@@ -175,7 +183,8 @@ you wish to enable, but there is no harm in having all of them present.
 │   ├── notify_slack.sh
 │   ├── notify_smtp.sh
 │   ├── notify_telegram.sh
-│   └── notify_v2.sh
+│   ├── notify_v2.sh
+│   └── notify_xmpp.sh
 ├── dockcheck.config
 ├── dockcheck.sh
 └── urls.list         # optional
@@ -219,6 +228,7 @@ The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to acco
 - [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 - SMTP Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
 - [Telegram](https://telegram.org/) - Telegram chat API.
+- [XMPP](https://xmpp.org/getting-started/) - XMPP chat notifications.
 
 Further additions are welcome - suggestions or PRs!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>

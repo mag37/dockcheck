@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.6"
-# ChangeNotes: Bugfixes and sanitation. Cleanup of default.config - migrate settings manually (optional).
+VERSION="v0.7.7"
+# ChangeNotes: xmpp template added, ranges for selection possible, restart-stack and -s reworked.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -51,7 +51,7 @@ Help() {
   echo "-p     Auto-prune dangling images after update."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
-  echo "-s     Include stopped containers in the check. (Logic: docker ps -a)."
+  echo "-s     Include stopped containers, returns to stopped state after recreation."
   echo "-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
