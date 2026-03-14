@@ -9,7 +9,6 @@ RUN apk update && apk add --no-cache bash curl docker-cli docker-cli-compose sup
 # Copy the script files into the container
 COPY entrypoint.sh /app/entrypoint.sh
 COPY dockcheck.sh /app/dockcheck.sh
-COPY urls.list /app/urls.list
 COPY notify_templates /app/notify_templates
 COPY extras /app/extras
 COPY addons /app/addons
