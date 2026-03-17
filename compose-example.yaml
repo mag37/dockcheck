@@ -1,6 +1,9 @@
 services:
   dockcheck:
-    image: dockcheck:latest
+    container_name: dockcheck
+    hostname: dockerHostXYZ # The name that will be used in notifications
+    build: . # Currently building locally for testing before publishing
+    # image: dockcheck:latest
     restart: unless-stopped
     environment:
       CRON_SCHEDULE: "0 * * * *"
@@ -12,4 +15,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dockcheck.config:/app/dockcheck.config
       - /path/to/projects/docker:/path/to/projects/docker:ro # add a volume (or volumes, if needed) mapping your Docker project directories to the container
-      - ./urls.list/:/app/urls.list # optional volume to enable displaying releasenote urls
+      - ./urls.list/:/app/urls.list # optional volume to enable displaying releasenote urls, can also reference the `./notify_templates/urls.list` 
