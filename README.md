@@ -238,19 +238,19 @@ Further additions are welcome - suggestions or PRs!
 All required environment variables for each notification channel are provided in the default.config file as comments and must be uncommented and modified for your requirements.  
 For advanced users, additional functionality is available via custom configurations and environment variables.  
 Use cases - all configured in `dockcheck.config`:  
-(replace `<channel>` with the upper case name of the of the channel as listed in
+(replace `<CHANNEL>` with the upper case name of the of the channel as listed in
 `NOTIFY_CHANNELS` variable, eg `TELEGRAM_SKIPSNOOZE`)
 
-- To bypass the snooze feature, even when enabled, add the variable `<channel>_SKIPSNOOZE` and set it to `true`.
-- To configure the channel to only send container update notifications, add the variable `<channel>_CONTAINERSONLY` and set it to `true`.
-- To send notifications even when there are no updates available, add the variable `<channel>_ALLOWEMPTY`  and set it to `true`.
-- To use another notification output format, add the variable `<channel>_OUTPUT` and set it to `csv`, `json`, or `text`. If unset or set to an invalid value, defaults to `text`.
+- To bypass the snooze feature, even when enabled, add the variable `<CHANNEL>_SKIPSNOOZE` and set it to `true`.
+- To configure the channel to only send container update notifications, add the variable `<CHANNEL>_CONTAINERSONLY` and set it to `true`.
+- To send notifications even when there are no updates available, add the variable `<CHANNEL>_ALLOWEMPTY`  and set it to `true`.
+- To use another notification output format, add the variable `<CHANNEL>_OUTPUT` and set it to `csv`, `json`, or `text`. If unset or set to an invalid value, defaults to `text`.
 - To send multiple notifications using the same notification template:
   - Strings in the `NOTIFY_CHANNELS` list are now treated as unique names and do not necessarily refer to the notification template that will be called, though they do by default.
   - Add another notification channel to `NOTIFY_CHANNELS` in `dockcheck.config`. The name can contain upper and lower case letters, numbers and underscores, but can't start with a number.
-  - Add the variable `<channel>_TEMPLATE` to `dockcheck.config` where `<channel>` is the name of the channel added above and set the value to an available notification template script (`slack`, `apprise`, `gotify`, etc.)
-  - Add all other environment variables required for the chosen template to function with `<channel>` in upper case as the prefix rather than the template name.
-    - For example, if `<channel>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
+  - Add the variable `<CHANNEL>_TEMPLATE` to `dockcheck.config` where `<CHANNEL>` is the name of the channel added above and set the value to an available notification template script (`slack`, `apprise`, `gotify`, etc.)
+  - Add all other environment variables required for the chosen template to function with `<CHANNEL>` in upper case as the prefix rather than the template name.
+    - For example, if `<CHANNEL>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
 
 #### Release notes addon
 
