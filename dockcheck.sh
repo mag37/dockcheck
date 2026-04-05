@@ -34,7 +34,7 @@ Help() {
   echo
   echo "Options:"
   echo "-a|y   Automatic updates, without interaction."
-  echo "-b N   Enable image backups and sets number of days to keep from pruning."
+  echo "-b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune."
   echo "-B     List currently backed up images, then exit."
   echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
@@ -48,7 +48,7 @@ Help() {
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
-  echo "-p     Auto-prune dangling images after update."
+  echo "-p     Auto-prune dangling images after update. Ignored when -b is used."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
   echo "-s     Include stopped containers, returns to stopped state after recreation."
