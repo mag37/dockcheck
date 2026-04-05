@@ -67,7 +67,7 @@ Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall
 
 Options:
 -a|y   Automatic updates, without interaction.
--b N   Enable image backups and sets number of days to keep from pruning.
+-b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune.
 -B     List currently backed up images, then exit.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
@@ -81,7 +81,7 @@ Options:
 -m     Monochrome mode, no printf colour codes and hides progress bar.
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
--p     Auto-Prune dangling images after update.
+-p     Auto-Prune dangling images after update. Ignored when -b is used.
 -r     Allow checking/updating images created by `docker run`, containers need to be recreated manually.
 -R     Skip container recreation after pulling images.
 -s     Include stopped containers, returns to stopped state after recreation.
@@ -294,6 +294,8 @@ After that, start the container again (now with the backup image active) and it 
 The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
 If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  
 Backed up images will not be removed if neither `-b` flag nor `BackupForDays` config variable is set.
+
+When backups are enabled, the `-p` auto-prune option is ignored to preserve backed up images.
 
 Use the capital option `-B` to list currently backed up images. Or list all images with `docker images`.  
 To manually remove any backed up images, do `docker rmi dockcheck/homer:2025-10-26_1132_latest`.  
