@@ -321,7 +321,7 @@ dockcheck_notification() {
         format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
 
         # Setting the MessageBody variable here.
-        printf -v MessageBody "${FormattedOutput}"
+        printf -v MessageBody "%s" "${FormattedOutput}"
 
         printf "\nSending dockcheck update notification - ${channel}"
         exec_if_exists_or_fail trigger_${template}_notification "${channel}" || \
