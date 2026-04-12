@@ -48,6 +48,7 @@ Help() {
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
+  echo "-o     Hides the \"No updates available\" message" and only shows updateable images
   echo "-p     Auto-prune dangling images after update. Ignored when -b is used."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
@@ -86,6 +87,7 @@ CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
 BackupForDays=${BackupForDays:-}
+OnlyShowUpdateable=${OnlyShowUpdateable:-false}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
@@ -110,7 +112,7 @@ c_reset="\033[0m"
 RunTimestamp=$(date +'%Y-%m-%d_%H%M')
 RunEpoch=$(date +'%s')
 
-while getopts "ayb:BfFhiIlmMnprsuvc:e:d:t:x:R" options; do
+while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
@@ -126,6 +128,7 @@ while getopts "ayb:BfFhiIlmMnprsuvc:e:d:t:x:R" options; do
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
     n)   DontUpdate=true; AutoMode=true;;
+    o)   OnlyShowUpdateable=true ;;
     p)   AutoPrune=true ;;
     R)   SkipRecreate=true ;;
     r)   DRunUp=true ;;
@@ -566,7 +569,7 @@ fi
 UpdCount="${#GotUpdates[@]}"
 
 # List what containers got updates or not
-if [[ -n ${NoUpdates[*]:-} ]]; then
+if [[ -n ${NoUpdates[*]:-} && "$OnlyShowUpdateable" != true ]]; then
   printf "\n%bContainers on latest version:%b\n" "$c_green" "$c_reset"
   printf "%s\n" "${NoUpdates[@]}"
 fi
@@ -718,7 +721,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
     printf "\nNo updates installed.\n"
   fi
 else
-  printf "\nNo updates available.\n"
+  if [[ "$OnlyShowUpdateable" != true ]]; then
+    printf "\nNo updates available.\n"
+  fi
 fi
 
 # Clean up old backup image tags if -b is used otherwise prune if auto-prune is set
