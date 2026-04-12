@@ -87,6 +87,7 @@ CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
 DaysOld=${DaysOld:-}
 BackupForDays=${BackupForDays:-}
+OnlyShowUpdateable=${OnlyShowUpdateable:-false}
 OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
@@ -111,7 +112,7 @@ c_reset="\033[0m"
 RunTimestamp=$(date +'%Y-%m-%d_%H%M')
 RunEpoch=$(date +'%s')
 
-while getopts "ayb:BfFhiIlmMnprsuvc:e:d:t:x:R" options; do
+while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
@@ -568,7 +569,7 @@ fi
 UpdCount="${#GotUpdates[@]}"
 
 # List what containers got updates or not
-if [[ -n ${NoUpdates[*]:-} ]]; then
+if [[ -n ${NoUpdates[*]:-} && "$OnlyShowUpdateable" != true ]]; then
   printf "\n%bContainers on latest version:%b\n" "$c_green" "$c_reset"
   printf "%s\n" "${NoUpdates[@]}"
 fi
@@ -720,7 +721,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
     printf "\nNo updates installed.\n"
   fi
 else
-  if [[ -z "${OnlyShowUpdateable:-}" ]]; then
+  if [[ "$OnlyShowUpdateable" != true ]]; then
     printf "\nNo updates available.\n"
   fi
 fi
