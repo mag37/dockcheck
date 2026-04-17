@@ -205,7 +205,7 @@ format_output() {
         FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2]})}')
       elif [[ "${UpdateType}" == "dockcheck_update" ]]; then
         # dockcheck update case
-        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2], "release_notes": (.[3:] | join(","))})}')
+        FormattedOutput=$(jq --compact-output --null-input --arg updates "${tempcsv//\"/}" '($updates | split("\\n")) | map(split(",")) | {"updates": map({"script_name": .[0], "installed_version": .[1], "latest_version": .[2], "release_notes": (.[3:] | join(","))})}')
       else
         FormattedOutput="Invalid input"
       fi
