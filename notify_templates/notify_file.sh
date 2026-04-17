@@ -18,9 +18,9 @@ trigger_file_notification() {
   NotifyFile="${!FilePathVar:=${ScriptWorkDir}/updates_available.txt}"
 
   if [[ ${!FileTruncVar:=0} -eq 0 ]]; then
-    > ${NotifyFile}
+    echo "${MessageBody}" > ${NotifyFile}
     declare -g ${FileTruncVar}=1
+  else
+    echo "${MessageBody}" >> ${NotifyFile}
   fi
-
-  echo "${MessageBody}" >> ${NotifyFile}
 }
