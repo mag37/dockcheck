@@ -28,8 +28,8 @@ trigger_file_notification() {
   FilePathVar="${UpperChannel}_PATH"
   NotifyFile="${!FilePathVar:=${ScriptWorkDir}/updates_available.txt}"
 
-  if [[ ${!FileTruncVar:=0} -eq 0 ]]; then
-    declare -g ${FileTruncVar}=1
+  if [[ ${!FileTruncVar:=true} == "true" ]]; then
+    declare -g ${FileTruncVar}="false"
   else
     if jq empty "${NotifyFile}" 2>/dev/null; then
       FileOutput=$(jq --compact-output --argjson msg "${MessageBody}" '.updates += $msg.updates' "${NotifyFile}")
