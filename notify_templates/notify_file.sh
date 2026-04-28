@@ -31,8 +31,8 @@ trigger_file_notification() {
   if [[ ${!FileTruncVar:=true} == "true" ]]; then
     declare -g ${FileTruncVar}="false"
   else
-    if jq empty "${NotifyFile}" 2>/dev/null; then
-      FileOutput=$(jq --compact-output --argjson msg "${MessageBody}" '.updates += $msg.updates' "${NotifyFile}")
+    if $jqbin empty "${NotifyFile}" 2>/dev/null; then
+      FileOutput=$($jqbin --compact-output --argjson msg "${MessageBody}" '.updates += $msg.updates' "${NotifyFile}")
     else
       if ! grep -xFq "None" ${NotifyFile}; then
         WriteMode="Append"
