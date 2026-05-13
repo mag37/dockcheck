@@ -52,7 +52,7 @@ Help() {
   echo "-p     Auto-prune dangling images after update. Ignored when -b is used."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
-  echo "-s     Include stopped containers, returns to stopped state after recreation."
+  echo "-s     Include stopped containers, recreates without starting."
   echo "-t N   Set a timeout (in seconds) per container for registry checkups, 10 is default."
   echo "-u     Allow automatic self updates - caution as this will pull new code and autorun it."
   echo "-v     Prints current version."
@@ -653,7 +653,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
       for i in "${SelectedUpdates[@]}"; do
         ((CurrentQue+=1))
         unset CompleteConfs
-        ContStopAfter=false
+        ContCreateOnly=false
         # Extract labels and metadata
         ContConfig=$(docker inspect "$i" --format '{{json .}}')
         ContLabels=$($jqbin -r '."Config"."Labels"' <<< "$ContConfig")
@@ -675,8 +675,8 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ "$ContStateRunning" == "true" ]]; then
           printf "\n%bNow recreating (%s/%s): %b%s%b\n" "$c_teal" "$CurrentQue" "$NumberofUpdates" "$c_blue" "$i" "$c_reset"
         else
-          ContStopAfter=true
-          printf  "\n%bRecreating %b%s%b to apply update - then stopping to return to current state.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
+          ContCreateOnly=true
+          printf  "\n%bRecreating %b%s%b to apply update - container will not be started.%b\n" "$c_yellow" "$c_blue" "$i" "$c_yellow" "$c_reset"
         fi
 
         # Checking if compose-values are empty - hence started with docker run
@@ -699,13 +699,10 @@ if [[ -n "${GotUpdates:-}" ]]; then
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
           ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+        elif [[ "$ContCreateOnly" == true ]]; then
+          ${DockerBin} ${CompleteConfs} ${ContEnvs} create ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         else
           ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
-        fi
-
-        # Restore the stopped state of updated cotainers
-        if [[ "$ContStopAfter" == true ]]; then
-          ${DockerBin} ${CompleteConfs} stop ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
         fi
       done
     fi
