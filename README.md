@@ -23,6 +23,24 @@ ___
 
 ## Changelog
 
+- **v0.7.8**:
+  - New:
+    - More URLs to urls.list.
+    - Added new option to hide "No Updates available" and only output updateable images.
+      - Toggled with flag `-o` or config option `OnlyShowUpdateable=true`
+  - Fixes:
+    - Bugfix and tag support in Apprise template. by @mag37 in https://github.com/mag37/dockcheck/pull/276
+    - Clarify interaction between `-b` and `-p` options by @alaaalii in https://github.com/mag37/dockcheck/pull/277
+      - When `-b` is used the `-p` option is ignored - as pruning is respecting backups.
+    - File notification and JSON format rework.
+- **v0.7.7**:
+  - New:
+    - More URLs to urls.list.
+    - Allowing ranges to be used when selecting containers to update.
+    - Added XMPP notification template.
+  - Fixes:
+    - Changed "restart-stack" behavior to down+up instead of stop+up.
+    - `-s` option now recreates stopped containers and then stops them again.
 - **v0.7.6**:
   - New:
     - Added Bark notify-template.
@@ -31,22 +49,8 @@ ___
     - Fixed hostname fallback for notifications.
     - Clenaed up README.md some.
     - Sorted and clarified `default.config` - migrate your settings manually (optional).
-- **v0.7.5**:
-  - Added new option **BackupForDays**; `-b N` and `-B`:
-    - Backup an image before pulling a new version for easy rollback in case of breakage.
-    - Removes backed up images older than *N* days.
-    - List currently backed up images with `-B`.
-  - Fixes:
-    - Bugfix for `-s` *Stopped* to not recreate stopped containers after update.
-- **v0.7.4**:
-  - Added new option `-R`:
-    - Will skip container recreation after pulling images.
-    - Allows for more control and possible pipeline integration.
-  - Fixes:
-    - Bugfix for *value too great* error due to leading zeroes - solved with base10 conversion.
-    - Clean up of some legacy readme sections.
 
-___
+
 
 ![example.gif](extras/example.gif)
 
@@ -59,7 +63,7 @@ Example:    dockcheck.sh -y -x 10 -d 10 -e nextcloud,heimdall
 
 Options:
 -a|y   Automatic updates, without interaction.
--b N   Enable image backups and sets number of days to keep from pruning.
+-b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune.
 -B     List currently backed up images, then exit.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
@@ -73,10 +77,10 @@ Options:
 -m     Monochrome mode, no printf colour codes and hides progress bar.
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
--p     Auto-Prune dangling images after update.
+-p     Auto-Prune dangling images after update. Ignored when -b is used.
 -r     Allow checking/updating images created by `docker run`, containers need to be recreated manually.
 -R     Skip container recreation after pulling images.
--s     Include stopped containers in the check. (Logic: docker ps -a).
+-s     Include stopped containers, returns to stopped state after recreation.
 -t N   Set a timeout (in seconds) per container for registry checkups, 10 is default.
 -u     Allow automatic self updates - caution as this will pull new code and autorun it.
 -v     Prints current version.
@@ -175,7 +179,8 @@ you wish to enable, but there is no harm in having all of them present.
 │   ├── notify_slack.sh
 │   ├── notify_smtp.sh
 │   ├── notify_telegram.sh
-│   └── notify_v2.sh
+│   ├── notify_v2.sh
+│   └── notify_xmpp.sh
 ├── dockcheck.config
 ├── dockcheck.sh
 └── urls.list         # optional
@@ -219,6 +224,7 @@ The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to acco
 - [Slack](https://api.slack.com/tutorials/tracks/posting-messages-with-curl) - Slack curl api
 - SMTP Email with [mSMTP](https://wiki.debian.org/msmtp) (or deprecated alternative [sSMTP](https://wiki.debian.org/sSMTP))
 - [Telegram](https://telegram.org/) - Telegram chat API.
+- [XMPP](https://xmpp.org/getting-started/) - XMPP chat notifications.
 
 Further additions are welcome - suggestions or PRs!
 <sub><sup>Initiated and first contributed by [yoyoma2](https://github.com/yoyoma2).</sup></sub>
@@ -228,19 +234,19 @@ Further additions are welcome - suggestions or PRs!
 All required environment variables for each notification channel are provided in the default.config file as comments and must be uncommented and modified for your requirements.  
 For advanced users, additional functionality is available via custom configurations and environment variables.  
 Use cases - all configured in `dockcheck.config`:  
-(replace `<channel>` with the upper case name of the of the channel as listed in
+(replace `<CHANNEL>` with the upper case name of the of the channel as listed in
 `NOTIFY_CHANNELS` variable, eg `TELEGRAM_SKIPSNOOZE`)
 
-- To bypass the snooze feature, even when enabled, add the variable `<channel>_SKIPSNOOZE` and set it to `true`.
-- To configure the channel to only send container update notifications, add the variable `<channel>_CONTAINERSONLY` and set it to `true`.
-- To send notifications even when there are no updates available, add the variable `<channel>_ALLOWEMPTY`  and set it to `true`.
-- To use another notification output format, add the variable `<channel>_OUTPUT` and set it to `csv`, `json`, or `text`. If unset or set to an invalid value, defaults to `text`.
+- To bypass the snooze feature, even when enabled, add the variable `<CHANNEL>_SKIPSNOOZE` and set it to `true`.
+- To configure the channel to only send container update notifications, add the variable `<CHANNEL>_CONTAINERSONLY` and set it to `true`.
+- To send notifications even when there are no updates available, add the variable `<CHANNEL>_ALLOWEMPTY`  and set it to `true`.
+- To use another notification output format, add the variable `<CHANNEL>_OUTPUT` and set it to `csv`, `json`, or `text`. If unset or set to an invalid value, defaults to `text`.
 - To send multiple notifications using the same notification template:
   - Strings in the `NOTIFY_CHANNELS` list are now treated as unique names and do not necessarily refer to the notification template that will be called, though they do by default.
   - Add another notification channel to `NOTIFY_CHANNELS` in `dockcheck.config`. The name can contain upper and lower case letters, numbers and underscores, but can't start with a number.
-  - Add the variable `<channel>_TEMPLATE` to `dockcheck.config` where `<channel>` is the name of the channel added above and set the value to an available notification template script (`slack`, `apprise`, `gotify`, etc.)
-  - Add all other environment variables required for the chosen template to function with `<channel>` in upper case as the prefix rather than the template name.
-    - For example, if `<channel>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
+  - Add the variable `<CHANNEL>_TEMPLATE` to `dockcheck.config` where `<CHANNEL>` is the name of the channel added above and set the value to an available notification template script (`slack`, `apprise`, `gotify`, etc.)
+  - Add all other environment variables required for the chosen template to function with `<CHANNEL>` in upper case as the prefix rather than the template name.
+    - For example, if `<CHANNEL>` is `mynotification` and the template configured is `slack`, you would need to set `MYNOTIFICATION_CHANNEL_ID` and `MYNOTIFICATION_ACCESS_TOKEN`.
 
 #### Release notes addon
 
@@ -284,6 +290,8 @@ After that, start the container again (now with the backup image active) and it 
 The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
 If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  
 Backed up images will not be removed if neither `-b` flag nor `BackupForDays` config variable is set.
+
+When backups are enabled, the `-p` auto-prune option is ignored to preserve backed up images.
 
 Use the capital option `-B` to list currently backed up images. Or list all images with `docker images`.  
 To manually remove any backed up images, do `docker rmi dockcheck/homer:2025-10-26_1132_latest`.  
