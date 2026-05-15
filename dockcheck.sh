@@ -13,20 +13,6 @@ ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
-# Source helper functions
-source_if_exists_or_fail() {
-  if [[ -s "$1" ]]; then
-    source "$1"
-    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
-    return 0
-  else
-    return 1
-  fi
-}
-
-# User customizable defaults
-source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
-
 # Help Function
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [comma separated names to include]"
@@ -61,11 +47,50 @@ Help() {
   echo "Project source: $Github"
 }
 
-# Print current backups function
-print_backups() {
-  printf "\n%b---%b Currently backed up images %b---%b\n\n" "$c_teal" "$c_blue" "$c_teal" "$c_reset"
-  docker images | sed -ne '/^REPOSITORY/p' -ne '/^dockcheck/p'
+while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
+  case "${options}" in
+    a|y) AutoMode=true ;;
+    b)   BackupForDays="${OPTARG}" ;;
+    B)   print_backups; exit 0 ;;
+    c)   CollectorTextFileDirectory="${OPTARG}" ;;
+    d)   DaysOld=${OPTARG} ;;
+    e)   Exclude=${OPTARG} ;;
+    f)   ForceRestartStacks=true ;;
+    F)   OnlySpecific=true ;;
+    i)   Notify=true ;;
+    I)   PrintReleaseURL=true ;;
+    l)   OnlyLabel=true ;;
+    m)   MonoMode=true ;;
+    M)   PrintMarkdownURL=true ;;
+    n)   DontUpdate=true; AutoMode=true;;
+    o)   OnlyShowUpdateable=true ;;
+    p)   AutoPrune=true ;;
+    R)   SkipRecreate=true ;;
+    r)   DRunUp=true ;;
+    s)   Stopped="-a" ;;
+    t)   Timeout="${OPTARG}" ;;
+    u)   AutoSelfUpdate=true ;;
+    v)   printf "%s\n" "$VERSION"; exit 0 ;;
+    x)   MaxAsync=${OPTARG} ;;
+    h|*) Help; exit 2 ;;
+  esac
+done
+shift "$((OPTIND-1))"
+
+# Source helper function
+source_if_exists_or_fail() {
+  if [[ -s "$1" ]]; then
+    source "$1"
+    # DisplaySourcedFiles used for debugging purposes only
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
+    return 0
+  else
+    return 1
+  fi
 }
+
+# User customizable defaults
+source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
 
 # Initialise variables
 Timeout=${Timeout:-10}
@@ -112,35 +137,12 @@ c_reset="\033[0m"
 RunTimestamp=$(date +'%Y-%m-%d_%H%M')
 RunEpoch=$(date +'%s')
 
-while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
-  case "${options}" in
-    a|y) AutoMode=true ;;
-    b)   BackupForDays="${OPTARG}" ;;
-    B)   print_backups; exit 0 ;;
-    c)   CollectorTextFileDirectory="${OPTARG}" ;;
-    d)   DaysOld=${OPTARG} ;;
-    e)   Exclude=${OPTARG} ;;
-    f)   ForceRestartStacks=true ;;
-    F)   OnlySpecific=true ;;
-    i)   Notify=true ;;
-    I)   PrintReleaseURL=true ;;
-    l)   OnlyLabel=true ;;
-    m)   MonoMode=true ;;
-    M)   PrintMarkdownURL=true ;;
-    n)   DontUpdate=true; AutoMode=true;;
-    o)   OnlyShowUpdateable=true ;;
-    p)   AutoPrune=true ;;
-    R)   SkipRecreate=true ;;
-    r)   DRunUp=true ;;
-    s)   Stopped="-a" ;;
-    t)   Timeout="${OPTARG}" ;;
-    u)   AutoSelfUpdate=true ;;
-    v)   printf "%s\n" "$VERSION"; exit 0 ;;
-    x)   MaxAsync=${OPTARG} ;;
-    h|*) Help; exit 2 ;;
-  esac
-done
-shift "$((OPTIND-1))"
+# Print current backups function
+print_backups() {
+  printf "\n%b---%b Currently backed up images %b---%b\n\n" "$c_teal" "$c_blue" "$c_teal" "$c_reset"
+  docker images --format table | sed -ne '/^REPOSITORY/p' -ne '/^dockcheck/p'
+}
+[[ "${PrintBackups:-false}" == "true" ]] && { print_backups; exit 0; }
 
 # Set $1 to a variable for name filtering later, rewriting if multiple
 SearchName="${1:-}"
@@ -638,8 +640,10 @@ if [[ -n "${GotUpdates:-}" ]]; then
       if docker pull "$ContImage"; then
         # Removal of the <none>-tag image left behind from backup
         if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
+          SuccessfulUpdates+=("$i")
       else
-        printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1
+        printf "\n%bError pulling update for %S. Skipping. %b\n" "$c_red" "$i" "$c_reset"
+        FailedUpdates+=("$i")
       fi
 
     done
@@ -649,8 +653,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
       printf "%bSkipping container recreation due to -R.%b\n" "$c_yellow" "$c_reset"
     else
       printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
+      RestartedStacks=()
       CurrentQue=0
-      for i in "${SelectedUpdates[@]}"; do
+      for i in "${SuccessfulUpdates[@]}"; do
         ((CurrentQue+=1))
         unset CompleteConfs
         ContStopAfter=false
@@ -698,9 +703,30 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
-          ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+          # Restart if compose path has not already been restarted
+          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]]; then # Restart if stack has not already been restarted
+            if ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d; then
+              RestartedStacks+=("$ContPath")
+            else
+              printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
+            fi
+          else
+            printf "%bStack already restarted. Skipping.%b\n" "$c_yellow" "$c_reset"
+          fi
         else
-          ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer} || { printf "\n%bDocker error, exiting!%b\n" "$c_red" "$c_reset" ; exit 1; }
+          # Restart if compose path has not already been restarted or specific container(s) are configured to be restarted individually
+          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
+            if ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer}; then
+              # Consider stack restarted only if specific container is not set
+              if [[ -z "${SpecificContainer:-}" ]]; then
+                RestartedStacks+=("$ContPath")
+              fi
+            else
+              printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
+            fi
+          else
+            printf "%bStack already restarted. Skipping.%b\n" "$c_yellow" "$c_reset"
+          fi
         fi
 
         # Restore the stopped state of updated cotainers
