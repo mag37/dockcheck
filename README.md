@@ -216,7 +216,7 @@ The actual snooze duration will be 60 seconds less than `SNOOZE_SECONDS` to acco
 - [Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) - Discord webhooks.
 - [DSM](https://www.synology.com/en-global/dsm) - Synology.
 - [Gotify](https://gotify.net/) - a simple server for sending and receiving messages.
-- [Home Assistant](https://www.home-assistant.io/integrations/notify/) - Connection to the notify [integrations](https://www.home-assistant.io/integrations/#notifications).
+- [Home Assistant](https://www.home-assistant.io/) - [REST API](https://developers.home-assistant.io/docs/api/rest/) call to the [notify](https://www.home-assistant.io/integrations/notify/) or [event](https://www.home-assistant.io/integrations/event/) integration.
 - [Matrix-Synapse](https://github.com/element-hq/synapse) - [Matrix](https://matrix.org/), open, secure, decentralised communication.
 - [ntfy](https://ntfy.sh/) - HTTP-based pub-sub notifications.
 - [Pushbullet](https://www.pushbullet.com/) - connecting different devices with cross-platform features.
