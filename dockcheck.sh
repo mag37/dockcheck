@@ -606,14 +606,15 @@ if [[ -n "${GotUpdates:-}" ]]; then
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [[ "$DontUpdate" == false ]]; then
-    printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
+
     if [[ -n ${ExcludeUpdates[*]:-} ]]; then
       printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
       printf "%s\n" "${ExcludeUpdates[@]}"
-      # ExcludeUpdates twice to never be unique avoiding non-existent containers
+      # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
       SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
     fi
 
+    printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
     printf "%s\n" "${SelectedUpdates[@]}"
 
     NumberofUpdates="${#SelectedUpdates[@]}"
