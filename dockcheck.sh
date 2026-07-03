@@ -25,6 +25,7 @@ Help() {
   echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
+  echo "-E X   Exclude containers from applying updates but check available, separated by comma."
   echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
   echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
@@ -47,7 +48,7 @@ Help() {
   echo "Project source: $Github"
 }
 
-while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
+while getopts "ayb:BfFhiIlmMnoprsuvc:e:E:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
@@ -55,6 +56,7 @@ while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
+    E)   ExcludeUpdate=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
     F)   OnlySpecific=true ;;
     i)   Notify=true ;;
@@ -110,6 +112,7 @@ PrintMarkdownURL=${PrintMarkdownURL:-false}
 Stopped=${Stopped:-""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
+ExcludeUpdate=${ExcludeUpdate:-}
 DaysOld=${DaysOld:-}
 BackupForDays=${BackupForDays:-}
 OnlyShowUpdateable=${OnlyShowUpdateable:-false}
@@ -117,6 +120,7 @@ OnlySpecific=${OnlySpecific:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
 Excludes=()
+ExcludeUpdates=()
 GotUpdates=()
 NoUpdates=()
 GotErrors=()
@@ -168,6 +172,10 @@ if [[ "$Notify" == true ]]; then
 fi
 if [[ -n "$Exclude" ]]; then
   IFS=',' read -ra Excludes <<< "$Exclude"
+  unset IFS
+fi
+if [[ -n "$ExcludeUpdate" ]]; then
+  IFS=',' read -ra ExcludeUpdates <<< "$ExcludeUpdate"
   unset IFS
 fi
 if [[ -n "$DaysOld" ]]; then
@@ -599,6 +607,13 @@ if [[ -n "${GotUpdates:-}" ]]; then
   fi
   if [[ "$DontUpdate" == false ]]; then
     printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
+    if [[ -n ${ExcludeUpdates[*]:-} ]]; then
+      printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
+      printf "%s\n" "${ExcludeUpdates[@]}"
+      # ExcludeUpdates twice to never be unique avoiding non-existent containers
+      SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
+    fi
+
     printf "%s\n" "${SelectedUpdates[@]}"
 
     NumberofUpdates="${#SelectedUpdates[@]}"
