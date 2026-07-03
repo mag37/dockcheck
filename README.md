@@ -68,6 +68,7 @@ Options:
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
+-E X   Exclude containers from applying updates but check available, separated by comma.
 -f     Force stop+start stack after update. Caution: restarts once for every updated container within stack.
 -F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure).
 -h     Print this Help.
