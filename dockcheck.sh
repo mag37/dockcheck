@@ -417,7 +417,7 @@ dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/down
 # Numbered List function - pads with zero
 list_options() {
   local total="${#Updates[@]}"
-  [[ ${#total} < 2 ]] && local pads=2 || local pads="${#total}"
+  [[ ${#total} -lt 2 ]] && local pads=2 || local pads="${#total}"
   local num=1
   for update in "${Updates[@]}"; do
     printf "%0*d - %s\n" "$pads" "$num" "$update"
