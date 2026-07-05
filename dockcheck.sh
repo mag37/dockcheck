@@ -51,7 +51,7 @@ while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
-    B)   print_backups; exit 0 ;;
+    B)   PrintBackups=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
@@ -114,6 +114,7 @@ DaysOld=${DaysOld:-}
 BackupForDays=${BackupForDays:-}
 OnlyShowUpdateable=${OnlyShowUpdateable:-false}
 OnlySpecific=${OnlySpecific:-false}
+PrintBackups=${PrintBackups:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
 Excludes=()
@@ -168,7 +169,7 @@ if [[ "$Notify" == true ]]; then
 fi
 if [[ -n "$Exclude" ]]; then
   IFS=',' read -ra Excludes <<< "$Exclude"
-  unset IFS
+  unset IFprint_backupiS
 fi
 if [[ -n "$DaysOld" ]]; then
   if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
