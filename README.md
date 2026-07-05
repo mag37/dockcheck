@@ -279,17 +279,22 @@ When the option `BackupForDays` is set **dockcheck** will store the image being 
 Let's say we're updating `b4bz/homer:latest` - then before replacing the current image
 it will be retagged with the name `dockcheck/homer:2025-10-26_1132_latest`
 
-- `dockcheck` as repo name to not interfere with others.
-- `homer` is the image.
-- `2025-10-26_1132` is the time when running the script.
-- `latest` is the tag of the image.
+1. `dockcheck` as repo name to not interfere with others.
+2. `homer` is the image.
+3. `2025-10-26_1132` is the time when running the script.
+4. `latest` is the tag of the image.
 
-Then if an update breaks, you could restore the image by stopping the container, delete the new image, eg. `docker rmi b4bz/homer:latest`, then retag the backup as latest `docker tag dockcheck/homer:<date>_latest b4bz/homer:latest`.  
-After that, start the container again (now with the backup image active) and it will be updated as usual next time you run dockcheck or other updates.
+If an update breaks, you could restore the previous image with these steps (using the naming above as examples):
+- First take the container down, `docker compose down` or similar.
+- Remove the **new** (faulty) image: `docker rmi b4bz/homer:latest -f`
+- List backed up image names: `dockcheck.sh -B | grep "homer"`
+- Create a new tag from backup (matching the real name): `docker tag dockcheck/homer:2025-10-26_1132_latest b4bz/homer:latest`
+- Start the container again: `docker compose up -d`, now with the previous image faked as latest.
+- The real image will be pulled and used the next time you run dockcheck or pull new images.
 
 The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
 If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  
-Backed up images will not be removed if neither `-b` flag nor `BackupForDays` config variable is set.
+Backed up images will not be cleaned up if neither `-b` flag nor `BackupForDays` config variable is set.
 
 When backups are enabled, the `-p` auto-prune option is ignored to preserve backed up images.
 
