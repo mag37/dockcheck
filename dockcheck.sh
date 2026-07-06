@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.8"
-# ChangeNotes: bugfixes in apprise and file notifications. New option -o to only print updateable containers.
+VERSION="v0.7.9"
+# ChangeNotes: New options -C and -E. Some bugfixes and cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -23,6 +23,7 @@ Help() {
   echo "-b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune."
   echo "-B     List currently backed up images, then exit."
   echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
+  echo "-C     Temporarily use default configs - override dockcheck.config file."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-E X   Exclude containers from applying updates but check available, separated by comma."
@@ -48,12 +49,14 @@ Help() {
   echo "Project source: $Github"
 }
 
-while getopts "ayb:BfFhiIlmMnoprsuvc:e:E:d:t:x:R" options; do
+
+while getopts "ayb:BCfFhiIlmMnoprsuvc:e:E:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
-    B)   print_backups; exit 0 ;;
+    B)   PrintBackups=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
+    C)   DefaultConfig=true ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
     E)   ExcludeUpdate=${OPTARG} ;;
@@ -91,8 +94,10 @@ source_if_exists_or_fail() {
   fi
 }
 
-# User customizable defaults
-source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+# Source user customizable config file
+if [[ "${DefaultConfig:-false}" == false ]]; then
+  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+fi
 
 # Initialise variables
 Timeout=${Timeout:-10}
@@ -117,6 +122,7 @@ DaysOld=${DaysOld:-}
 BackupForDays=${BackupForDays:-}
 OnlyShowUpdateable=${OnlyShowUpdateable:-false}
 OnlySpecific=${OnlySpecific:-false}
+PrintBackups=${PrintBackups:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
 Excludes=()
@@ -424,7 +430,7 @@ dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/down
 # Numbered List function - pads with zero
 list_options() {
   local total="${#Updates[@]}"
-  [[ ${#total} < 2 ]] && local pads=2 || local pads="${#total}"
+  [[ ${#total} -lt 2 ]] && local pads=2 || local pads="${#total}"
   local num=1
   for update in "${Updates[@]}"; do
     printf "%0*d - %s\n" "$pads" "$num" "$update"
@@ -436,12 +442,11 @@ list_options() {
 if [[ "$LatestSnippet" != "undefined" ]]; then
   if [[ "$VERSION" != "$LatestRelease" ]]; then
     printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+    [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
     if [[ "$AutoMode" == false ]]; then
       read -r -p "Would you like to update? y/[n]: " SelfUpdate
       [[ "$SelfUpdate" =~ [yY] ]] && self_update
     elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]]; then self_update;
-    else
-      [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
     fi
   fi
 else
@@ -720,7 +725,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
           # Restart if compose path has not already been restarted
-          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]]; then # Restart if stack has not already been restarted
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]]; then
             if ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d; then
               RestartedStacks+=("$ContPath")
             else
@@ -731,7 +736,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
           fi
         else
           # Restart if compose path has not already been restarted or specific container(s) are configured to be restarted individually
-          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
             if ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer}; then
               # Consider stack restarted only if specific container is not set
               if [[ -z "${SpecificContainer:-}" ]]; then
