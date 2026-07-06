@@ -24,33 +24,19 @@ ___
 ## Changelog
 
 - **v0.7.9**:
-  - New:
-    - New option `-E` to exclude from updating, while still checking for updates.
-    - New option `-C` to temporaily fall back to default configs, ignoring `dockcheck.config`.
-  - Fixes:
-    - Clarified *Image backups* restoration section in the readme.
-    - Changed some array variable handling to be more compatible.
-    - Fix so that script update notification is consistent.
-    - Fix on function call to print current backups.
+    - **NEW**: Added option `-E` to exclude from updating, while still checking for updates.
+    - **NEW**: Added option `-C` to temporaily fall back to default configs, ignoring `dockcheck.config`.
+    - **FIX**: Clarified *Image backups* restoration section in the readme.
+    - **FIX**: Changed some array variable handling to be more compatible.
+    - **FIX**: Script update notification consistency, didn't always trigger.
+    - **FIX**: Function call to print current backups, some environments didn't source the function.
 - **v0.7.8**:
-  - New:
-    - More URLs to urls.list.
-    - Added new option to hide "No Updates available" and only output updateable images.
-      - Toggled with flag `-o` or config option `OnlyShowUpdateable=true`
-  - Fixes:
-    - Bugfix and tag support in Apprise template. by @mag37 in https://github.com/mag37/dockcheck/pull/276
-    - Clarify interaction between `-b` and `-p` options by @alaaalii in https://github.com/mag37/dockcheck/pull/277
+    - **NEW**: More URLs to urls.list.
+    - **NEW**: Added option `-o` to hide "No Updates available" and only output updateable images.
+    - **FIX**: Bugfix and tag support in Apprise template. by @mag37 in https://github.com/mag37/dockcheck/pull/276
+    - **FIX**: Clarify interaction between `-b` and `-p` options by @alaaalii in https://github.com/mag37/dockcheck/pull/277
       - When `-b` is used the `-p` option is ignored - as pruning is respecting backups.
-    - File notification and JSON format rework.
-- **v0.7.7**:
-  - New:
-    - More URLs to urls.list.
-    - Allowing ranges to be used when selecting containers to update.
-    - Added XMPP notification template.
-  - Fixes:
-    - Changed "restart-stack" behavior to down+up instead of stop+up.
-    - `-s` option now recreates stopped containers and then stops them again.
-
+    - **FIX**: File notification and JSON format rework.
 
 
 ![example.gif](extras/example.gif)
