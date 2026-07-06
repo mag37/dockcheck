@@ -23,6 +23,15 @@ ___
 
 ## Changelog
 
+- **v0.7.9**:
+  - New:
+    - New option `-E` to exclude from updating, while still checking for updates.
+    - New option `-C` to temporaily fall back to default configs, ignoring `dockcheck.config`.
+  - Fixes:
+    - Clarified *Image backups* restoration section in the readme.
+    - Changed some array variable handling to be more compatible.
+    - Fix so that script update notification is consistent.
+    - Fix on function call to print current backups.
 - **v0.7.8**:
   - New:
     - More URLs to urls.list.
@@ -41,14 +50,6 @@ ___
   - Fixes:
     - Changed "restart-stack" behavior to down+up instead of stop+up.
     - `-s` option now recreates stopped containers and then stops them again.
-- **v0.7.6**:
-  - New:
-    - Added Bark notify-template.
-  - Fixes:
-    - Sanitized message for Matrix notification.
-    - Fixed hostname fallback for notifications.
-    - Clenaed up README.md some.
-    - Sorted and clarified `default.config` - migrate your settings manually (optional).
 
 
 
@@ -291,7 +292,7 @@ If an update breaks, you could restore the previous image with these steps (usin
 - List backed up image names: `dockcheck.sh -B | grep "homer"`
 - Create a new tag from backup (matching the real name): `docker tag dockcheck/homer:2025-10-26_1132_latest b4bz/homer:latest`
 - Start the container again: `docker compose up -d`, now with the previous image faked as latest.
-- The real image will be pulled and used the next time you run dockcheck or pull new images.
+- The temporary image will be overwritten with the real *latest/other tag* next time you pull new images (with dockcheck or elsewhere).
 
 The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
 If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  

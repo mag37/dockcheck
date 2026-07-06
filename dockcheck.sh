@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.8"
-# ChangeNotes: bugfixes in apprise and file notifications. New option -o to only print updateable containers.
+VERSION="v0.7.9"
+# ChangeNotes: New options -C and -E. Some bugfixes and cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
