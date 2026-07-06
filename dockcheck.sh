@@ -433,12 +433,11 @@ list_options() {
 if [[ "$LatestSnippet" != "undefined" ]]; then
   if [[ "$VERSION" != "$LatestRelease" ]]; then
     printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+    [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
     if [[ "$AutoMode" == false ]]; then
       read -r -p "Would you like to update? y/[n]: " SelfUpdate
       [[ "$SelfUpdate" =~ [yY] ]] && self_update
     elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]]; then self_update;
-    else
-      [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
     fi
   fi
 else
