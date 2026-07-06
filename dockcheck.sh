@@ -169,7 +169,7 @@ if [[ "$Notify" == true ]]; then
 fi
 if [[ -n "$Exclude" ]]; then
   IFS=',' read -ra Excludes <<< "$Exclude"
-  unset IFprint_backupiS
+  unset IFS
 fi
 if [[ -n "$DaysOld" ]]; then
   if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
