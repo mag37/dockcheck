@@ -23,6 +23,7 @@ Help() {
   echo "-b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune."
   echo "-B     List currently backed up images, then exit."
   echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
+  echo "-C     Temporarily use default configs - override dockcheck.config file."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
   echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
@@ -47,12 +48,13 @@ Help() {
   echo "Project source: $Github"
 }
 
-while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
+while getopts "ayb:BCfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
     B)   PrintBackups=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
+    C)   DefaultConfig=true ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
@@ -89,8 +91,10 @@ source_if_exists_or_fail() {
   fi
 }
 
-# User customizable defaults
-source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+# Source user customizable config file
+if [[ "${DefaultConfig:-false}" == false ]]; then
+  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+fi
 
 # Initialise variables
 Timeout=${Timeout:-10}

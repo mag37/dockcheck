@@ -66,6 +66,7 @@ Options:
 -b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune.
 -B     List currently backed up images, then exit.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
+-C     Temporarily use default configs - override dockcheck.config file.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
 -f     Force stop+start stack after update. Caution: restarts once for every updated container within stack.
