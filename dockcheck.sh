@@ -35,8 +35,9 @@ Help() {
   echo "-l     Only include containers with label set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
+  echo "-N     No updates or checks; simulating updates to test notifications unconditionally."
   echo "-n     No updates; only checking availability without interaction."
-  echo "-o     Hides the \"No updates available\" message" and only shows updateable images
+  echo "-o     Hides the \"No updates available\" message and only shows updateable images."
   echo "-p     Auto-prune dangling images after update. Ignored when -b is used."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
@@ -49,8 +50,7 @@ Help() {
   echo "Project source: $Github"
 }
 
-
-while getopts "ayb:BCfFhiIlmMnoprsuvc:e:E:d:t:x:R" options; do
+while getopts "ayb:BCfFhiIlmMnNoprsuvc:e:E:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
@@ -67,6 +67,7 @@ while getopts "ayb:BCfFhiIlmMnoprsuvc:e:E:d:t:x:R" options; do
     l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
+    N)   DontUpdate=true; AutoMode=true; Notify=true; TestNotify=true ;;
     n)   DontUpdate=true; AutoMode=true;;
     o)   OnlyShowUpdateable=true ;;
     p)   AutoPrune=true ;;
@@ -109,6 +110,7 @@ AutoPrune=${AutoPrune:-false}
 AutoSelfUpdate=${AutoSelfUpdate:-false}
 OnlyLabel=${OnlyLabel:-false}
 Notify=${Notify:-false}
+TestNotify=${TestNotify:-false}
 ForceRestartStacks=${ForceRestartStacks:-false}
 DRunUp=${DRunUp:-false}
 MonoMode=${MonoMode:-false}
@@ -159,6 +161,8 @@ SearchName="${1:-}"
 if [[ ! -z "$SearchName" ]]; then
   SearchName="^(${SearchName//,/|})$"
 fi
+
+[[ "$TestNotify" == true ]] && printf "\n%bTesting notifications by pretending everything got updates.%b\n\n" "$c_red" "$c_reset"
 
 # Check if there's a new release of the script
 LatestSnippet="$(curl ${CurlArgs} -r 0-200 "$RawUrl" || printf "undefined")"
@@ -453,6 +457,9 @@ else
   printf "ERROR: Failed to curl latest Dockcheck.sh release version.\n"
 fi
 
+# Send custom dockcheck notification when testing
+[[ "$TestNotify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "v0.X.X" "v0.Y.Y" "TEST of notifications triggered." || printf "Could not source notification function.\n" ; }
+
 # Version check for notify templates
 [[ "$Notify" == true ]] && [[ ! -s "${ScriptWorkDir}/notify.sh" ]] && { exec_if_exists_or_fail notify_update_notification || printf "Could not source notify notification function.\n"; }
 
@@ -518,8 +525,11 @@ check_image() {
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
 
+  # Trigger notification test if set, to avoid unnecessary checks
+  if [[ "$TestNotify" == true ]]; then
+    printf "%s\n" "GotUpdates $i"
   # Checking for errors while setting the variable
-  if RegHash=$($t_out "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
+  elif RegHash=$($t_out "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
     if [[ "$LocalHash" == *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
     else
@@ -537,7 +547,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch
+export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch TestNotify
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
