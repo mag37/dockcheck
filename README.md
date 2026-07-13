@@ -23,33 +23,20 @@ ___
 
 ## Changelog
 
+- **v0.7.9**:
+    - **NEW**: Added option `-E` to exclude from updating, while still checking for updates.
+    - **NEW**: Added option `-C` to temporaily fall back to default configs, ignoring `dockcheck.config`.
+    - **FIX**: Clarified *Image backups* restoration section in the readme.
+    - **FIX**: Changed some array variable handling to be more compatible.
+    - **FIX**: Script update notification consistency, didn't always trigger.
+    - **FIX**: Function call to print current backups, some environments didn't source the function.
 - **v0.7.8**:
-  - New:
-    - More URLs to urls.list.
-    - Added new option to hide "No Updates available" and only output updateable images.
-      - Toggled with flag `-o` or config option `OnlyShowUpdateable=true`
-  - Fixes:
-    - Bugfix and tag support in Apprise template. by @mag37 in https://github.com/mag37/dockcheck/pull/276
-    - Clarify interaction between `-b` and `-p` options by @alaaalii in https://github.com/mag37/dockcheck/pull/277
+    - **NEW**: More URLs to urls.list.
+    - **NEW**: Added option `-o` to hide "No Updates available" and only output updateable images.
+    - **FIX**: Bugfix and tag support in Apprise template. by @mag37 in https://github.com/mag37/dockcheck/pull/276
+    - **FIX**: Clarify interaction between `-b` and `-p` options by @alaaalii in https://github.com/mag37/dockcheck/pull/277
       - When `-b` is used the `-p` option is ignored - as pruning is respecting backups.
-    - File notification and JSON format rework.
-- **v0.7.7**:
-  - New:
-    - More URLs to urls.list.
-    - Allowing ranges to be used when selecting containers to update.
-    - Added XMPP notification template.
-  - Fixes:
-    - Changed "restart-stack" behavior to down+up instead of stop+up.
-    - `-s` option now recreates stopped containers and then stops them again.
-- **v0.7.6**:
-  - New:
-    - Added Bark notify-template.
-  - Fixes:
-    - Sanitized message for Matrix notification.
-    - Fixed hostname fallback for notifications.
-    - Clenaed up README.md some.
-    - Sorted and clarified `default.config` - migrate your settings manually (optional).
-
+    - **FIX**: File notification and JSON format rework.
 
 
 ![example.gif](extras/example.gif)
@@ -66,8 +53,10 @@ Options:
 -b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune.
 -B     List currently backed up images, then exit.
 -c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory.
+-C     Temporarily use default configs - override dockcheck.config file.
 -d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower.
 -e X   Exclude containers, separated by comma.
+-E X   Exclude containers from applying updates but check available, separated by comma.
 -f     Force stop+start stack after update. Caution: restarts once for every updated container within stack.
 -F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure).
 -h     Print this Help.
@@ -279,17 +268,22 @@ When the option `BackupForDays` is set **dockcheck** will store the image being 
 Let's say we're updating `b4bz/homer:latest` - then before replacing the current image
 it will be retagged with the name `dockcheck/homer:2025-10-26_1132_latest`
 
-- `dockcheck` as repo name to not interfere with others.
-- `homer` is the image.
-- `2025-10-26_1132` is the time when running the script.
-- `latest` is the tag of the image.
+1. `dockcheck` as repo name to not interfere with others.
+2. `homer` is the image.
+3. `2025-10-26_1132` is the time when running the script.
+4. `latest` is the tag of the image.
 
-Then if an update breaks, you could restore the image by stopping the container, delete the new image, eg. `docker rmi b4bz/homer:latest`, then retag the backup as latest `docker tag dockcheck/homer:<date>_latest b4bz/homer:latest`.  
-After that, start the container again (now with the backup image active) and it will be updated as usual next time you run dockcheck or other updates.
+If an update breaks, you could restore the previous image with these steps (using the naming above as examples):
+- First take the container down, `docker compose down` or similar.
+- Remove the **new** (faulty) image: `docker rmi b4bz/homer:latest -f`
+- List backed up image names: `dockcheck.sh -B | grep "homer"`
+- Create a new tag from backup (matching the real name): `docker tag dockcheck/homer:2025-10-26_1132_latest b4bz/homer:latest`
+- Start the container again: `docker compose up -d`, now with the previous image faked as latest.
+- The temporary image will be overwritten with the real *latest/other tag* next time you pull new images (with dockcheck or elsewhere).
 
 The backed up images will be removed if they're older than *BackupForDays* value (passed as `-b N` or set in the `dockcheck.config` with `BackupForDays=N`) and then pruned.  
 If configured for eg. 7 days, force earlier cleaning by just passing a lower number of days, eg. `-b 2` to clean everything older than 2 days.  
-Backed up images will not be removed if neither `-b` flag nor `BackupForDays` config variable is set.
+Backed up images will not be cleaned up if neither `-b` flag nor `BackupForDays` config variable is set.
 
 When backups are enabled, the `-p` auto-prune option is ignored to preserve backed up images.
 
