@@ -23,9 +23,10 @@ ___
 
 ## Changelog
 
-- **v0.7.9**:
+- **v0.8.0**:
     - **NEW**: Added option `-E` to exclude from updating, while still checking for updates.
     - **NEW**: Added option `-C` to temporaily fall back to default configs, ignoring `dockcheck.config`.
+    - **NEW**: Added option `-N` to test notifications by simulating updates.
     - **FIX**: Clarified *Image backups* restoration section in the readme.
     - **FIX**: Changed some array variable handling to be more compatible.
     - **FIX**: Script update notification consistency, didn't always trigger.
@@ -66,6 +67,7 @@ Options:
 -m     Monochrome mode, no printf colour codes and hides progress bar.
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
+-N     No updates or checks; simulating updates to test notifications unconditionally.
 -p     Auto-Prune dangling images after update. Ignored when -b is used.
 -r     Allow checking/updating images created by `docker run`, containers need to be recreated manually.
 -R     Skip container recreation after pulling images.
@@ -144,6 +146,8 @@ Triggered with the `-i` flag. Will send a list of containers with updates availa
 
 Example of a cron scheduled job running non-interactive at 10'oclock excluding 1 container and sending notifications:
 `0 10 * * * /home/user123/.local/bin/dockcheck.sh -nix 10 -e excluded_container1`
+
+To test notifications after setting them up, use the `-N` flag.
 
 #### Installation and configuration
 

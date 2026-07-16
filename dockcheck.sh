@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.9"
-# ChangeNotes: New options -C and -E. Some bugfixes and cleanups.
+VERSION="v0.8.0"
+# ChangeNotes: New options -C, -N and -E. Some bugfixes and cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -35,8 +35,8 @@ Help() {
   echo "-l     Only include containers with label set. See readme."
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
-  echo "-N     No updates or checks; simulating updates to test notifications unconditionally."
   echo "-n     No updates; only checking availability without interaction."
+  echo "-N     No updates or checks; simulating updates to test notifications unconditionally."
   echo "-o     Hides the \"No updates available\" message and only shows updateable images."
   echo "-p     Auto-prune dangling images after update. Ignored when -b is used."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
@@ -67,12 +67,12 @@ while getopts "ayb:BCfFhiIlmMnNoprsuvc:e:E:d:t:x:R" options; do
     l)   OnlyLabel=true ;;
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
-    N)   DontUpdate=true; AutoMode=true; Notify=true; TestNotify=true ;;
     n)   DontUpdate=true; AutoMode=true;;
+    N)   DontUpdate=true; AutoMode=true; Notify=true; TestNotify=true ;;
     o)   OnlyShowUpdateable=true ;;
     p)   AutoPrune=true ;;
-    R)   SkipRecreate=true ;;
     r)   DRunUp=true ;;
+    R)   SkipRecreate=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
     u)   AutoSelfUpdate=true ;;
