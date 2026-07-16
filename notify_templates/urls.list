@@ -9,6 +9,7 @@ adminer https://github.com/TimWolla/docker-adminer/releases
 aiostreams https://github.com/Viren070/AIOStreams/releases
 altmount https://github.com/javi11/altmount/releases
 apprise-api https://github.com/linuxserver/docker-apprise-api/releases
+arcane https://github.com/getarcaneapp/arcane/releases
 audiobookshelf https://github.com/advplyr/audiobookshelf/releases
 authentik_server https://github.com/goauthentik/authentik/releases
 authentik_worker https://github.com/goauthentik/authentik/releases
@@ -37,6 +38,7 @@ cloudflare-bypass https://github.com/sarperavci/CloudflareBypassForScraping/rele
 collabora https://github.com/CollaboraOnline/online/releases
 comet https://github.com/g0ldyy/comet/releases
 configarr https://github.com/raydak-labs/configarr/releases
+copyparty https://github.com/9001/copyparty/releases
 cronmaster https://github.com/fccview/cronmaster/releases
 cross-seed https://github.com/cross-seed/cross-seed/releases
 crowdsec https://github.com/crowdsecurity/crowdsec/releases
@@ -67,6 +69,8 @@ gluetun https://github.com/qdm12/gluetun/releases
 go2rtc https://github.com/AlexxIT/go2rtc/releases
 godoxy https://github.com/yusing/godoxy/releases
 gotify https://github.com/gotify/server/releases
+grist-core https://github.com/gristlabs/grist-core/releases
+grimory https://github.com/grimmory-tools/grimmory/releases
 hbbr https://github.com/rustdesk/rustdesk-server/releases
 hbbs https://github.com/rustdesk/rustdesk-server/releases
 homarr https://github.com/homarr-labs/homarr/releases
@@ -77,14 +81,17 @@ immich_machine_learning https://github.com/immich-app/immich/releases
 immich_postgres https://github.com/tensorchord/VectorChord/releases
 immich_redis https://github.com/valkey-io/valkey/releases
 immich_server https://github.com/immich-app/immich/releases
+instbyte https://github.com/mohitgauniyal/instbyte/releases
 jellyfin https://github.com/jellyfin/jellyfin/releases
 jellyfin-auto-collections https://github.com/ghomasHudson/Jellyfin-Auto-Collections/releases
 jellyseerr https://github.com/Fallenbagel/jellyseerr/releases
 jellystat https://github.com/CyferShepard/Jellystat/releases
 karakeep https://github.com/karakeep-app/karakeep/releases
+lazyjournal https://github.com/Lifailon/lazyjournal/releases
 librespeed https://github.com/librespeed/speedtest/releases
 lidarr https://github.com/Lidarr/Lidarr/releases/
 lidarr-ls https://github.com/linuxserver/docker-lidarr/releases
+linkwarden https://github.com/linkwarden/linkwarden/releases
 lubelogger https://github.com/hargata/lubelog/releases
 mattermost https://github.com/mattermost/mattermost/releases
 mealie https://github.com/mealie-recipes/mealie/releases
@@ -107,6 +114,7 @@ owncast https://github.com/owncast/owncast/releases
 pangolin https://github.com/fosrl/pangolin/releases
 placeholdarr https://github.com/TheIndieArmy/placeholdarr/releases
 postgresus https://github.com/RostislavDugin/postgresus/releases
+poznote https://github.com/timothepoznanski/poznote/releases
 profilarr https://github.com/Dictionarry-Hub/profilarr/releases
 prowlarr https://github.com/Prowlarr/Prowlarr/releases
 prowlarr-ls https://github.com/linuxserver/docker-prowlarr/releases
@@ -134,6 +142,7 @@ snappymail https://github.com/the-djmaze/snappymail/releases
 sonarr https://github.com/Sonarr/Sonarr/releases/
 sonarr-ls https://github.com/linuxserver/docker-sonarr/releases
 sortarr https://github.com/Jaredharper1/Sortarr/releases
+speedtest-tracker https://github.com/alexjustesen/speedtest-tracker/releases
 stacks https://github.com/zelestcarlyone/stacks/releases
 stash https://github.com/stashapp/stash/releases
 stirling-pdf https://github.com/Stirling-Tools/Stirling-PDF/releases
@@ -143,6 +152,7 @@ synapse https://github.com/element-hq/synapse/releases
 syncthing https://github.com/syncthing/syncthing/releases
 tailscale https://github.com/tailscale/tailscale/releases
 tautulli https://github.com/Tautulli/Tautulli/releases
+termix https://github.com/Termix-SSH/Termix/releases
 thelounge https://github.com/thelounge/thelounge/releases
 traefik https://github.com/traefik/traefik/releases
 umlautadaptarr https://github.com/PCJones/UmlautAdaptarr/releases
