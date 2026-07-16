@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.7.8"
-# ChangeNotes: bugfixes in apprise and file notifications. New option -o to only print updateable containers.
+VERSION="v0.8.0"
+# ChangeNotes: New options -C, -N and -E. Some bugfixes and cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -23,8 +23,10 @@ Help() {
   echo "-b N   Enable image backups and sets number of days to keep from pruning. Ignores -p auto-prune."
   echo "-B     List currently backed up images, then exit."
   echo "-c D   Exports metrics as prom file for the prometheus node_exporter. Provide the collector textfile directory."
+  echo "-C     Temporarily use default configs - override dockcheck.config file."
   echo "-d N   Only update to new images that are N+ days old. Lists too recent with +prefix and age. 2xSlower."
   echo "-e X   Exclude containers, separated by comma."
+  echo "-E X   Exclude containers from applying updates but check available, separated by comma."
   echo "-f     Force stop+start stack after update. Caution: restarts once for every updated container within stack."
   echo "-F     Only compose up the specific container, not the whole compose stack (useful for master-compose structure)."
   echo "-h     Print this Help."
@@ -34,7 +36,8 @@ Help() {
   echo "-m     Monochrome mode, no printf colour codes and hides progress bar."
   echo "-M     Prints custom releasenote urls as markdown (requires template support)."
   echo "-n     No updates; only checking availability without interaction."
-  echo "-o     Hides the \"No updates available\" message" and only shows updateable images
+  echo "-N     No updates or checks; simulating updates to test notifications unconditionally."
+  echo "-o     Hides the \"No updates available\" message and only shows updateable images."
   echo "-p     Auto-prune dangling images after update. Ignored when -b is used."
   echo "-r     Allow checking/updating images created by 'docker run', containers need to be recreated manually."
   echo "-R     Skip container recreation after pulling images."
@@ -47,14 +50,16 @@ Help() {
   echo "Project source: $Github"
 }
 
-while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
+while getopts "ayb:BCfFhiIlmMnNoprsuvc:e:E:d:t:x:R" options; do
   case "${options}" in
     a|y) AutoMode=true ;;
     b)   BackupForDays="${OPTARG}" ;;
-    B)   print_backups; exit 0 ;;
+    B)   PrintBackups=true ;;
     c)   CollectorTextFileDirectory="${OPTARG}" ;;
+    C)   DefaultConfig=true ;;
     d)   DaysOld=${OPTARG} ;;
     e)   Exclude=${OPTARG} ;;
+    E)   ExcludeUpdate=${OPTARG} ;;
     f)   ForceRestartStacks=true ;;
     F)   OnlySpecific=true ;;
     i)   Notify=true ;;
@@ -63,10 +68,11 @@ while getopts "ayb:BfFhiIlmMnoprsuvc:e:d:t:x:R" options; do
     m)   MonoMode=true ;;
     M)   PrintMarkdownURL=true ;;
     n)   DontUpdate=true; AutoMode=true;;
+    N)   DontUpdate=true; AutoMode=true; Notify=true; TestNotify=true ;;
     o)   OnlyShowUpdateable=true ;;
     p)   AutoPrune=true ;;
-    R)   SkipRecreate=true ;;
     r)   DRunUp=true ;;
+    R)   SkipRecreate=true ;;
     s)   Stopped="-a" ;;
     t)   Timeout="${OPTARG}" ;;
     u)   AutoSelfUpdate=true ;;
@@ -89,8 +95,10 @@ source_if_exists_or_fail() {
   fi
 }
 
-# User customizable defaults
-source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+# Source user customizable config file
+if [[ "${DefaultConfig:-false}" == false ]]; then
+  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+fi
 
 # Initialise variables
 Timeout=${Timeout:-10}
@@ -102,6 +110,7 @@ AutoPrune=${AutoPrune:-false}
 AutoSelfUpdate=${AutoSelfUpdate:-false}
 OnlyLabel=${OnlyLabel:-false}
 Notify=${Notify:-false}
+TestNotify=${TestNotify:-false}
 ForceRestartStacks=${ForceRestartStacks:-false}
 DRunUp=${DRunUp:-false}
 MonoMode=${MonoMode:-false}
@@ -110,13 +119,16 @@ PrintMarkdownURL=${PrintMarkdownURL:-false}
 Stopped=${Stopped:-""}
 CollectorTextFileDirectory=${CollectorTextFileDirectory:-}
 Exclude=${Exclude:-}
+ExcludeUpdate=${ExcludeUpdate:-}
 DaysOld=${DaysOld:-}
 BackupForDays=${BackupForDays:-}
 OnlyShowUpdateable=${OnlyShowUpdateable:-false}
 OnlySpecific=${OnlySpecific:-false}
+PrintBackups=${PrintBackups:-false}
 SpecificContainer=${SpecificContainer:-""}
 SkipRecreate=${SkipRecreate:-false}
 Excludes=()
+ExcludeUpdates=()
 GotUpdates=()
 NoUpdates=()
 GotErrors=()
@@ -150,6 +162,8 @@ if [[ ! -z "$SearchName" ]]; then
   SearchName="^(${SearchName//,/|})$"
 fi
 
+[[ "$TestNotify" == true ]] && printf "\n%bTesting notifications by pretending everything got updates.%b\n\n" "$c_red" "$c_reset"
+
 # Check if there's a new release of the script
 LatestSnippet="$(curl ${CurlArgs} -r 0-200 "$RawUrl" || printf "undefined")"
 LatestRelease="$(echo "${LatestSnippet}" | sed -n "/VERSION/s/VERSION=//p" | tr -d '"')"
@@ -168,6 +182,10 @@ if [[ "$Notify" == true ]]; then
 fi
 if [[ -n "$Exclude" ]]; then
   IFS=',' read -ra Excludes <<< "$Exclude"
+  unset IFS
+fi
+if [[ -n "$ExcludeUpdate" ]]; then
+  IFS=',' read -ra ExcludeUpdates <<< "$ExcludeUpdate"
   unset IFS
 fi
 if [[ -n "$DaysOld" ]]; then
@@ -416,7 +434,7 @@ dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/down
 # Numbered List function - pads with zero
 list_options() {
   local total="${#Updates[@]}"
-  [[ ${#total} < 2 ]] && local pads=2 || local pads="${#total}"
+  [[ ${#total} -lt 2 ]] && local pads=2 || local pads="${#total}"
   local num=1
   for update in "${Updates[@]}"; do
     printf "%0*d - %s\n" "$pads" "$num" "$update"
@@ -428,17 +446,19 @@ list_options() {
 if [[ "$LatestSnippet" != "undefined" ]]; then
   if [[ "$VERSION" != "$LatestRelease" ]]; then
     printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
+    [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
     if [[ "$AutoMode" == false ]]; then
       read -r -p "Would you like to update? y/[n]: " SelfUpdate
       [[ "$SelfUpdate" =~ [yY] ]] && self_update
     elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]]; then self_update;
-    else
-      [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
     fi
   fi
 else
   printf "ERROR: Failed to curl latest Dockcheck.sh release version.\n"
 fi
+
+# Send custom dockcheck notification when testing
+[[ "$TestNotify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "v0.X.X" "v0.Y.Y" "TEST of notifications triggered." || printf "Could not source notification function.\n" ; }
 
 # Version check for notify templates
 [[ "$Notify" == true ]] && [[ ! -s "${ScriptWorkDir}/notify.sh" ]] && { exec_if_exists_or_fail notify_update_notification || printf "Could not source notify notification function.\n"; }
@@ -505,8 +525,11 @@ check_image() {
   RepoUrl=$(docker inspect "$i" --format='{{.Config.Image}}')
   LocalHash=$(docker image inspect "$ImageId" --format '{{.RepoDigests}}')
 
+  # Trigger notification test if set, to avoid unnecessary checks
+  if [[ "$TestNotify" == true ]]; then
+    printf "%s\n" "GotUpdates $i"
   # Checking for errors while setting the variable
-  if RegHash=$($t_out "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
+  elif RegHash=$($t_out "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
     if [[ "$LocalHash" == *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
     else
@@ -524,7 +547,7 @@ check_image() {
 # Make required functions and variables available to subprocesses
 export -f check_image datecheck
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
-export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch
+export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch TestNotify
 
 # Check for POSIX xargs with -P option, fallback without async
 if (echo "test" | xargs -P 2 >/dev/null 2>&1) && [[ "$MaxAsync" != 0 ]]; then
@@ -598,6 +621,14 @@ if [[ -n "${GotUpdates:-}" ]]; then
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
   if [[ "$DontUpdate" == false ]]; then
+
+    if [[ -n ${ExcludeUpdates[*]:-} ]]; then
+      printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
+      printf "%s\n" "${ExcludeUpdates[@]}"
+      # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
+      SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
+    fi
+
     printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
     printf "%s\n" "${SelectedUpdates[@]}"
 
@@ -704,7 +735,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
           # Restart if compose path has not already been restarted
-          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]]; then # Restart if stack has not already been restarted
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]]; then
             if ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d; then
               RestartedStacks+=("$ContPath")
             else
@@ -715,7 +746,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
           fi
         else
           # Restart if compose path has not already been restarted or specific container(s) are configured to be restarted individually
-          if [[ "${RestartedStacks[@]}" != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
             if ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer}; then
               # Consider stack restarted only if specific container is not set
               if [[ -z "${SpecificContainer:-}" ]]; then
