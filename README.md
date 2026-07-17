@@ -24,9 +24,12 @@ ___
 ## Changelog
 
 - **v0.8.0**:
+    - **NEW**: Added *Home Assistant* event integration.
     - **NEW**: Added option `-E` to exclude from updating, while still checking for updates.
-    - **NEW**: Added option `-C` to temporaily fall back to default configs, ignoring `dockcheck.config`.
+    - **NEW**: Added option `-C` to temporarily fall back to default configs, ignoring `dockcheck.config`.
     - **NEW**: Added option `-N` to test notifications by simulating updates.
+    - **NEW**: More URLs to urls.list.
+    - **FIX**: Docker restart/pull handling rework to avoid restarting already restarted stacks and skip failed pulls.
     - **FIX**: Clarified *Image backups* restoration section in the readme.
     - **FIX**: Changed some array variable handling to be more compatible.
     - **FIX**: Script update notification consistency, didn't always trigger.
