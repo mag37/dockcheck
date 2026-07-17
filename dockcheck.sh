@@ -435,8 +435,16 @@ dependency_check "jq" "jqbin" "https://github.com/jqlang/jq/releases/latest/down
 list_options() {
   local total="${#Updates[@]}"
   [[ ${#total} -lt 2 ]] && local pads=2 || local pads="${#total}"
+  local expads; expads=$(printf '%*s' "$pads" "" | tr ' ' '*')
   local num=1
   for update in "${Updates[@]}"; do
+    if [[ -n ${ExcludeUpdates[*]:-} ]]; then # prefix containers excluded from updates with **
+      for e in "${ExcludeUpdates[@]}"; do
+        if [[ "$update" == "$e" ]]; then
+          printf "%s - %s\n" "$expads" "$update" ; continue 2
+        fi
+       done
+    fi
     printf "%0*d - %s\n" "$pads" "$num" "$update"
     ((num++))
   done
@@ -477,7 +485,7 @@ fi
 
 # Listing typed exclusions
 if [[ -n ${Excludes[*]:-} ]]; then
-  printf "\n%bExcluding these names:%b\n" "$c_blue" "$c_reset"
+  printf "\n%bExcluding container(s) completely:%b\n" "$c_blue" "$c_reset"
   printf "%s\n" "${Excludes[@]}"
   printf "\n"
 fi
@@ -614,6 +622,9 @@ fi
 
 # Optionally get updates if there's any
 if [[ -n "${GotUpdates:-}" ]]; then
+  if [[ -n ${ExcludeUpdates[*]:-} ]]; then
+    printf "\n%b** = explicitly excluded from being updated%b\n" "$c_blue" "$c_reset"
+  fi
   if [[ "$AutoMode" == false ]]; then
     printf "\n%bChoose what containers to update.%b\n" "$c_teal" "$c_reset"
     choosecontainers
@@ -623,8 +634,6 @@ if [[ -n "${GotUpdates:-}" ]]; then
   if [[ "$DontUpdate" == false ]]; then
 
     if [[ -n ${ExcludeUpdates[*]:-} ]]; then
-      printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
-      printf "%s\n" "${ExcludeUpdates[@]}"
       # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
       SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
     fi
