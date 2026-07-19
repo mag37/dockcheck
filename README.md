@@ -138,6 +138,23 @@ wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockc
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
+## Docker Compose 
+
+**Warning** - Mounting the docker socket with full permissions.  
+
+Use the [compose-example.yaml](compose-example.yaml) and setup the `dockcheck.config` file as you wish.  
+Make sure the docker project volumes match 1:1 between the host and inside the container.  
+
+Or run it once, interactively with docker run (excluding config+crontab in this example): 
+```sh
+docker run -it \
+  -v /etc/localtime:/etc/localtime:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /path/to/projects/docker/:/path/to/projects/docker/\
+  mag37/dockcheck ./dockcheck.sh -x 10
+```
+<sub><sup>Thanks to [vorezal](https://github.com/vorezal).</sup></sub>
+
 ## Configuration
 
 To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/`.  
