@@ -142,9 +142,14 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 
 **Warning** - Mounting the docker socket with full permissions.  
 
-Use the [compose-example.yaml](compose-example.yaml) and setup the `dockcheck.config` file as you wish.  
+Either use the [compose-example-configfile.yml](compose-example-configfile.yml) together with setting up a `dockcheck.config` with your notification settings and options. Or use the [compose-example-envvars.yml](compose-example-envvars.yml) and set everything as environment varialbes (use the [default.config](default.config) as reference).
+
 Make sure the docker project volumes match 1:1 between the host and inside the container.  
 
+If you'd like to run it interactively (while having the container running), for example:
+```sh
+docker exec -it dockcheck ./dockcheck.sh -e container1 -x 10
+```
 Or run it once, interactively with docker run (excluding config+crontab in this example): 
 ```sh
 docker run -it \
@@ -153,6 +158,7 @@ docker run -it \
   -v /path/to/projects/docker/:/path/to/projects/docker/\
   mag37/dockcheck ./dockcheck.sh -x 10
 ```
+
 <sub><sup>Thanks to [vorezal](https://github.com/vorezal).</sup></sub>
 
 ## Configuration
