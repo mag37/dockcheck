@@ -1,6 +1,6 @@
 ---
 ## Alternative compose file to use without `dockcheck.config` 
-## And instead use environment variables to do configure 
+## And instead use environment variables to configure 
 ## See the `default.config` for available variables/settings
 services:
   dockcheck:
