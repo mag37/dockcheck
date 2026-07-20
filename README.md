@@ -66,6 +66,7 @@ Options:
 -M     Prints custom releasenote urls as markdown (requires template support).
 -n     No updates, only checking availability.
 -N     No updates or checks; simulating updates to test notifications unconditionally.
+-o     Hides the \"No updates available\" message and only shows updateable images.
 -p     Auto-Prune dangling images after update. Ignored when -b is used.
 -r     Allow checking/updating images created by `docker run`, containers need to be recreated manually.
 -R     Skip container recreation after pulling images.
