@@ -1,0 +1,26 @@
+---
+## Alternative compose file to use without `dockcheck.config` 
+## And instead use environment variables to do configure 
+## See the `default.config` for available variables/settings
+services:
+  dockcheck:
+    container_name: dockcheck
+    hostname: dockerHostXYZ # The name that will be used in notifications
+    image: mag37/dockcheck:latest
+    restart: unless-stopped
+    environment:
+      # Notification setup:
+      NOTIFY_CHANNELS: "xmpp"
+      XMPP_SOURCE_JID: "nickname@domain.tld"
+      XMPP_SOURCE_PWD: "Your-Safe-Password123"
+      XMPP_DEST_JID: "nickname@domain.tld"
+      # Extra configs:
+      BackupForDays: "5"
+      Exclude: "containerone,containertwo"
+      # Crontab setup:
+      CRON_SCHEDULE: "0 */3 * * *"
+      DOCKCHECK_ARGS: "-mniI -x 10"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock # Beware - Full access
+      - /path/to/projects/docker:/path/to/projects/docker:ro # Match path 1:1
