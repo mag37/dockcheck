@@ -23,6 +23,9 @@ ___
 
 ## Changelog
 
+- **v0.8.1**:
+    - **NEW**: Added *Docker Compose* - possibilty to run dockcheck fully containerized.
+    - **FIX**: Clarified interactive output around `-E` (exclude from update).
 - **v0.8.0**:
     - **NEW**: Added *Home Assistant* event integration.
     - **NEW**: Added option `-E` to exclude from updating, while still checking for updates.
@@ -34,14 +37,6 @@ ___
     - **FIX**: Changed some array variable handling to be more compatible.
     - **FIX**: Script update notification consistency, didn't always trigger.
     - **FIX**: Function call to print current backups, some environments didn't source the function.
-- **v0.7.8**:
-    - **NEW**: More URLs to urls.list.
-    - **NEW**: Added option `-o` to hide "No Updates available" and only output updateable images.
-    - **FIX**: Bugfix and tag support in Apprise template. by @mag37 in https://github.com/mag37/dockcheck/pull/276
-    - **FIX**: Clarify interaction between `-b` and `-p` options by @alaaalii in https://github.com/mag37/dockcheck/pull/277
-      - When `-b` is used the `-p` option is ignored - as pruning is respecting backups.
-    - **FIX**: File notification and JSON format rework.
-
 
 ![example.gif](extras/example.gif)
 
@@ -136,7 +131,7 @@ wget -O ~/.local/bin/dockcheck.sh "https://raw.githubusercontent.com/mag37/dockc
 Then call the script anywhere with just `dockcheck.sh`.
 Add preferred `notify.sh`-template to the same directory - this will not be touched by the scripts self-update function.
 
-## Docker Compose 
+## Docker Compose
 
 **Warning** - Mounting the docker socket with full permissions.  
 
@@ -148,13 +143,13 @@ If you'd like to run it interactively (while having the container running), for 
 ```sh
 docker exec -it dockcheck ./dockcheck.sh -e container1 -x 10
 ```
-Or run it once, interactively with docker run (excluding config+crontab in this example): 
+Or run it once, interactively with docker run (excluding config+crontab in this example):
 ```sh
 docker run -it \
   -v /etc/localtime:/etc/localtime:ro \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /path/to/projects/docker/:/path/to/projects/docker/\
-  mag37/dockcheck ./dockcheck.sh -x 10
+  mag37/dockcheck ./dockcheck.sh -x 10 -b 5
 ```
 
 <sub><sup>Thanks to [vorezal](https://github.com/vorezal).</sup></sub>

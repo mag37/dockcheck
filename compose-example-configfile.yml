@@ -1,3 +1,6 @@
+---
+## Main compose file example to use with setting configuration
+## with the `dockcheck.config` just as you would non-containerized
 services:
   dockcheck:
     container_name: dockcheck
@@ -10,14 +13,14 @@ services:
       CRON_SCHEDULE: "0 */3 * * *" # Run every three hours
       DOCKCHECK_ARGS: "-mniI -x 10 -e container1" # Send notification + extra options
       CRON_SCHEDULE_1: "30 1 * * *" # Run nightly at 1:30
-      DOCKCHECK_ARGS_1: "-milap" # Send notification, update labeled containers, prune 
+      DOCKCHECK_ARGS_1: "-milap" # Send notification, update labeled containers, prune
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock # Beware - full access
       - ./dockcheck.config:/app/dockcheck.config # Define your notifications and settings
       # Volume mappings to your Docker project directories, can be multiple paths
       # Has to match 1:1 outside on host and inside the container
-      - /path/to/projects/docker:/path/to/projects/docker:ro  
-      # Optional volume to enable displaying releasenote urls, 
-      # can alternatively reference the `./notify_templates/urls.list` 
-      # - ./urls.list/:/app/urls.list 
+      - /path/to/projects/docker:/path/to/projects/docker:ro
+      # Optional volume to enable displaying releasenote urls,
+      # can alternatively reference the `./notify_templates/urls.list`
+      # - ./urls.list/:/app/urls.list
