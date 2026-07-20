@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.8.0"
-# ChangeNotes: New options -C, -N and -E. Some bugfixes and cleanups.
+VERSION="v0.8.1"
+# ChangeNotes: Dockerized Dockcheck see README! and clarification to -E option output.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -622,7 +622,7 @@ fi
 
 # Optionally get updates if there's any
 if [[ -n "${GotUpdates:-}" ]]; then
-  if [[ -n ${ExcludeUpdates[*]:-} ]]; then
+  if [[ -n ${ExcludeUpdates[*]:-} ]] && [[ "$AutoMode" == false ]]; then
     printf "\n%b** = explicitly excluded from being updated%b\n" "$c_blue" "$c_reset"
   fi
   if [[ "$AutoMode" == false ]]; then
@@ -636,6 +636,10 @@ if [[ -n "${GotUpdates:-}" ]]; then
     if [[ -n ${ExcludeUpdates[*]:-} ]]; then
       # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
       SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
+      if [[ "$AutoMode" == true ]]; then
+        printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
+        printf "%s\n" "${ExcludeUpdates[@]}"
+      fi
     fi
 
     printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
