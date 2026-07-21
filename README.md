@@ -24,7 +24,7 @@ ___
 ## Changelog
 
 - **v0.8.1**:
-    - **NEW**: Added *Docker Compose* - possibilty to run dockcheck fully containerized.
+    - **NEW**: Added *Docker Compose* - possibility to run dockcheck fully containerized.
     - **FIX**: Clarified interactive output around `-E` (exclude from update).
 - **v0.8.0**:
     - **NEW**: Added *Home Assistant* event integration.
