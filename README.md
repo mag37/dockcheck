@@ -143,6 +143,8 @@ Make sure the docker project volumes match 1:1 between the host and inside the c
 If you'd like to run it interactively (while having the container running), for example:
 ```sh
 docker exec -it dockcheck ./dockcheck.sh -e container1 -x 10
+## or create an alias:
+alias dockcheck="docker exec -it dockcheck ./dockcheck.sh"
 ```
 Or run it once, interactively with docker run (excluding config+crontab in this example):
 ```sh
