@@ -188,6 +188,9 @@ if [[ -n "$ExcludeUpdate" ]]; then
   IFS=',' read -ra ExcludeUpdates <<< "$ExcludeUpdate"
   unset IFS
 fi
+if [[ -n "$DOCKCHECK_ARGS" ]]; then # If containerized - add itself to be excluded for now
+  ExcludeUpdates+=("dockcheck")
+fi
 if [[ -n "$DaysOld" ]]; then
   if ! [[ $DaysOld =~ ^[0-9]+$ ]]; then
     printf "Days -d argument given (%s) is not a number.\n" "$DaysOld"
