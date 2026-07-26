@@ -188,7 +188,7 @@ if [[ -n "$ExcludeUpdate" ]]; then
   IFS=',' read -ra ExcludeUpdates <<< "$ExcludeUpdate"
   unset IFS
 fi
-if [[ -n "$CONTAINERIZED_DC" ]]; then # If containerized - add itself to be excluded for now
+if [[ -n "${CONTAINERIZED_DC:-}" ]]; then # If containerized - add itself to be excluded for now
   ExcludeUpdates+=("dockcheck")
 fi
 if [[ -n "$DaysOld" ]]; then
