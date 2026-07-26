@@ -188,7 +188,7 @@ if [[ -n "$ExcludeUpdate" ]]; then
   IFS=',' read -ra ExcludeUpdates <<< "$ExcludeUpdate"
   unset IFS
 fi
-if [[ -n "$DOCKCHECK_ARGS" ]]; then # If containerized - add itself to be excluded for now
+if [[ -n "$CONTAINERIZED_DC" ]]; then # If containerized - add itself to be excluded for now
   ExcludeUpdates+=("dockcheck")
 fi
 if [[ -n "$DaysOld" ]]; then
@@ -458,10 +458,10 @@ if [[ "$LatestSnippet" != "undefined" ]]; then
   if [[ "$VERSION" != "$LatestRelease" ]]; then
     printf "New version available! %b%s%b ⇒ %b%s%b \n Change Notes: %s \n" "$c_yellow" "$VERSION" "$c_reset" "$c_green" "$LatestRelease" "$c_reset" "$LatestChanges"
     [[ "$Notify" == true ]] && { exec_if_exists_or_fail dockcheck_notification "$VERSION" "$LatestRelease" "$LatestChanges" || printf "Could not source notification function.\n"; }
-    if [[ -z "${DOCKCHECK_ARGS:-}" ]] && [[ "$AutoMode" == false ]]; then
+    if [[ -z "${CONTAINERIZED_DC:-}" ]] && [[ "$AutoMode" == false ]]; then
       read -r -p "Would you like to update? y/[n]: " SelfUpdate
       [[ "$SelfUpdate" =~ [yY] ]] && self_update
-    elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]] && [[ -z "${DOCKCHECK_ARGS:-}" ]]; then self_update;
+    elif [[ "$AutoMode" == true ]] && [[ "$AutoSelfUpdate" == true ]] && [[ -z "${CONTAINERIZED_DC:-}" ]]; then self_update;
     fi
   fi
 else
