@@ -439,17 +439,17 @@ list_options() {
   local total="${#Updates[@]}"
   [[ ${#total} -lt 2 ]] && local pads=2 || local pads="${#total}"
   local expads; expads=$(printf '%*s' "$pads" "" | tr ' ' '*')
-  local num=1
+  local num=0
   for update in "${Updates[@]}"; do
+    ((num++))
     if [[ -n ${ExcludeUpdates[*]:-} ]]; then # prefix containers excluded from updates with **
       for e in "${ExcludeUpdates[@]}"; do
         if [[ "$update" == "$e" ]]; then
           printf "%s - %s\n" "$expads" "$update" ; continue 2
         fi
-       done
+      done
     fi
     printf "%0*d - %s\n" "$pads" "$num" "$update"
-    ((num++))
   done
 }
 
