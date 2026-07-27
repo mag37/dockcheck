@@ -17,6 +17,9 @@ COPY addons /app/addons
 RUN chmod +x /app/dockcheck.sh
 RUN chmod +x /app/entrypoint.sh
 
+# Environment variable usable to know if its containerized
+ENV CONTAINERIZED_DC=true
+
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run the cron daemon in the foreground and tail the log file to keep the container running
