@@ -23,6 +23,10 @@ ___
 
 ## Changelog
 
+
+- **v0.8.2**:
+    - **FIX**: Blocking any self-updates when containerized (both script and image).
+    - **FIX**: Only print exclusion message when excluded container actually has an update.
 - **v0.8.1**:
     - **NEW**: Added *Docker Compose* - possibility to run dockcheck fully containerized.
     - **FIX**: Clarified interactive output around `-E` (exclude from update).
