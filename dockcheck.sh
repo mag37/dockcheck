@@ -445,6 +445,7 @@ list_options() {
     if [[ -n ${ExcludeUpdates[*]:-} ]]; then # prefix containers excluded from updates with **
       for e in "${ExcludeUpdates[@]}"; do
         if [[ "$update" == "$e" ]]; then
+          UpdateGotExcluded=true
           printf "%s - %s\n" "$expads" "$update" ; continue 2
         fi
       done
@@ -625,7 +626,7 @@ fi
 
 # Optionally get updates if there's any
 if [[ -n "${GotUpdates:-}" ]]; then
-  if [[ -n ${ExcludeUpdates[*]:-} ]] && [[ "$AutoMode" == false ]]; then
+  if [[ "${UpdateGotExcluded:-}" == true ]] && [[ "$AutoMode" == false ]]; then
     printf "\n%b** = explicitly excluded from being updated%b\n" "$c_blue" "$c_reset"
   fi
   if [[ "$AutoMode" == false ]]; then
