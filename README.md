@@ -135,6 +135,7 @@ Add preferred `notify.sh`-template to the same directory - this will not be touc
 ## Docker Compose
 
 **Warning** - Mounting the docker socket with full permissions.  
+**Info** - The dockcheck container is currently required to be manually updated, self-updates blocked.  
 
 Either use the [compose-example-configfile.yml](compose-example-configfile.yml) together with setting up a `dockcheck.config` with your notification settings and options. Or use the [compose-example-envvars.yml](compose-example-envvars.yml) and set everything as environment varialbes (use the [default.config](default.config) as reference).
 

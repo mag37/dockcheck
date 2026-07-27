@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.8.1"
-# ChangeNotes: Dockerized Dockcheck see README! and clarification to -E option output.
+VERSION="v0.8.2"
+# ChangeNotes: Blocking dockcheck self updates when containerized due to breakage.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
