@@ -13,6 +13,23 @@ ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
 
+# Source helper function
+source_if_exists_or_fail() {
+  if [[ -s "$1" ]]; then
+    source "$1"
+    # DisplaySourcedFiles used for debugging purposes only
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Source user customizable config file
+if [[ ! ${ScriptArgs[*]} =~ "-C" ]]; then
+  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+fi
+
 # Help Function
 Help() {
   echo "Syntax:     dockcheck.sh [OPTION] [comma separated names to include]"
@@ -82,23 +99,6 @@ while getopts "ayb:BCfFhiIlmMnNoprsuvc:e:E:d:t:x:R" options; do
   esac
 done
 shift "$((OPTIND-1))"
-
-# Source helper function
-source_if_exists_or_fail() {
-  if [[ -s "$1" ]]; then
-    source "$1"
-    # DisplaySourcedFiles used for debugging purposes only
-    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Source user customizable config file
-if [[ "${DefaultConfig:-false}" == false ]]; then
-  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
-fi
 
 # Initialise variables
 Timeout=${Timeout:-10}
