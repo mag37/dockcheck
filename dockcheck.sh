@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.8.2"
-# ChangeNotes: Blocking dockcheck self updates when containerized due to breakage.
+VERSION="v0.8.3"
+# ChangeNotes: CLI options always override, fixing composes sharing same directory, cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -12,6 +12,23 @@ shopt -s failglob
 ScriptArgs=( "$@" )
 ScriptPath="$(readlink -f "$0")"
 ScriptWorkDir="$(dirname "$ScriptPath")"
+
+# Source helper function
+source_if_exists_or_fail() {
+  if [[ -s "$1" ]]; then
+    source "$1"
+    # DisplaySourcedFiles used for debugging purposes only
+    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Source user customizable config file
+if [[ ! ${ScriptArgs[*]} =~ "-C" ]]; then
+  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+fi
 
 # Help Function
 Help() {
@@ -82,23 +99,6 @@ while getopts "ayb:BCfFhiIlmMnNoprsuvc:e:E:d:t:x:R" options; do
   esac
 done
 shift "$((OPTIND-1))"
-
-# Source helper function
-source_if_exists_or_fail() {
-  if [[ -s "$1" ]]; then
-    source "$1"
-    # DisplaySourcedFiles used for debugging purposes only
-    [[ "${DisplaySourcedFiles:-false}" == true ]] && echo " * sourced config: ${1}"
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Source user customizable config file
-if [[ "${DefaultConfig:-false}" == false ]]; then
-  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
-fi
 
 # Initialise variables
 Timeout=${Timeout:-10}
@@ -635,17 +635,17 @@ if [[ -n "${GotUpdates:-}" ]]; then
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [[ "$DontUpdate" == false ]]; then
 
-    if [[ -n ${ExcludeUpdates[*]:-} ]]; then
-      # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
-      SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
-      if [[ "$AutoMode" == true ]]; then
-        printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
-        printf "%s\n" "${ExcludeUpdates[@]}"
-      fi
+  if [[ -n "${ExcludeUpdates[*]:-}" ]]; then
+    # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
+    SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
+    if [[ "$AutoMode" == true ]]; then
+      printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
+      printf "%s\n" "${ExcludeUpdates[@]}"
     fi
+  fi
 
+  if [[ "$DontUpdate" == false ]] && [[ -n "${SelectedUpdates[*]:-}" ]]; then
     printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
     printf "%s\n" "${SelectedUpdates[@]}"
 
@@ -690,7 +690,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
           SuccessfulUpdates+=("$i")
       else
-        printf "\n%bError pulling update for %S. Skipping. %b\n" "$c_red" "$i" "$c_reset"
+        printf "\n%bError pulling update for %s. Skipping. %b\n" "$c_red" "$i" "$c_reset"
         FailedUpdates+=("$i")
       fi
 
@@ -699,7 +699,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
     if [[ "$SkipRecreate" == true ]]; then
       printf "%bSkipping container recreation due to -R.%b\n" "$c_yellow" "$c_reset"
-    else
+    elif [[ -n "${SuccessfulUpdates[*]:-}" ]]; then
       printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
       RestartedStacks=()
       CurrentQue=0
@@ -752,9 +752,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
           # Restart if compose path has not already been restarted
-          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]]; then
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContConfigFile"* ]]; then
             if ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d; then
-              RestartedStacks+=("$ContPath")
+              RestartedStacks+=("$ContConfigFile")
             else
               printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
             fi
@@ -763,11 +763,11 @@ if [[ -n "${GotUpdates:-}" ]]; then
           fi
         else
           # Restart if compose path has not already been restarted or specific container(s) are configured to be restarted individually
-          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContConfigFile"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
             if ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer}; then
               # Consider stack restarted only if specific container is not set
               if [[ -z "${SpecificContainer:-}" ]]; then
-                RestartedStacks+=("$ContPath")
+                RestartedStacks+=("$ContConfigFile")
               fi
             else
               printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
