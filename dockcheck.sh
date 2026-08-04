@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.8.2"
-# ChangeNotes: Blocking dockcheck self updates when containerized due to breakage.
+VERSION="v0.8.3"
+# ChangeNotes: CLI options always override, fixing composes sharing same directory, cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -690,7 +690,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
         if [[ ! -z "${ContRepoDigests:-}" ]] && [[ -n "${BackupForDays:-}" ]]; then docker rmi "$ContRepoDigests"; fi
           SuccessfulUpdates+=("$i")
       else
-        printf "\n%bError pulling update for %S. Skipping. %b\n" "$c_red" "$i" "$c_reset"
+        printf "\n%bError pulling update for %s. Skipping. %b\n" "$c_red" "$i" "$c_reset"
         FailedUpdates+=("$i")
       fi
 

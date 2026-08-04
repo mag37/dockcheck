@@ -24,6 +24,10 @@ ___
 ## Changelog
 
 
+- **v0.8.3**:
+    - **FIX**: Using the full compose file path to determine if a container already got restarted.
+    - **FIX**: Sourcing the `dockcheck.config` earlier so CLI always take precedence.
+    - **FIX**: Only print update process messages when actually processing updates.
 - **v0.8.2**:
     - **FIX**: Blocking any self-updates when containerized (both script and image).
     - **FIX**: Only print exclusion message when excluded container actually has an update.
