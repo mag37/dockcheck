@@ -752,9 +752,9 @@ if [[ -n "${GotUpdates:-}" ]]; then
         # Check if the whole stack should be restarted
         if [[ "$ContRestartStack" == true ]] || [[ "$ForceRestartStacks" == true ]]; then
           # Restart if compose path has not already been restarted
-          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]]; then
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContConfigFile"* ]]; then
             if ${DockerBin} ${CompleteConfs} down; ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d; then
-              RestartedStacks+=("$ContPath")
+              RestartedStacks+=("$ContConfigFile")
             else
               printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
             fi
@@ -763,11 +763,11 @@ if [[ -n "${GotUpdates:-}" ]]; then
           fi
         else
           # Restart if compose path has not already been restarted or specific container(s) are configured to be restarted individually
-          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContPath"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
+          if [[ ${RestartedStacks[*]+"${RestartedStacks[@]}"} != *"$ContConfigFile"* ]] || [[ -n "${SpecificContainer:-}" ]]; then
             if ${DockerBin} ${CompleteConfs} ${ContEnvs} up -d ${SpecificContainer}; then
               # Consider stack restarted only if specific container is not set
               if [[ -z "${SpecificContainer:-}" ]]; then
-                RestartedStacks+=("$ContPath")
+                RestartedStacks+=("$ContConfigFile")
               fi
             else
               printf "\n%bFailed to recreate $i, skipping.%b\n" "$c_red" "$c_reset"
