@@ -635,17 +635,17 @@ if [[ -n "${GotUpdates:-}" ]]; then
   else
     SelectedUpdates=( "${GotUpdates[@]}" )
   fi
-  if [[ "$DontUpdate" == false ]]; then
 
-    if [[ -n ${ExcludeUpdates[*]:-} ]]; then
-      # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
-      SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
-      if [[ "$AutoMode" == true ]]; then
-        printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
-        printf "%s\n" "${ExcludeUpdates[@]}"
-      fi
+  if [[ -n "${ExcludeUpdates[*]:-}" ]]; then
+    # ExcludeUpdates twice to never be unique to avoid adding non-existent containers
+    SelectedUpdates=( $(printf "%s\n" "${SelectedUpdates[@]}" "${ExcludeUpdates[@]}" "${ExcludeUpdates[@]}" | sort | uniq -u) )
+    if [[ "$AutoMode" == true ]]; then
+      printf "\n%bExcluding container(s) from update:%b\n" "$c_blue" "$c_reset"
+      printf "%s\n" "${ExcludeUpdates[@]}"
     fi
+  fi
 
+  if [[ "$DontUpdate" == false ]] && [[ -n "${SelectedUpdates[*]:-}" ]]; then
     printf "\n%bUpdating container(s):%b\n" "$c_blue" "$c_reset"
     printf "%s\n" "${SelectedUpdates[@]}"
 
@@ -699,7 +699,7 @@ if [[ -n "${GotUpdates:-}" ]]; then
 
     if [[ "$SkipRecreate" == true ]]; then
       printf "%bSkipping container recreation due to -R.%b\n" "$c_yellow" "$c_reset"
-    else
+    elif [[ -n "${SuccessfulUpdates[*]:-}" ]]; then
       printf "%bRecreating updated containers.%b\n" "$c_blue" "$c_reset"
       RestartedStacks=()
       CurrentQue=0
