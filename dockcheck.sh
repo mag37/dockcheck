@@ -26,7 +26,7 @@ source_if_exists_or_fail() {
 }
 
 # Source user customizable config file
-if [[ ! ${ScriptArgs[*]} =~ "-C" ]]; then
+if [[ ! ${ScriptArgs[*]:-} =~ "-C" ]]; then
   source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
 fi
 
