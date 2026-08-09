@@ -318,7 +318,7 @@ dockcheck_notification() {
         local template=$(get_channel_template "${channel}")
 
         # Formats UpdToString variable per channel settings
-        format_output "dockcheck_update" "$(output_format "${channel}")" "Installed version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
+        format_output "dockcheck_update" "$(output_format "${channel}")" "dockcheck on $FromHost has update available\n\nInstalled version: <insert_text_iv>\nLatest version: <insert_text_lv>\n\nChangenotes: <insert_text_rn>\n" "$1" "$2" "$3"
 
         # Setting the MessageBody variable here.
         printf -v MessageBody "${FormattedOutput}"
