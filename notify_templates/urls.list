@@ -10,10 +10,12 @@ aiostreams https://github.com/Viren070/AIOStreams/releases
 altmount https://github.com/javi11/altmount/releases
 apprise-api https://github.com/linuxserver/docker-apprise-api/releases
 arcane https://github.com/getarcaneapp/arcane/releases
+arch-qbittorrentvpn https://github.com/binhex/arch-qbittorrentvpn/releases
 audiobookshelf https://github.com/advplyr/audiobookshelf/releases
 authentik_server https://github.com/goauthentik/authentik/releases
 authentik_worker https://github.com/goauthentik/authentik/releases
 autobrr https://github.com/autobrr/autobrr/releases
+autopulse https://github.com/dan-online/autopulse/releases
 barassistant https://github.com/karlomikus/bar-assistant//releases
 barassistant_api https://github.com/karlomikus/bar-assistant/releases
 bazarr https://github.com/morpheus65535/bazarr/releases
@@ -34,6 +36,7 @@ chadburn https://github.com/PremoWeb/chadburn/releases
 checkrr https://github.com/aetaric/checkrr/releases
 cinesync https://github.com/sureshfizzy/CineSync/releases
 cleanuperr https://github.com/flmorg/cleanuperr/releases
+clonarr https://github.com/ProphetSe7en/clonarr/releases
 cloudflare-bypass https://github.com/sarperavci/CloudflareBypassForScraping/releases
 collabora https://github.com/CollaboraOnline/online/releases
 comet https://github.com/g0ldyy/comet/releases
@@ -53,6 +56,7 @@ dlproxy https://github.com/Pukabyte/dlproxy/releases
 docker-db-auto-backup https://github.com/RealOrangeOne/docker-db-auto-backup/releases
 dockerproxy https://github.com/Tecnativa/docker-socket-proxy/releases
 dockge https://github.com/louislam/dockge/releases
+dockhand https://github.com/Finsys/dockhand/releases
 dozzle https://github.com/amir20/dozzle/releases
 dumb https://github.com/I-am-PUID-0/DUMB/releases
 esphome https://github.com/esphome/esphome/releases
@@ -87,6 +91,7 @@ jellyfin-auto-collections https://github.com/ghomasHudson/Jellyfin-Auto-Collecti
 jellyseerr https://github.com/Fallenbagel/jellyseerr/releases
 jellystat https://github.com/CyferShepard/Jellystat/releases
 karakeep https://github.com/karakeep-app/karakeep/releases
+ladder https://github.com/everywall/ladder/releases
 lazyjournal https://github.com/Lifailon/lazyjournal/releases
 librespeed https://github.com/librespeed/speedtest/releases
 lidarr https://github.com/Lidarr/Lidarr/releases/
@@ -95,6 +100,7 @@ linkwarden https://github.com/linkwarden/linkwarden/releases
 lubelogger https://github.com/hargata/lubelog/releases
 mattermost https://github.com/mattermost/mattermost/releases
 mealie https://github.com/mealie-recipes/mealie/releases
+medialyze https://github.com/frederikemmer/MediaLyze/releases
 mediathekarr https://github.com/PCJones/MediathekArr/releases
 meilisearch https://github.com/meilisearch/meilisearch/releases
 monica https://github.com/monicahq/monica/releases
@@ -113,6 +119,7 @@ outline https://github.com/outline/outline/releases
 owncast https://github.com/owncast/owncast/releases
 pangolin https://github.com/fosrl/pangolin/releases
 placeholdarr https://github.com/TheIndieArmy/placeholdarr/releases
+portainer https://github.com/portainer/portainer/releases
 postgresus https://github.com/RostislavDugin/postgresus/releases
 poznote https://github.com/timothepoznanski/poznote/releases
 profilarr https://github.com/Dictionarry-Hub/profilarr/releases
@@ -128,6 +135,7 @@ readarr https://github.com/Readarr/Readarr/releases
 readeck https://codeberg.org/readeck/readeck/releases
 recyclarr https://github.com/recyclarr/recyclarr/releases
 redis https://github.com/redis/redis/releases
+resolvarr https://github.com/ProphetSe7en/resolvarr/releases
 roundcubemail https://github.com/roundcube/roundcubemail/releases
 sabnzbd https://github.com/linuxserver/docker-sabnzbd/releases
 scannarr https://github.com/Pukabyte/scannarr/releases
@@ -145,6 +153,7 @@ sortarr https://github.com/Jaredharper1/Sortarr/releases
 speedtest-tracker https://github.com/alexjustesen/speedtest-tracker/releases
 stacks https://github.com/zelestcarlyone/stacks/releases
 stash https://github.com/stashapp/stash/releases
+stasharr https://github.com/enymawse/stasharr-portal/releases
 stirling-pdf https://github.com/Stirling-Tools/Stirling-PDF/releases
 stremio-iptv-addon https://github.com/Inside4ndroid/M3U-XCAPI-EPG-IPTV-Stremio/releases
 stremioserver https://github.com/Stremio/server-docker/releases
@@ -156,6 +165,7 @@ termix https://github.com/Termix-SSH/Termix/releases
 thelounge https://github.com/thelounge/thelounge/releases
 traefik https://github.com/traefik/traefik/releases
 umlautadaptarr https://github.com/PCJones/UmlautAdaptarr/releases
+umlautadaptarrex https://github.com/xpsony/UmlautAdaptarrEX/releases
 uptime-kuma https://github.com/louislam/uptime-kuma/releases
 vaultwarden-server https://github.com/dani-garcia/vaultwarden/releases
 vikunja https://github.com/go-vikunja/vikunja/releases
