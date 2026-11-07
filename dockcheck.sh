@@ -509,7 +509,7 @@ if [[ $t_out ]]; then
 else t_out=""
 fi
 
-# A manifest list changes when any architecture rebuilds, so only trust
+# Compare specific platform layers to mitigate false positives
 # a mismatch after comparing the layers of our own platform image.
 platform_current() {
   local ImageId="$1" RepoUrl="$2" Plat LocalLayers RemoteLayers
