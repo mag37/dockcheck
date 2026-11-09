@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-VERSION="v0.8.3"
-# ChangeNotes: CLI options always override, fixing composes sharing same directory, cleanups.
+VERSION="v0.8.4"
+# ChangeNotes: Extend valid configuration paths, fix to mitigate false positive updates, cleanups.
 Github="https://github.com/mag37/dockcheck"
 RawUrl="https://raw.githubusercontent.com/mag37/dockcheck/main/dockcheck.sh"
 
@@ -512,7 +512,6 @@ else t_out=""
 fi
 
 # Compare specific platform layers to mitigate false positives
-# a mismatch after comparing the layers of our own platform image.
 platform_current() {
   local ImageId="$1" RepoUrl="$2" Plat LocalLayers RemoteLayers
   Plat=$(docker image inspect "$ImageId" --format '{{.Os}}/{{.Architecture}}' 2>/dev/null) || return 1
