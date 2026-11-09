@@ -541,7 +541,7 @@ check_image() {
   if [[ "$TestNotify" == true ]]; then
     printf "%s\n" "GotUpdates $i"
   # Checking for errors while setting the variable
-  elif RegHash=$($t_out "$regbin" -v error image digest --list "$RepoUrl" 2>&1); then
+  elif RegHash=$($t_out "$regbin" -v error image digest "$RepoUrl" 2>&1); then
     if [[ "$LocalHash" == *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
     else
