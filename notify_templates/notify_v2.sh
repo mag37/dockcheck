@@ -1,4 +1,4 @@
-NOTIFY_V2_VERSION="v0.8"
+NOTIFY_V2_VERSION="v0.9"
 #
 # If migrating from an older notify template, remove your existing notify.sh file.
 # Leave (or place) this file in the "notify_templates" subdirectory within the same directory as the main dockcheck.sh script.
@@ -107,7 +107,7 @@ is_snoozed() {
     local found=$(grep -w "$1" "${SnoozeFile}" || printf "")
     if [[ -n "${found}" ]]; then
       read -a arr <<< "${found}"
-      CheckEpochSeconds=$(( $(date -d "${arr[1]}" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
+      CheckEpochSeconds=$(( $(date -d "${arr[1]/T/ }" +%s 2>/dev/null) + ${snooze} - 60 )) || CheckEpochSeconds=$(( $(date -f "%Y-%m-%d" -j "${arr[1]}" +%s) + ${snooze} - 60 ))
       if [[ "${CurrentEpochSeconds}" -le "${CheckEpochSeconds}" ]]; then
         printf "true"
       else
