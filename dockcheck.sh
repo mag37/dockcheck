@@ -511,6 +511,17 @@ if [[ $t_out ]]; then
 else t_out=""
 fi
 
+# Compare specific platform layers to mitigate false positives
+# a mismatch after comparing the layers of our own platform image.
+platform_current() {
+  local ImageId="$1" RepoUrl="$2" Plat LocalLayers RemoteLayers
+  Plat=$(docker image inspect "$ImageId" --format '{{.Os}}/{{.Architecture}}' 2>/dev/null) || return 1
+  [[ "$Plat" =~ ^[^/]+/[^/]+$ ]] || return 1
+  LocalLayers=$(docker image inspect "$ImageId" --format '{{json .RootFS.Layers}}' 2>/dev/null) || return 1
+  RemoteLayers=$($t_out "$regbin" -v error image inspect --platform "$Plat" --format '{{json .RootFS}}' "$RepoUrl" 2>&1 | "$jqbin" -c '.diff_ids' 2>/dev/null) || return 1
+  [[ -n "$RemoteLayers" && "$RemoteLayers" != "null" && "$LocalLayers" == "$RemoteLayers" ]]
+}
+
 check_image() {
   i="$1"
   local Excludes=($Excludes_string)
@@ -546,6 +557,8 @@ check_image() {
   elif RegHash=$($t_out "$regbin" -v error image digest "$RepoUrl" 2>&1); then
     if [[ "$LocalHash" == *"$RegHash"* ]]; then
       printf "%s\n" "NoUpdates $i"
+    elif platform_current "$ImageId" "$RepoUrl"; then
+      printf "%s\n" "NoUpdates $i"
     else
       if [[ -n "${DaysOld:-}" ]] && ! datecheck $("$regbin" -v error image inspect "$RepoUrl" --format='{{.Created}}' | cut -d" " -f1) "$DaysOld" ; then
         printf "%s\n" "NoUpdates +$i ${ImageAge}d"
@@ -559,7 +572,7 @@ check_image() {
 }
 
 # Make required functions and variables available to subprocesses
-export -f check_image datecheck
+export -f check_image datecheck platform_current
 export Excludes_string="${Excludes[*]:-}" # Can only export scalar variables
 export t_out regbin RepoUrl DaysOld DRunUp jqbin OnlyLabel RunTimestamp RunEpoch TestNotify
 
