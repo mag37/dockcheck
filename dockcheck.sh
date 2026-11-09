@@ -27,7 +27,9 @@ source_if_exists_or_fail() {
 
 # Source user customizable config file
 if [[ ! ${ScriptArgs[*]:-} =~ "-C" ]]; then
-  source_if_exists_or_fail "${HOME}/.config/dockcheck.config" || source_if_exists_or_fail "${ScriptWorkDir}/dockcheck.config"
+  for confdir in "${XDG_CONFIG_HOME:-$HOME/.config}" "${XDG_CONFIG_HOME:-$HOME/.config}/dockcheck" "${ScriptWorkDir}"; do
+    source_if_exists_or_fail "${confdir}/dockcheck.config" && break # stop sourcing after first success
+  done
 fi
 
 # Help Function
