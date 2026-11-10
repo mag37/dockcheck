@@ -24,6 +24,11 @@ ___
 ## Changelog
 
 
+- **v0.8.4**:
+    - **FIX**: Mitigated false positive updates by comparing specific layers upstream, not only hash.
+    - **FIX**: Extended valid paths where to look for `dockcheck.config`.
+    - **FIX**: Compatability fix in notification snooze date command.
+    - **FIX**: Removed deprecated argument `--list` from **regctl** call.
 - **v0.8.3**:
     - **FIX**: Using the full compose file path to determine if a container already got restarted.
     - **FIX**: Sourcing the `dockcheck.config` earlier so CLI always take precedence.
@@ -168,7 +173,7 @@ docker run -it \
 
 ## Configuration
 
-To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/`.  
+To modify settings and have them persist through updates - copy the `default.config` to `dockcheck.config` alongside the script or in `~/.config/` or `~/.config/dockcheck/` (or `$XDG_CONFIG_HOME`).  
 Alternatively create an alias where specific flags and values are set.  
 Example `alias dc=dockcheck.sh -p -x 10 -t 3`.
 
